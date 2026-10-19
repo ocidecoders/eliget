@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const http = require('http');
 const { Server } = require('socket.io');
+const rateLimit = require('express-rate-limit');
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -20,16 +21,70 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*', credentials: true } });
 
+// Trust Render reverse proxy so rate-limit sees real client IP
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
+
+const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || (process.env.NODE_ENV === 'production');
+const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || 'lax';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: COOKIE_SECURE,
+  sameSite: COOKIE_SAMESITE,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/'
+};
+const COOKIE_CLEAR_OPTIONS = {
+  httpOnly: true,
+  secure: COOKIE_SECURE,
+  sameSite: COOKIE_SAMESITE,
+  path: '/'
+};
+
+// ============ RATE LIMITERS ============
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  message: { message: "Too many requests from this IP. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  message: { message: "Too many login attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: { message: "Too many registration attempts. Please try again in 1 hour." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: "Too many password change attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', globalLimiter);
+
 app.get('/', (req, res) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.redirect('/login.html');
-  jwt.verify(token, process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production', (err) => {
-    if (err) { res.clearCookie('eliget_token'); return res.redirect('/login.html'); }
+  jwt.verify(token, JWT_SECRET, (err) => {
+    if (err) { res.clearCookie('eliget_token', COOKIE_CLEAR_OPTIONS); return res.redirect('/login.html'); }
     return res.redirect('/home.html');
   });
 });
@@ -39,7 +94,6 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log('MongoDB Error:', err));
 
 const upload = multer({ storage: multer.memoryStorage() });
-const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
 
 io.use((socket, next) => {
   const cookies = socket.request.headers.cookie;
@@ -91,7 +145,7 @@ app.get('/api/check-username/:username', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', registerLimiter, async (req, res) => {
   try {
     const { fullName, password } = req.body;
     const username = req.body.username.toLowerCase();
@@ -105,22 +159,21 @@ app.post('/api/register', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const username = req.body.username.toLowerCase();
     const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ message: "User not found!" });
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials!" });
-    
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-    res.cookie('eliget_token', token, { httpOnly: true, secure: false, sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('eliget_token', token, COOKIE_OPTIONS);
     res.status(200).json({ message: "Login successful!", user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website } });
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('eliget_token');
+  res.clearCookie('eliget_token', COOKIE_CLEAR_OPTIONS);
   res.status(200).json({ message: "Logged out successfully" });
 });
 
@@ -142,7 +195,7 @@ app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res)
   } catch (error) { res.status(500).json({ message: "Failed to update profile" }); }
 });
 
-app.post('/api/user/change-password', authenticateToken, async (req, res) => {
+app.post('/api/user/change-password', passwordChangeLimiter, authenticateToken, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) return res.status(400).json({ message: "Please provide old and new passwords." });
@@ -165,7 +218,7 @@ app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
     await Notification.deleteMany({ $or: [{ receiver: userId }, { sender: userId }] });
     await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
     await User.findByIdAndDelete(userId);
-    res.clearCookie('eliget_token');
+    res.clearCookie('eliget_token', COOKIE_CLEAR_OPTIONS);
     res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) { res.status(500).json({ message: "Failed to delete account" }); }
 });
@@ -269,8 +322,11 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
     const chatUsers = new Map();
     messages.forEach(msg => {
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
-      if (!chatUsers.has(otherId)) { chatUsers.set(otherId, { lastMessage: msg.text, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) }); }
-      else if (!msg.isRead && msg.receiver.toString() === req.user.id) { chatUsers.get(otherId).unread = true; }
+      if (!chatUsers.has(otherId)) {
+        chatUsers.set(otherId, { lastMessage: msg.text, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
+      } else if (!msg.isRead && msg.receiver.toString() === req.user.id) {
+        chatUsers.get(otherId).unread = true;
+      }
     });
     const result = [];
     for (let [userId, data] of chatUsers.entries()) {
@@ -301,11 +357,9 @@ app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
     const message = await Message.findById(req.params.messageId);
     if (!message) return res.status(404).json({ message: "Message not found" });
     if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    
     await Message.findByIdAndDelete(req.params.messageId);
     io.to(message.receiver.toString()).emit('messageDeleted', { messageId: req.params.messageId });
     io.to(message.sender.toString()).emit('messageDeleted', { messageId: req.params.messageId });
-    
     res.status(200).json({ message: "Message deleted" });
   } catch (error) { res.status(500).json({ message: "Failed to delete message" }); }
 });
@@ -356,8 +410,8 @@ app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
     const isLiked = post.likes.includes(req.user.id);
-    if (isLiked) { post.likes.pull(req.user.id); } else { 
-      post.likes.push(req.user.id); 
+    if (isLiked) { post.likes.pull(req.user.id); } else {
+      post.likes.push(req.user.id);
       if (post.author.toString() !== req.user.id) {
         await new Notification({ receiver: post.author, sender: req.user.id, type: 'like', postId: post._id }).save();
         io.to(post.author.toString()).emit('newNotification', { type: 'like' });
@@ -453,41 +507,20 @@ app.get('/api/search', async (req, res) => {
     const query = req.query.q;
     if (!query || query.trim() === '') return res.status(200).json({ users: [], posts: [] });
     const regex = new RegExp(query, 'i');
-
     const users = await User.find({ $or: [{ fullName: regex }, { username: regex }] }).select('fullName username profilePic badge').limit(10).lean();
     const posts = await Post.find({ content: regex }).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).limit(20).lean();
-
     const validPosts = posts.filter(p => p.author != null);
     for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
-
     res.status(200).json({ users, posts: validPosts });
   } catch (error) { res.status(500).json({ message: "Search failed" }); }
 });
 
-
 app.get('/api/users/suggested', authenticateToken, async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.id);
-    // Find users not followed by current user and not the current user
     const users = await User.find({
       _id: { $nin: [...currentUser.following, currentUser._id] }
     }).select('fullName username profilePic').limit(5).lean();
-    
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch suggested users" });
-  }
-});
-
-
-app.get('/api/users/suggested', authenticateToken, async (req, res) => {
-  try {
-    const currentUser = await User.findById(req.user.id);
-    // Find users not followed by current user and not the current user
-    const users = await User.find({
-      _id: { $nin: [...currentUser.following, currentUser._id] }
-    }).select('fullName username profilePic').limit(5).lean();
-    
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch suggested users" });
@@ -510,10 +543,9 @@ app.get('/api/posts', async (req, res) => {
     }
 
     let query = { postType: { $ne: 'job' } };
-    
-    // Following Filter
+
     if (feedType === 'following' && currentUser) {
-      const followingList = [...currentUser.following, currentUser._id]; // Include own posts
+      const followingList = [...currentUser.following, currentUser._id];
       query.author = { $in: followingList };
     }
 
@@ -560,7 +592,7 @@ app.get('/api/posts/jobs', async (req, res) => {
 app.get('/api/posts/user/:userId', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) return res.status(400).json({ message: "Invalid User ID" });
-    
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -570,15 +602,16 @@ app.get('/api/posts/user/:userId', async (req, res) => {
       .skip(skip)
       .limit(limit)
       .lean();
-      
-    for (let post of posts) { 
-      post.commentCount = await Comment.countDocuments({ postId: post._id }); 
+
+    for (let post of posts) {
+      post.commentCount = await Comment.countDocuments({ postId: post._id });
     }
     res.status(200).json(posts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch user posts" }); }
 });
 
 app.use('/api', (req, res) => { res.status(404).json({ message: "API Route Not Found" }); });
+
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) return res.status(400).json({ message: "Multer Error: " + err.message });
   res.status(500).json({ message: "Internal Server Error", error: err.message });

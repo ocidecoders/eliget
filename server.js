@@ -25,15 +25,11 @@ app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Redirect root based on login status
 app.get('/', (req, res) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.redirect('/login.html');
   jwt.verify(token, process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production', (err) => {
-    if (err) {
-      res.clearCookie('eliget_token');
-      return res.redirect('/login.html');
-    }
+    if (err) { res.clearCookie('eliget_token'); return res.redirect('/login.html'); }
     return res.redirect('/home.html');
   });
 });
@@ -51,7 +47,6 @@ io.use((socket, next) => {
   if (!cookies) return next(new Error('Authentication error'));
   const tokenCookie = cookies.split(';').find(c => c.trim().startsWith('eliget_token='));
   if (!tokenCookie) return next(new Error('Authentication error'));
-
   const token = tokenCookie.split('=')[1];
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return next(new Error('Authentication error'));
@@ -221,6 +216,13 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch chats" }); }
 });
 
+app.get('/api/chat/unread', authenticateToken, async (req, res) => {
+  try {
+    const count = await Message.countDocuments({ receiver: req.user.id, isRead: false });
+    res.status(200).json({ unreadCount: count });
+  } catch (error) { res.status(500).json({ message: "Failed to fetch unread count" }); }
+});
+
 app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
@@ -364,10 +366,23 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
   } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
 });
 
+// --- GET POSTS WITH PAGINATION ---
 app.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).lean();
-    for (let post of posts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ postType: { $ne: 'job' } })
+      .populate('author', 'fullName username profilePic badge')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    for (let post of posts) {
+      post.commentCount = await Comment.countDocuments({ postId: post._id });
+    }
     res.status(200).json(posts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch posts" }); }
 });

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Create Post — Eliget</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+
+    /* Top Navbar */
+    .top-nav {
+      background: var(--surface); border-bottom: 1px solid var(--line);
+      padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+      position: relative;
+    }
+    .close-btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; }
+    .close-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    
+    .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); position: absolute; left: 50%; transform: translateX(-50%); }
+    .logo span { color: var(--green); }
+    
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+    /* Dropdown */
+    .dropdown { position: relative; }
+    .dropdown-toggle {
+      background: var(--bg); border: 1px solid var(--line); color: var(--text);
+      padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 0.85rem;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .dropdown-toggle svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+    .dropdown-menu {
+      display: none; position: absolute; right: 0; top: 45px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 140px; z-index: 100; overflow: hidden;
+    }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item {
+      padding: 12px 15px; font-size: 0.9rem; font-weight: 500; color: var(--text);
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+    }
+    .dropdown-item:hover { background: var(--bg); }
+    .dropdown-item svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+
+    .btn-post { background: var(--green); color: white; border: none; padding: 8px 20px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; }
+    .btn-post:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Main Content */
+    .content-area { flex: 1; background: var(--surface); display: flex; flex-direction: column; padding: 20px; }
+    textarea { width: 100%; flex: 1; border: none; outline: none; resize: none; font-family: inherit; font-size: 1.1rem; color: var(--text); background: transparent; }
+    textarea::placeholder { color: #9CA3AF; }
+
+    /* Bottom Actions */
+    .action-bar { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); }
+    .btn-img { padding: 10px; background: #F3F4F6; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .btn-img:hover { background: #E5E7EB; }
+    .file-input { display: none; }
+    .image-preview { width: 60px; height: 60px; border-radius: 8px; background-size: cover; background-position: center; border: 1px solid var(--line); display: none; }
+  </style>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="shortcut icon" href="/favicon.ico">
+</head>
+<body>
+
+  <div class="top-nav">
+    <button class="close-btn" onclick="window.history.back()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <div class="logo">Eli<span>get</span></div>
+    
+    <div class="nav-actions">
+      <div class="dropdown">
+        <button class="dropdown-toggle" id="dropdownToggle">
+          <span id="selectedTypeText">Feed Post</span>
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" data-type="feed">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Feed Post
+          </div>
+          <div class="dropdown-item" data-type="job">
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            Job Post
+          </div>
+        </div>
+      </div>
+      <button class="btn-post" id="submitPostBtn">Post</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <textarea id="postContent" placeholder="What's on your mind?"></textarea>
+  </div>
+
+  <div class="action-bar">
+    <label for="postImage" class="btn-img">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+    </label>
+    <input type="file" id="postImage" class="file-input" accept="image/*">
+    <div class="image-preview" id="imagePreview"></div>
+  </div>
+
+  <script>
+    
+    let user = null;
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        user = data.user;
+        localStorage.setItem('eliget_user', JSON.stringify(user));
+      } catch (err) {
+        localStorage.removeItem('eliget_user');
+        window.location.href = '/login.html';
+        throw err; // Stop execution
+      }
+    }
+    checkAuth().then(() => {
+      // Wrap all code below inside this .then() block to ensure it runs after auth
+      // We will use an IIFE to scope it properly
+      const runApp = () => {
+      
+
+    let currentPostType = 'feed'; // Default
+
+    // Dropdown Logic
+    const dropdownToggle = document.getElementById('dropdownToggle');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    const selectedTypeText = document.getElementById('selectedTypeText');
+
+    dropdownToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+      dropdownMenu.classList.remove('show');
+    });
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentPostType = item.dataset.type;
+        selectedTypeText.innerText = currentPostType === 'job' ? 'Job Post' : 'Feed Post';
+        dropdownMenu.classList.remove('show');
+      });
+    });
+
+    // Image Preview
+    const imageInput = document.getElementById('postImage');
+    const preview = document.getElementById('imagePreview');
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        preview.style.display = 'block';
+        preview.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    // Submit Post
+    document.getElementById('submitPostBtn').addEventListener('click', async () => {
+      const content = document.getElementById('postContent').value.trim();
+      const imageFile = imageInput.files[0];
+      const btn = document.getElementById('submitPostBtn');
+
+      if (!content && !imageFile) {
+        return alert('Please write something or add an image.');
+      }
+
+      btn.innerText = 'Posting...';
+      btn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('authorId', user.id);
+      formData.append('content', content);
+      formData.append('postType', currentPostType);
+      if (imageFile) formData.append('image', imageFile);
+
+      try {
+        const res = await fetch('/api/posts', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok) {
+          // Redirect based on what they posted
+          if (currentPostType === 'job') {
+            window.location.href = '/jobs.html';
+          } else {
+            window.location.href = '/home.html';
+          }
+        } else {
+          alert('Failed to post. Please try again.');
+          btn.innerText = 'Post';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Server error.');
+        btn.innerText = 'Post';
+        btn.disabled = false;
+      }
+    });
+  
+      }; // End of runApp
+      // Only run app if user was loaded
+      if (typeof user !== 'undefined' || typeof currentUser !== 'undefined') {
+         setTimeout(() => { if(document.body) runApp(); }, 50);
+      }
+    });
+    </script>
+</body>
+</html>

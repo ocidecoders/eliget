@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Eliget — Create Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #F9F8F6; --surface: #FFFFFF; --text: #0A0A0A; --line: #E5E3DC; --green: #10B981; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .box { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid var(--line); }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 20px; }
+    .logo span { color: var(--green); }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 1rem; outline: none; }
+    input:focus { border-color: var(--green); }
+    button { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .msg { text-align: center; margin-top: 15px; font-size: 0.9rem; font-weight: 600; color: red; }
+    .link { text-align: center; margin-top: 15px; font-size: 0.9rem; color: #555; }
+    .link a { color: var(--green); text-decoration: none; font-weight: 600; }
+    #username-status { font-size: 0.8rem; margin-top: 5px; font-weight: 600; height: 16px; }
+    .status-taken { color: red; }
+    .status-available { color: var(--green); }
+  </style>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="shortcut icon" href="/favicon.ico">
+</head>
+<body>
+  <div class="box">
+    <div class="logo">Eli<span>get</span></div>
+    <form id="registerForm">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="fullName" placeholder="e.g. Abdullah Al Mustafa" required>
+      </div>
+      <div class="form-group">
+        <label>Username (lowercase only)</label>
+        <input type="text" id="username" placeholder="e.g. mustafa_official" required autocomplete="off">
+        <div id="username-status"></div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Create a strong password" required>
+      </div>
+      <button type="submit" id="submitBtn" disabled>Create Account</button>
+      <div id="message" class="msg"></div>
+    </form>
+    <div class="link">Already have an account? <a href="/login.html">Log in</a></div>
+  </div>
+
+  <script>
+    let isAvailable = false;
+    let timer;
+    const usernameInput = document.getElementById('username');
+    const status = document.getElementById('username-status');
+    const btn = document.getElementById('submitBtn');
+
+    usernameInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      clearTimeout(timer);
+      const val = e.target.value;
+      if (val.length < 3) { status.innerText = 'Too short'; status.className = 'status-taken'; btn.disabled = true; isAvailable = false; return; }
+      status.innerText = 'Checking...'; status.className = '';
+      btn.disabled = true;
+      timer = setTimeout(async () => {
+        const res = await fetch(`/api/check-username/${val}`);
+        const data = await res.json();
+        if (data.available) { status.innerText = 'Available'; status.className = 'status-available'; btn.disabled = false; isAvailable = true; } 
+        else { status.innerText = 'Taken'; status.className = 'status-taken'; btn.disabled = true; isAvailable = false; }
+      }, 500);
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!isAvailable) return;
+      const msg = document.getElementById('message');
+      btn.innerText = 'Creating...'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName: document.getElementById('fullName').value, username: usernameInput.value, password: document.getElementById('password').value })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.innerText = 'Account created! Redirecting...'; msg.style.color = 'var(--green)';
+          setTimeout(() => window.location.href = '/login.html', 1500);
+        } else { msg.innerText = data.message; btn.innerText = 'Create Account'; btn.disabled = false; }
+      } catch (err) { msg.innerText = 'Server error'; btn.innerText = 'Create Account'; btn.disabled = false; }
+    });
+  </script>
+</body>
+</html>

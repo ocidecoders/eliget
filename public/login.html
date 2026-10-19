@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Login — Eliget</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <style>
+    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .login-box { background: var(--surface); width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 2rem; font-weight: 900; color: var(--text); text-align: center; margin-bottom: 5px; }
+    .logo span { color: var(--green); }
+    .subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .form-group input { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #F9FAFB; font-family: inherit; font-size: 1rem; outline: none; transition: all 0.2s; }
+    .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px #ecfdf5; }
+
+    .btn-login { width: 100%; background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
+    .btn-login:hover { opacity: 0.9; }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .footer-text { text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 20px; }
+    .footer-text a { color: var(--green); text-decoration: none; font-weight: 600; }
+    #errorMsg { color: #EF4444; font-size: 0.85rem; font-weight: 600; text-align: center; margin-top: 15px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="logo">Eli<span>get</span></div>
+    <div class="subtitle">Welcome back! Log in to continue.</div>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="@username" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login" id="submitBtn">Log In</button>
+      <div id="errorMsg"></div>
+    </form>
+
+    <div class="footer-text">
+      Don't have an account? <a href="/register.html">Sign up</a>
+    </div>
+  </div>
+
+  <script>
+    // Clear any old localStorage cache when landing on login page
+    localStorage.removeItem('eliget_user');
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      btn.innerText = 'Logging in...'; btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Note: We do NOT save the token to localStorage. 
+          // The browser automatically handles the HttpOnly cookie.
+          // We only save user data for UI rendering.
+          localStorage.setItem('eliget_user', JSON.stringify(data.user));
+          window.location.href = '/home.html';
+        } else {
+          errorMsg.innerText = data.message || 'Login failed';
+          errorMsg.style.display = 'block';
+          btn.innerText = 'Log In'; btn.disabled = false;
+        }
+      } catch (err) {
+        errorMsg.innerText = 'Server error. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.innerText = 'Log In'; btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

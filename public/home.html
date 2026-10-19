@@ -51,15 +51,17 @@
     /* Post Content */
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     
-    /* Improved Image Styling */
+    /* Improved Image Styling (No Crop) */
     .post-image { 
       width: 100%; 
-      max-height: 400px; /* Prevents image from stretching too much */
-      object-fit: cover; /* Crops nicely */
+      height: auto;
+      max-height: 600px;
+      object-fit: contain; /* Prevents cropping, shows full image */
       border-radius: 12px; 
       border: 1px solid var(--line);
       margin-top: 5px;
       display: block;
+      background-color: var(--bg); /* Background color for empty spaces */
     }
 
     /* Action Bar Styling */

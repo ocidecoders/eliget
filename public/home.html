@@ -32,8 +32,6 @@
     [data-theme="dark"] .skeleton-avatar, [data-theme="dark"] .skeleton-line, [data-theme="dark"] .skeleton-image, [data-theme="dark"] .skeleton-action { background: var(--line); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    /* Smooth Page Transition */
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -58,7 +56,6 @@
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
 
-    /* Suggested Users */
     .suggested-section { margin-bottom: 20px; display: none; }
     .suggested-section.show { display: block; }
     .suggested-title { font-family: 'Archivo', sans-serif; font-size: 1rem; color: var(--text); margin-bottom: 10px; }
@@ -180,7 +177,6 @@
 
     .loading-spinner { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; display: none; }
 
-    /* Skeleton Loader CSS */
     .skeleton-card { background: var(--surface); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--line); animation: skeletonPulse 1.5s infinite ease-in-out; }
     .skeleton-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
     .skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
@@ -332,10 +328,7 @@
   <script src="/theme.js"></script>
   <script src="/splash.js"></script>
   <script>
-    // Trigger Fade-in
-    document.addEventListener('DOMContentLoaded', () => {
-      document.body.style.opacity = '1';
-    });
+    document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
 
     let user = null;
     let currentPage = 1;
@@ -369,7 +362,6 @@
       }
     }
 
-    // --- Skeleton Loader Logic ---
     function getSkeletonHTML() {
       let html = '';
       for (let i = 0; i < 3; i++) {
@@ -644,6 +636,11 @@
       try {
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}&type=${currentFeedType}`);
         const posts = await res.json();
+        
+        // Better error handling
+        if (!res.ok) {
+          throw new Error(posts.message || `Server returned ${res.status}`);
+        }
         if (!Array.isArray(posts)) throw new Error("Invalid format");
 
         if (reset) {
@@ -663,7 +660,7 @@
       } catch (err) {
         console.error(err);
         if (reset) {
-          document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
+          document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed: ${err.message}</p><button onclick="loadPosts(true)" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:var(--green); color:white; cursor:pointer;">Try Again</button></div>`;
         }
       }
 

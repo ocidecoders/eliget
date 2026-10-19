@@ -252,8 +252,14 @@ app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
     const targetUser = await User.findById(req.params.userId).select('-password');
     if (!targetUser) return res.status(404).json({ message: "User not found" });
     const currentUser = await User.findById(req.user.id);
-    const isFollowing = currentUser.following.includes(req.params.userId);
-    const isMutual = isFollowing && targetUser.following.includes(req.user.id);
+    
+    // Safe array check
+    const currentFollowing = currentUser.following || [];
+    const targetFollowers = targetUser.following || [];
+    
+    const isFollowing = currentFollowing.includes(req.params.userId);
+    const isMutual = isFollowing && targetFollowers.includes(req.user.id);
+    
     res.status(200).json({ user: targetUser, followersCount: targetUser.followers.length, followingCount: targetUser.following.length, isFollowing, isMutual });
   } catch (error) { res.status(500).json({ message: "Failed to fetch profile" }); }
 });
@@ -277,7 +283,10 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     if (req.user.id === req.params.targetId) return res.status(400).json({ message: "Cannot follow yourself" });
     const targetUser = await User.findById(req.params.targetId);
     if(!targetUser) return res.status(404).json({message: "User not found"});
-    const alreadyFollowing = targetUser.followers.includes(req.user.id);
+    
+    const targetFollowers = targetUser.followers || [];
+    const alreadyFollowing = targetFollowers.includes(req.user.id);
+    
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
     if (!alreadyFollowing) {
@@ -299,7 +308,8 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
 app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const isSaved = user.savedPosts.includes(req.params.postId);
+    const savedPosts = user.savedPosts || [];
+    const isSaved = savedPosts.includes(req.params.postId);
     if (isSaved) { user.savedPosts.pull(req.params.postId); } else { user.savedPosts.push(req.params.postId); }
     await user.save();
     res.status(200).json({ message: isSaved ? "Post unsaved" : "Post saved", saved: !isSaved });
@@ -312,7 +322,7 @@ app.get('/api/posts/saved', authenticateToken, async (req, res) => {
       path: 'savedPosts',
       populate: { path: 'author', select: 'fullName username profilePic badge' }
     });
-    const validPosts = user.savedPosts.filter(p => p != null);
+    const validPosts = (user.savedPosts || []).filter(p => p != null);
     res.status(200).json(validPosts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch saved posts" }); }
 });
@@ -369,7 +379,6 @@ app.post('/api/posts', authenticateToken, upload.single('image'), async (req, re
   try {
     const { content, postType, videoLink } = req.body;
     
-    // Validation fix for Bug 1
     if (!content && !req.file && !videoLink) {
       return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
     }
@@ -525,8 +534,9 @@ app.get('/api/search', async (req, res) => {
 app.get('/api/users/suggested', authenticateToken, async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.id);
+    const currentFollowing = currentUser.following || [];
     const users = await User.find({
-      _id: { $nin: [...currentUser.following, currentUser._id] }
+      _id: { $nin: [...currentFollowing, currentUser._id] }
     }).select('fullName username profilePic').limit(5).lean();
     res.status(200).json(users);
   } catch (error) {
@@ -552,7 +562,8 @@ app.get('/api/posts', async (req, res) => {
     let query = { postType: { $ne: 'job' } };
 
     if (feedType === 'following' && currentUser) {
-      const followingList = [...currentUser.following, currentUser._id];
+      const currentFollowing = currentUser.following || [];
+      const followingList = [...currentFollowing, currentUser._id];
       query.author = { $in: followingList };
     }
 
@@ -563,12 +574,17 @@ app.get('/api/posts', async (req, res) => {
       post.commentCount = await Comment.countDocuments({ postId: post._id });
       post.relationship = 'none';
       post.isSaved = false;
+      
       if (currentUser) {
-        if (currentUser.savedPosts.includes(post._id)) post.isSaved = true;
+        const savedPosts = currentUser.savedPosts || [];
+        const currentFollowing = currentUser.following || [];
+        
+        if (savedPosts.includes(post._id)) post.isSaved = true;
         if (post.author._id.toString() !== currentUser._id.toString()) {
           const followers = post.author.followers || [];
-          const isFollowing = currentUser.following.includes(post.author._id);
+          const isFollowing = currentFollowing.includes(post.author._id);
           const isFollower = followers.includes(currentUser._id);
+          
           if (isFollowing && isFollower) post.relationship = 'mutual';
           else if (isFollowing) post.relationship = 'following';
           else if (isFollower) post.relationship = 'follower';

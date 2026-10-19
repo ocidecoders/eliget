@@ -12,6 +12,10 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --green-light: #ecfdf5; --danger: #EF4444; --danger-light: #FEF2F2; }
+    /* Dark Theme Styles */
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 40px; color: var(--text); }
     
@@ -35,9 +39,10 @@
     
     .input-wrapper { position: relative; }
     .input-wrapper svg { position: absolute; left: 14px; top: 14px; width: 18px; height: 18px; stroke: #9CA3AF; fill: none; stroke-width: 2; }
-    .input-wrapper input, .input-wrapper textarea { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--line); border-radius: 12px; background: #F9FAFB; font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; transition: all 0.2s; }
+    .input-wrapper input, .input-wrapper textarea { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; transition: all 0.2s; }
     .input-wrapper textarea { min-height: 80px; resize: vertical; padding-top: 14px; }
     .input-wrapper input:focus, .input-wrapper textarea:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px var(--green-light); }
+    [data-theme="dark"] .input-wrapper input:focus, [data-theme="dark"] .input-wrapper textarea:focus { background: var(--bg); }
 
     .btn-save { width: 100%; background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
     .btn-save:hover { opacity: 0.9; }
@@ -54,39 +59,19 @@
     .btn-action.danger-outline { background: transparent; color: var(--danger); border-color: var(--danger); }
     .btn-action.danger-outline:hover { background: var(--danger-light); }
 
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 999px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
+    /* Toggle Switch Styling */
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--green); }
+    input:checked + .slider:before { transform: translateX(22px); }
+    [data-theme="dark"] .slider { background-color: #4B5563; }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 999px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast svg { width: 18px; height: 18px; stroke: var(--green); fill: none; stroke-width: 3; }
     .toast.error svg { stroke: var(--danger); }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
   </style>
 </head>
 <body>
@@ -95,15 +80,30 @@
     <button class="back-btn" onclick="window.location.href='/dashboard.html'">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <div class="logo">Set<span>tings</span>
-    <button class="icon-btn-wrapper theme-toggle" style="margin-left: 5px; border: none; background: transparent;" title="Toggle Theme">
-      <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-    </button>
-</div>
+    <div class="logo">Set<span>tings</span></div>
   </div>
 
   <div class="container">
     
+    <!-- Appearance Section -->
+    <div class="settings-card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <h2 class="card-title">Appearance</h2>
+      </div>
+      
+      <div class="action-row">
+        <div class="action-info">
+          <h4>Dark Mode</h4>
+          <p>Switch between light and dark theme.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Profile Info Section -->
     <div class="settings-card">
       <div class="card-header">
@@ -202,6 +202,7 @@
     <span id="toastMsg">Changes saved!</span>
   </div>
 
+  <script src="/theme.js"></script>
   <script>
     let user = null;
 
@@ -333,6 +334,5 @@
 
     initAuth();
   </script>
-<script src="/theme.js"></script>
 </body>
 </html>

@@ -41,7 +41,6 @@ mongoose.connect(process.env.MONGO_URI)
 const upload = multer({ storage: multer.memoryStorage() });
 const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
 
-// --- SOCKET.IO AUTH & EVENTS ---
 io.use((socket, next) => {
   const cookies = socket.request.headers.cookie;
   if (!cookies) return next(new Error('Authentication error'));
@@ -68,7 +67,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.status(401).json({ message: "Unauthorized" });
@@ -79,7 +77,6 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- AUTH APIS ---
 app.get('/api/check-username/:username', async (req, res) => {
   try {
     const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -128,15 +125,11 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-// --- USER APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
     const { fullName, badge } = req.body;
     const updatedUser = await User.findByIdAndUpdate(req.user.id, { fullName, badge }, { new: true });
-    res.status(200).json({ 
-      message: "Profile updated successfully!", 
-      user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge } 
-    });
+    res.status(200).json({ message: "Profile updated successfully!", user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge } });
   } catch (error) { res.status(500).json({ message: "Failed to update profile" }); }
 });
 
@@ -197,7 +190,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
 });
 
-// --- CHAT APIS ---
 app.get('/api/chats', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
@@ -231,7 +223,6 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
 
-// --- POST APIS ---
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType } = req.body;
@@ -366,22 +357,32 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
   } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
 });
 
-// --- GET POSTS WITH PAGINATION ---
 app.get('/api/posts', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ postType: { $ne: 'job' } })
-      .populate('author', 'fullName username profilePic badge')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    let currentUser = null;
+    if (req.cookies.eliget_token) {
+      try {
+        const decoded = jwt.verify(req.cookies.eliget_token, JWT_SECRET);
+        currentUser = await User.findById(decoded.id);
+      } catch (e) {}
+    }
+
+    const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
 
     for (let post of posts) {
       post.commentCount = await Comment.countDocuments({ postId: post._id });
+      post.relationship = 'none';
+      if (currentUser && post.author._id.toString() !== currentUser._id.toString()) {
+        const isFollowing = currentUser.following.includes(post.author._id);
+        const isFollower = post.author.followers.includes(currentUser._id);
+        if (isFollowing && isFollower) post.relationship = 'mutual';
+        else if (isFollowing) post.relationship = 'following';
+        else if (isFollower) post.relationship = 'follower';
+      }
     }
     res.status(200).json(posts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch posts" }); }

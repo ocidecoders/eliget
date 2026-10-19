@@ -19,11 +19,13 @@
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
     .nav-icons { display: flex; align-items: center; gap: 15px; }
-    .icon-btn { background: none; border: none; cursor: pointer; position: relative; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
-    .icon-btn svg { width: 24px; height: 24px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-badge { position: absolute; top: 0px; right: 0px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+    
+    .icon-btn-wrapper { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: background 0.2s; }
+    .icon-btn-wrapper:hover { background: #E5E7EB; }
+    .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-badge { position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center; border: 2px solid var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-    .search-container { position: sticky; top: 61px; z-index: 90; background: var(--surface); padding: 10px 20px; border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
+    .search-container { position: sticky; top: 67px; z-index: 90; background: var(--surface); padding: 10px 20px; border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
     .search-wrapper { position: relative; width: 100%; }
     .search-wrapper svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .search-wrapper input { width: 100%; padding: 12px 14px 12px 42px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; }
@@ -31,15 +33,18 @@
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; }
 
-    .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 16px; position: relative; border: 1px solid var(--line); }
+    .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 16px; position: relative; border: 1px solid var(--line); will-change: transform; }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-    .avatar { width: 48px; height: 48px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; border: 2px solid var(--green); }
+    
+    .avatar { width: 48px; height: 48px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; border: 2px solid var(--green); flex-shrink: 0; }
+    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
+    
     .post-header h4 { font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
     .post-header .username { font-size: 0.85rem; color: var(--text-muted); display: block; }
     
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
-    .post-image { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid var(--line); }
+    .post-image { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid var(--line); background: var(--bg); min-height: 200px; object-fit: cover; }
 
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line); }
     .action-left { display: flex; gap: 20px; align-items: center; }
@@ -48,6 +53,12 @@
     .action-btn.liked { color: #EF4444; }
     .action-btn.liked svg { fill: #EF4444; stroke: #EF4444; }
     .view-count { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .small-btn { padding: 6px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; transition: opacity 0.2s; }
+    .small-btn.follow-back { background: var(--text); color: white; }
+    .small-btn.message { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+    .following-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 
     .menu-container { position: relative; }
     .menu-btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--text-muted); }
@@ -125,10 +136,10 @@
   <div class="top-nav">
     <div class="logo">Eli<span>get</span></div>
     <div class="nav-icons">
-      <button class="icon-btn" onclick="window.location.href='/notifications.html'">
+      <div class="icon-btn-wrapper" onclick="window.location.href='/notifications.html'">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
-      </button>
+      </div>
     </div>
   </div>
 
@@ -213,7 +224,16 @@
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
         if (user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-        else document.getElementById('navProfilePic').style.background = '#10B981';
+        else {
+          document.getElementById('navProfilePic').style.background = '#10B981';
+          document.getElementById('navProfilePic').style.display = 'flex';
+          document.getElementById('navProfilePic').style.justifyContent = 'center';
+          document.getElementById('navProfilePic').style.alignItems = 'center';
+          document.getElementById('navProfilePic').style.color = 'white';
+          document.getElementById('navProfilePic').style.fontWeight = '700';
+          document.getElementById('navProfilePic').style.fontSize = '12px';
+          document.getElementById('navProfilePic').innerText = user.fullName.charAt(0).toUpperCase();
+        }
         
         fetchBadges();
         loadPosts(true);
@@ -285,6 +305,15 @@
       document.querySelectorAll('.post-card').forEach(card => observer.observe(card));
     }
 
+    function getAvatarHTML(author) {
+      if (author.profilePic) {
+        return `<div class="avatar" style="background-image: url('${author.profilePic}')"></div>`;
+      } else {
+        const initial = author.fullName.charAt(0).toUpperCase();
+        return `<div class="avatar avatar-text">${initial}</div>`;
+      }
+    }
+
     function appendPosts(postsToRender) {
       const container = document.getElementById('feedContainer');
       const html = postsToRender.map(post => {
@@ -293,34 +322,46 @@
         const likesCount = post.likes ? post.likes.length : 0;
         const viewsCount = post.views || 0;
         const commentCount = post.commentCount || 0;
+        
+        let actionHtml = '';
+        if (post.relationship === 'mutual') {
+          actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); window.location.href='/chat-room.html?id=${post.author._id}'">Message</button>`;
+        } else if (post.relationship === 'follower') {
+          actionHtml = `<button class="small-btn follow-back" onclick="event.stopPropagation(); followUser('${post.author._id}')">Follow Back</button>`;
+        } else if (post.relationship === 'following') {
+          actionHtml = `<span class="following-text">Following</span>`;
+        }
 
         return `
         <div class="post-card" data-post-id="${post._id}">
           <div class="post-header">
             <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
-              <div class="avatar" style="background-image: url('${post.author.profilePic || ''}')"></div>
+              ${getAvatarHTML(post.author)}
               <div>
                 <h4>${post.author.fullName} ${badgeSVGs[post.author.badge || 'General']}</h4>
                 <span class="username">@${post.author.username}</span>
               </div>
             </div>
-            ${isOwner ? `
-            <div class="menu-container">
-              <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
-              </button>
-              <div class="dropdown-menu" id="menu-${post._id}">
-                <div class="dropdown-item" onclick="openEditModal('${post._id}')">
-                  <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
+            <div class="header-right">
+              ${actionHtml}
+              ${isOwner ? `
+              <div class="menu-container">
+                <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+                </button>
+                <div class="dropdown-menu" id="menu-${post._id}">
+                  <div class="dropdown-item" onclick="openEditModal('${post._id}')">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
+                  </div>
+                  <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
+                  </div>
                 </div>
-                <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
-                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
-                </div>
-              </div>
-            </div>` : ''}
+              </div>` : ''}
+            </div>
           </div>
           <div class="post-content">${post.content}</div>
-          ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
+          ${post.image ? `<img src="${post.image}" class="post-image" loading="lazy">` : ''}
           
           <div class="action-bar">
             <div class="action-left">
@@ -378,6 +419,13 @@
 
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
 
+    async function followUser(targetId) {
+      try {
+        const res = await fetch(`/api/user/follow/${targetId}`, { method: 'POST' });
+        if (res.ok) { loadPosts(true); }
+      } catch (err) {}
+    }
+
     async function toggleLike(postId) {
       const btn = document.getElementById(`like-btn-${postId}`);
       const countSpan = document.getElementById(`like-count-${postId}`);
@@ -415,7 +463,7 @@
           const isCommentOwner = c.author._id === user.id;
           return `
           <div class="comment-item">
-            <div class="comment-avatar" style="background-image: url('${c.author.profilePic || ''}')"></div>
+            ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
             <div class="comment-body">
               ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
               <h5>${c.author.fullName} ${badgeSVGs[c.author.badge || 'General']}</h5>

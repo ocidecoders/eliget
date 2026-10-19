@@ -13,6 +13,16 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
+    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
+    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
 
@@ -60,7 +70,6 @@
 
     input[type="file"] { display: none; }
 
-    /* Tab System for Posts */
     .tab-container { display: flex; max-width: 600px; margin: 20px auto 0 auto; padding: 0 20px; border-bottom: 2px solid var(--line); }
     .tab-btn { flex: 1; padding: 12px; background: none; border: none; font-family: inherit; font-size: 1rem; font-weight: 600; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.2s; }
     .tab-btn.active { color: var(--text); }
@@ -165,35 +174,10 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 12px; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
+    
+    .btn-load-more { display: block; width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; text-align: center; transition: background 0.2s; }
+    .btn-load-more:hover { background: #E5E7EB; }
+    [data-theme="dark"] .btn-load-more:hover { background: var(--bg); }
   </style>
 </head>
 <body>
@@ -201,9 +185,6 @@
   <div class="top-nav">
     <div class="logo">Eli<span>get</span></div>
     <div class="nav-icons">
-      
-    
-
       <div class="icon-btn-wrapper" onclick="window.location.href='/notifications.html'">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
@@ -262,6 +243,7 @@
   <div class="posts-section" id="postsContainer">
     <p class="empty-posts">Loading posts...</p>
   </div>
+  <button class="btn-load-more" id="loadMoreBtn" style="display:none; width: calc(100% - 40px); margin: 0 auto 20px auto;">Load More Posts</button>
 
   <!-- Modals -->
   <div class="modal-overlay" id="editModal">
@@ -338,10 +320,14 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="/theme.js"></script>
 
   <script>
     let user = null;
     let currentTab = 'my-posts'; // 'my-posts' or 'saved'
+    let currentPage = 1;
+    const POSTS_PER_PAGE = 10;
+    let hasMore = true;
     let allPosts = [];
     let editingPostId = null;
     let currentPostIdForComment = null;
@@ -412,7 +398,7 @@
       if (user.coverPic) document.getElementById('coverContainer').style.backgroundImage = `url(${user.coverPic})`;
       
       fetchFollowStats();
-      loadPosts(currentTab);
+      loadPosts(true);
     }
 
     async function fetchFollowStats() {
@@ -437,7 +423,7 @@
       if (tab === 'my-posts') document.getElementById('tabMyPosts').classList.add('active');
       else document.getElementById('tabSaved').classList.add('active');
 
-      loadPosts(tab);
+      loadPosts(true);
     }
 
     function formatContent(text) {
@@ -448,34 +434,60 @@
       return safeText;
     }
 
-    async function loadPosts(tabType) {
+    async function loadPosts(reset = false) {
       const container = document.getElementById('postsContainer');
-      container.innerHTML = '<p class="empty-posts">Loading...</p>';
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
       
-      try {
-        const endpoint = tabType === 'saved' ? '/api/posts/saved' : `/api/posts/user/${user.id}`;
-        const res = await fetch(endpoint);
-        allPosts = await res.json();
+      if (reset) {
+        currentPage = 1;
+        hasMore = true;
+        allPosts = [];
+        container.innerHTML = '<p class="empty-posts">Loading...</p>';
+      }
+      
+      if (!hasMore) return;
+      loadMoreBtn.style.display = 'none';
 
-        if (allPosts.length === 0) {
-          container.innerHTML = `
-            <div class="empty-posts">
-              <p>${tabType === 'saved' ? 'You haven\'t saved any posts yet.' : 'You haven\'t shared anything yet.'}</p>
-              ${tabType === 'my-posts' ? '<a href="/create-post.html" class="btn-create-post">Post Your 1st Thought</a>' : ''}
-            </div>
-          `;
+      try {
+        let endpoint = '';
+        if (currentTab === 'saved') {
+            endpoint = '/api/posts/saved';
+        } else {
+            endpoint = `/api/posts/user/${user.id}?page=${currentPage}&limit=${POSTS_PER_PAGE}`;
+        }
+
+        const res = await fetch(endpoint);
+        const fetchedPosts = await res.json();
+
+        if (reset) container.innerHTML = '';
+
+        if (fetchedPosts.length === 0) {
+          if (reset) {
+            container.innerHTML = `
+              <div class="empty-posts">
+                <p>${currentTab === 'saved' ? 'You haven\'t saved any posts yet.' : 'You haven\'t shared anything yet.'}</p>
+                ${currentTab === 'my-posts' ? '<a href="/create-post.html" class="btn-create-post">Post Your 1st Thought</a>' : ''}
+              </div>
+            `;
+          }
+          hasMore = false;
           return;
         }
 
-        container.innerHTML = allPosts.map(post => {
+        allPosts.push(...fetchedPosts);
+        
+        if (currentTab === 'my-posts' && fetchedPosts.length < POSTS_PER_PAGE) {
+            hasMore = false;
+        }
+
+        const html = fetchedPosts.map(post => {
           const isLiked = post.likes && post.likes.includes(user.id);
           const likesCount = post.likes ? post.likes.length : 0;
           const viewsCount = post.views || 0;
           const commentCount = post.commentCount || 0;
-          const isSaved = tabType === 'saved' || (post.savedPosts && post.savedPosts.includes(user.id)) || post.isSaved || false;
+          const isSaved = currentTab === 'saved' || (post.savedPosts && post.savedPosts.includes(user.id)) || post.isSaved || false;
 
-          // For Saved tab, we need to show the author's header
-          const authorHeader = tabType === 'saved' ? `
+          const authorHeader = currentTab === 'saved' ? `
             <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
               <div class="avatar-sm" style="${post.author.profilePic ? `background-image: url('${post.author.profilePic}')` : ''}">${post.author.profilePic ? '' : post.author.fullName.charAt(0).toUpperCase()}</div>
               <div>
@@ -483,13 +495,13 @@
                 <span class="username">@${post.author.username}</span>
               </div>
             </div>
-          ` : `<div></div>`; // Empty div to keep flex spacing
+          ` : `<div></div>`; 
 
           return `
           <div class="post-card">
             <div class="post-header">
               ${authorHeader}
-              ${tabType !== 'saved' ? `
+              ${currentTab !== 'saved' ? `
               <div class="menu-container">
                 <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
                   <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
@@ -528,10 +540,19 @@
             </div>
           </div>
         `}).join('');
+
+        container.insertAdjacentHTML('beforeend', html);
+        if (currentTab === 'my-posts' && hasMore) {
+            currentPage++;
+            loadMoreBtn.style.display = 'block';
+        }
+
       } catch (err) { 
-        container.innerHTML = `<p class="empty-posts">Failed to load posts.</p>`; 
+        if (reset) container.innerHTML = `<p class="empty-posts">Failed to load posts.</p>`; 
       }
     }
+
+    document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
 
     // --- Image Upload & Crop ---
     document.getElementById('avatarInput').addEventListener('change', async (e) => {
@@ -609,7 +630,7 @@
           countSpan.innerText = data.likes.length;
           if (data.likes.includes(user.id)) btn.classList.add('liked'); else btn.classList.remove('liked');
         }
-      } catch (err) { loadPosts(currentTab); }
+      } catch (err) { loadPosts(true); }
     }
 
     async function toggleSave(postId) {
@@ -622,7 +643,7 @@
               btn.classList.add('saved');
           } else {
               btn.classList.remove('saved');
-              if (currentTab === 'saved') loadPosts('saved'); // Remove from UI immediately if unsaved in Saved tab
+              if (currentTab === 'saved') loadPosts(true); 
           }
         }
       } catch (err) {}
@@ -734,16 +755,14 @@
     async function saveEdit() {
       const content = document.getElementById('editContent').value.trim();
       if (!content) return alert("Post cannot be empty");
-      try { const res = await fetch(`/api/posts/${editingPostId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }); if (res.ok) { closeEditModal(); loadPosts(currentTab); } } catch (err) {}
+      try { const res = await fetch(`/api/posts/${editingPostId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }); if (res.ok) { closeEditModal(); loadPosts(true); } } catch (err) {}
     }
     async function deletePost(id) {
       if (!confirm('Are you sure you want to delete this post?')) return;
-      try { const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' }); if (res.ok) loadPosts(currentTab); } catch (err) {}
+      try { const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' }); if (res.ok) loadPosts(true); } catch (err) {}
     }
 
     initAuth();
   </script>
-<script src="/anti-addiction.js"></script>
-<script src="/theme.js"></script>
 </body>
 </html>

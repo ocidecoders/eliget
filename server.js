@@ -521,8 +521,20 @@ app.get('/api/posts/jobs', async (req, res) => {
 app.get('/api/posts/user/:userId', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) return res.status(400).json({ message: "Invalid User ID" });
-    const posts = await Post.find({ author: req.params.userId }).sort({ createdAt: -1 }).lean();
-    for (let post of posts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ author: req.params.userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+      
+    for (let post of posts) { 
+      post.commentCount = await Comment.countDocuments({ postId: post._id }); 
+    }
     res.status(200).json(posts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch user posts" }); }
 });

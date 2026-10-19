@@ -12,6 +12,24 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
+    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
+    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
+    [data-theme="dark"] .avatar { border-color: var(--surface); }
+    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
+    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
+    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
+    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
+    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
+    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .post-content a { color: var(--green); }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
 
@@ -55,7 +73,6 @@
     .post-content a { color: var(--green); font-weight: 600; text-decoration: none; }
     .post-content a:hover { text-decoration: underline; }
     
-    /* Video Thumbnail Styling */
     .video-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; display: flex; justify-content: center; align-items: center; cursor: pointer; margin-top: 5px; }
     .video-container img { width: 100%; height: auto; max-height: 600px; object-fit: contain; opacity: 0.8; transition: opacity 0.2s; }
     .video-container:hover img { opacity: 0.6; }
@@ -162,42 +179,12 @@
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* Video Player Modal */
     #videoPlayerModal { z-index: 3000; padding: 0; background: rgba(0,0,0,0.9); }
     .video-player-box { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
     .video-player-iframe { width: 100%; max-width: 800px; aspect-ratio: 16/9; border: none; background: #000; }
     .video-player-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
     .video-player-close svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
     .direct-video { max-width: 100%; max-height: 80vh; outline: none; }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
   </style>
 </head>
 <body>
@@ -205,9 +192,6 @@
   <div class="top-nav">
     <div class="logo">Eli<span>get</span></div>
     <div class="nav-icons">
-      
-    
-
       <div class="icon-btn-wrapper" onclick="window.location.href='/notifications.html'">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
@@ -233,13 +217,11 @@
     <span>New notification received!</span>
   </div>
 
-  <!-- Video Player Modal -->
   <div class="modal-overlay" id="videoPlayerModal">
     <div class="video-player-box" id="videoPlayerContainer">
       <button class="video-player-close" onclick="closeVideoPlayer()">
         <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
-      <!-- Content injected by JS -->
     </div>
   </div>
 
@@ -297,6 +279,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/theme.js"></script>
   <script>
     let user = null;
     let currentPage = 1;
@@ -409,7 +392,6 @@
       return `<div class="avatar avatar-text">${author.fullName.charAt(0).toUpperCase()}</div>`;
     }
 
-    // --- Video Logic ---
     function getYouTubeID(url) {
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = url.match(regExp);
@@ -418,7 +400,6 @@
 
     function openVideoPlayer(videoUrl) {
       const container = document.getElementById('videoPlayerContainer');
-      // Clear previous content except the close button
       container.innerHTML = `
         <button class="video-player-close" onclick="closeVideoPlayer()">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -429,7 +410,6 @@
       if (ytId) {
         container.insertAdjacentHTML('beforeend', `<iframe class="video-player-iframe" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`);
       } else {
-        // Assume direct link (mp4, webm, etc)
         container.insertAdjacentHTML('beforeend', `<video class="direct-video" src="${videoUrl}" controls autoplay></video>`);
       }
       document.getElementById('videoPlayerModal').classList.add('show');
@@ -441,7 +421,7 @@
         <button class="video-player-close" onclick="closeVideoPlayer()">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-      `; // Stop video playback
+      `; 
     }
 
     function generatePostHTML(post) {
@@ -461,7 +441,6 @@
         actionHtml = `<span class="following-text">Following</span>`;
       }
 
-      // Handle Media (Video vs Image)
       let mediaHTML = '';
       if (post.videoLink) {
         const thumbnail = post.image || 'https://via.placeholder.com/600x400/111827/ffffff?text=Video+Thumbnail';
@@ -695,13 +674,28 @@
       } catch (err) {}
     }
 
-    function sharePost(postId, username, content) {
-      const textToShare = `Check out this post by @${username} on Eliget:\n\n"${content}"\n\nhttps://eliget-social.onrender.com`;
-      navigator.clipboard.writeText(textToShare).then(() => {
-        alert('Post copied to clipboard! You can now share it.');
-      }).catch(() => {
-        alert('Failed to copy. Please try again.');
-      });
+    async function sharePost(postId, username, content) {
+      const textToShare = `Check out this post by @${username} on Eliget:\n\n"${content}"`;
+      const url = 'https://eliget-social.onrender.com';
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Eliget Post',
+            text: textToShare,
+            url: url,
+          });
+        } catch (err) {
+          console.log('Share cancelled or failed', err);
+        }
+      } else {
+        // Fallback for desktop
+        navigator.clipboard.writeText(`${textToShare}\n\n${url}`).then(() => {
+          alert('Post link copied to clipboard!');
+        }).catch(() => {
+          alert('Failed to copy link.');
+        });
+      }
     }
 
     function openCommentsModal(postId, postAuthorId) {
@@ -782,6 +776,5 @@
 
     initAuth();
   </script>
-<script src="/theme.js"></script>
 </body>
 </html>

@@ -432,6 +432,37 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
 });
 
 // --- GET POSTS WITH SAFETY CHECKS ---
+
+app.get('/api/search', async (req, res) => {
+  try {
+    const query = req.query.q;
+    if (!query || query.trim() === '') return res.status(200).json({ users: [], posts: [] });
+
+    const regex = new RegExp(query, 'i');
+
+    // Search Users
+    const users = await User.find({
+      $or: [{ fullName: regex }, { username: regex }]
+    }).select('fullName username profilePic badge').limit(10).lean();
+
+    // Search Posts
+    const posts = await Post.find({ content: regex })
+      .populate('author', 'fullName username profilePic badge')
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const validPosts = posts.filter(p => p.author != null);
+    for (let post of validPosts) {
+      post.commentCount = await Comment.countDocuments({ postId: post._id });
+    }
+
+    res.status(200).json({ users, posts: validPosts });
+  } catch (error) {
+    res.status(500).json({ message: "Search failed" });
+  }
+});
+
 app.get('/api/posts', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

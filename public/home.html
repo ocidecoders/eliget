@@ -33,6 +33,16 @@
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
 
+    /* Search Results Specific UI */
+    .search-section-title { font-family: 'Archivo', sans-serif; font-size: 1.1rem; color: var(--text); margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .search-users-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .search-user-item { display: flex; align-items: center; gap: 12px; background: var(--surface); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: background 0.2s; }
+    .search-user-item:hover { background: #E5E7EB; }
+    .search-user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.1rem; background-size: cover; background-position: center; border: 2px solid var(--green); flex-shrink: 0; }
+    .search-user-info h4 { font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .search-user-info span { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* Post Card Styling */
     .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid var(--line); }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -45,17 +55,7 @@
     
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     
-    .post-image { 
-      width: 100%; 
-      height: auto;
-      max-height: 600px;
-      object-fit: contain; 
-      border-radius: 12px; 
-      border: 1px solid var(--line);
-      margin-top: 5px;
-      display: block;
-      background-color: var(--bg);
-    }
+    .post-image { width: 100%; height: auto; max-height: 600px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 5px; display: block; background-color: var(--bg); }
 
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
     .action-left { display: flex; gap: 20px; align-items: center; }
@@ -169,15 +169,17 @@
   <div class="search-container">
     <div class="search-wrapper">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="searchInput" placeholder="Search posts or users...">
+      <input type="text" id="searchInput" placeholder="Search users or posts...">
     </div>
   </div>
 
   <div class="container">
+    <div id="searchResultsContainer" style="display:none; flex:1;"></div>
     <div id="feedContainer" style="flex:1;"></div>
     <button class="btn-load-more" id="loadMoreBtn" style="display:none;">Load More Posts</button>
   </div>
 
+  <!-- Modals (Edit, Comments) -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
       <h3>Edit Post</h3>
@@ -322,94 +324,91 @@
 
     function getAvatarHTML(author) {
       if (!author) return '';
-      if (author.profilePic) {
-        return `<div class="avatar" style="background-image: url('${author.profilePic}')"></div>`;
-      } else {
-        const initial = author.fullName ? author.fullName.charAt(0).toUpperCase() : '?';
-        return `<div class="avatar avatar-text">${initial}</div>`;
+      if (author.profilePic) return `<div class="avatar" style="background-image: url('${author.profilePic}')"></div>`;
+      return `<div class="avatar avatar-text">${author.fullName.charAt(0).toUpperCase()}</div>`;
+    }
+
+    // Extract Post HTML generation to a function so it can be reused for search
+    function generatePostHTML(post) {
+      const isOwner = post.author._id === user.id;
+      const isLiked = post.likes && post.likes.includes(user.id);
+      const likesCount = post.likes ? post.likes.length : 0;
+      const viewsCount = post.views || 0;
+      const commentCount = post.commentCount || 0;
+      const isSaved = post.isSaved || false;
+      
+      let actionHtml = '';
+      if (post.relationship === 'mutual') {
+        actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); window.location.href='/chat-room.html?id=${post.author._id}'">Message</button>`;
+      } else if (post.relationship === 'follower') {
+        actionHtml = `<button class="small-btn follow-back" onclick="event.stopPropagation(); followUser('${post.author._id}')">Follow Back</button>`;
+      } else if (post.relationship === 'following') {
+        actionHtml = `<span class="following-text">Following</span>`;
       }
+
+      const imageHTML = post.image ? `<img src="${post.image}" class="post-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">` : '';
+
+      return `
+      <div class="post-card" data-post-id="${post._id}">
+        <div class="post-header">
+          <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
+            ${getAvatarHTML(post.author)}
+            <div>
+              <h4>${post.author.fullName} ${badgeSVGs[post.author.badge || 'General']}</h4>
+              <span class="username">@${post.author.username}</span>
+            </div>
+          </div>
+          <div class="header-right">
+            ${actionHtml}
+            ${isOwner ? `
+            <div class="menu-container">
+              <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+              </button>
+              <div class="dropdown-menu" id="menu-${post._id}">
+                <div class="dropdown-item" onclick="openEditModal('${post._id}')">
+                  <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
+                </div>
+                <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
+                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
+                </div>
+              </div>
+            </div>` : ''}
+          </div>
+        </div>
+        <div class="post-content">${post.content}</div>
+        ${imageHTML}
+        
+        <div class="action-bar">
+          <div class="action-left">
+            <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <span id="like-count-${post._id}">${likesCount}</span>
+            </button>
+            <button class="action-btn" onclick="openCommentsModal('${post._id}', '${post.author._id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              <span id="comment-count-${post._id}">${commentCount}</span>
+            </button>
+            <button class="action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${post._id}')" id="save-btn-${post._id}">
+              <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+            <button class="action-btn" onclick="sharePost('${post._id}', '${post.author.username}', \`${post.content.replace(/`/g, '')}\`)">
+              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+          </div>
+          <div class="view-count">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span id="view-count-${post._id}">${viewsCount}</span>
+          </div>
+        </div>
+      </div>
+    `;
     }
 
     function appendPosts(postsToRender) {
       const container = document.getElementById('feedContainer');
       const validPosts = postsToRender.filter(post => post.author !== null);
-
-      const html = validPosts.map(post => {
-        const isOwner = post.author._id === user.id;
-        const isLiked = post.likes && post.likes.includes(user.id);
-        const likesCount = post.likes ? post.likes.length : 0;
-        const viewsCount = post.views || 0;
-        const commentCount = post.commentCount || 0;
-        const isSaved = post.isSaved || false;
-        
-        let actionHtml = '';
-        if (post.relationship === 'mutual') {
-          actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); window.location.href='/chat-room.html?id=${post.author._id}'">Message</button>`;
-        } else if (post.relationship === 'follower') {
-          actionHtml = `<button class="small-btn follow-back" onclick="event.stopPropagation(); followUser('${post.author._id}')">Follow Back</button>`;
-        } else if (post.relationship === 'following') {
-          actionHtml = `<span class="following-text">Following</span>`;
-        }
-
-        const imageHTML = post.image ? `<img src="${post.image}" class="post-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">` : '';
-
-        return `
-        <div class="post-card" data-post-id="${post._id}">
-          <div class="post-header">
-            <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
-              ${getAvatarHTML(post.author)}
-              <div>
-                <h4>${post.author.fullName} ${badgeSVGs[post.author.badge || 'General']}</h4>
-                <span class="username">@${post.author.username}</span>
-              </div>
-            </div>
-            <div class="header-right">
-              ${actionHtml}
-              ${isOwner ? `
-              <div class="menu-container">
-                <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
-                </button>
-                <div class="dropdown-menu" id="menu-${post._id}">
-                  <div class="dropdown-item" onclick="openEditModal('${post._id}')">
-                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
-                  </div>
-                  <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
-                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
-                  </div>
-                </div>
-              </div>` : ''}
-            </div>
-          </div>
-          <div class="post-content">${post.content}</div>
-          ${imageHTML}
-          
-          <div class="action-bar">
-            <div class="action-left">
-              <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
-                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                <span id="like-count-${post._id}">${likesCount}</span>
-              </button>
-              <button class="action-btn" onclick="openCommentsModal('${post._id}', '${post.author._id}')">
-                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                <span id="comment-count-${post._id}">${commentCount}</span>
-              </button>
-              <button class="action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${post._id}')" id="save-btn-${post._id}">
-                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-              </button>
-              <button class="action-btn" onclick="sharePost('${post._id}', '${post.author.username}', \`${post.content.replace(/`/g, '')}\`)">
-                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-              </button>
-            </div>
-            <div class="view-count">
-              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              <span id="view-count-${post._id}">${viewsCount}</span>
-            </div>
-          </div>
-        </div>
-      `}).join('');
-      
-      container.insertAdjacentHTML('beforeend', html);
+      container.insertAdjacentHTML('beforeend', validPosts.map(post => generatePostHTML(post)).join(''));
       allLoadedPosts.push(...validPosts);
       setupViewTracking();
     }
@@ -429,18 +428,12 @@
       try {
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
         const posts = await res.json();
-
         if (!Array.isArray(posts)) throw new Error("Invalid format");
 
         if (posts.length === 0) {
             hasMore = false; 
             if (currentPage === 1) {
-                document.getElementById('feedContainer').innerHTML = `
-                  <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <p>No posts found.</p>
-                    <a href="/create-post.html" class="btn-create-post">Create a Post</a>
-                  </div>`;
+                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>No posts found.</p><a href="/create-post.html" class="btn-create-post">Create a Post</a></div>`;
             }
         } else {
             if (posts.length < POSTS_PER_PAGE) hasMore = false;
@@ -458,10 +451,79 @@
 
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
 
+    // --- Global Search Logic ---
+    let searchTimeout = null;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      const searchResultsContainer = document.getElementById('searchResultsContainer');
+      const feedContainer = document.getElementById('feedContainer');
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+      if (!query) {
+        searchResultsContainer.style.display = 'none';
+        feedContainer.style.display = 'block';
+        if (hasMore) loadMoreBtn.style.display = 'block';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        feedContainer.style.display = 'none';
+        loadMoreBtn.style.display = 'none';
+        searchResultsContainer.style.display = 'block';
+        searchResultsContainer.innerHTML = '<p style="text-align:center; margin-top:20px;">Searching...</p>';
+
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+          const data = await res.json();
+
+          if (data.users.length === 0 && data.posts.length === 0) {
+            searchResultsContainer.innerHTML = `<div class="empty-state"><p>No results found for "${query}"</p></div>`;
+            return;
+          }
+
+          let html = '';
+
+          if (data.users.length > 0) {
+            html += `<h3 class="search-section-title">Users</h3><div class="search-users-list">`;
+            html += data.users.map(u => `
+              <div class="search-user-item" onclick="window.location.href='/profile.html?id=${u._id}'">
+                <div class="search-user-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">
+                  ${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}
+                </div>
+                <div class="search-user-info">
+                  <h4>${u.fullName} ${badgeSVGs[u.badge || 'General']}</h4>
+                  <span>@${u.username}</span>
+                </div>
+              </div>
+            `).join('') + `</div>`;
+          }
+
+          if (data.posts.length > 0) {
+            html += `<h3 class="search-section-title">Posts</h3>`;
+            html += data.posts.map(post => generatePostHTML(post)).join('');
+          }
+
+          searchResultsContainer.innerHTML = html;
+          setupViewTracking(); // For views on search results
+
+        } catch (err) {
+          searchResultsContainer.innerHTML = '<p style="text-align:center; color:red; margin-top:20px;">Error searching. Please try again.</p>';
+        }
+      }, 500); // 500ms debounce
+    });
+
     async function followUser(targetId) {
       try {
         const res = await fetch(`/api/user/follow/${targetId}`, { method: 'POST' });
-        if (res.ok) { loadPosts(true); }
+        if (res.ok) { 
+            const currentQuery = document.getElementById('searchInput').value.trim();
+            if (currentQuery) {
+                document.getElementById('searchInput').dispatchEvent(new Event('input'));
+            } else {
+                loadPosts(true); 
+            }
+        }
       } catch (err) {}
     }
 
@@ -503,6 +565,7 @@
       });
     }
 
+    // --- Comments Logic ---
     function openCommentsModal(postId, postAuthorId) {
       currentPostIdForComment = postId; currentPostAuthorId = postAuthorId;
       document.getElementById('commentsModal').classList.add('show');

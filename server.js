@@ -469,6 +469,7 @@ app.get('/api/posts', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const feedType = req.query.type || 'global';
 
     let currentUser = null;
     if (req.cookies.eliget_token) {
@@ -478,7 +479,15 @@ app.get('/api/posts', async (req, res) => {
       } catch (e) {}
     }
 
-    const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    let query = { postType: { $ne: 'job' } };
+    
+    // Following Filter
+    if (feedType === 'following' && currentUser) {
+      const followingList = [...currentUser.following, currentUser._id]; // Include own posts
+      query.author = { $in: followingList };
+    }
+
+    const posts = await Post.find(query).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
     const validPosts = posts.filter(post => post.author != null);
 
     for (let post of validPosts) {

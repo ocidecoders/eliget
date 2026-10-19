@@ -43,6 +43,12 @@
     .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-badge { position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center; border: 2px solid var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
+    /* Feed Tabs */
+    .feed-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
+    .feed-tab { flex: 1; text-align: center; padding: 14px; font-weight: 600; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.2s; }
+    .feed-tab.active { color: var(--text); }
+    .feed-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 20%; width: 60%; height: 2px; background: var(--green); border-radius: 2px; }
+
     .search-container { position: sticky; top: 65px; z-index: 90; background: var(--surface); padding: 10px 20px; border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
     .search-wrapper { position: relative; width: 100%; }
     .search-wrapper svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -199,6 +205,12 @@
     </div>
   </div>
 
+  <!-- Feed Tabs -->
+  <div class="feed-tabs" id="feedTabs">
+    <div class="feed-tab active" onclick="switchFeedType('global')">Global</div>
+    <div class="feed-tab" onclick="switchFeedType('following')">Following</div>
+  </div>
+
   <div class="search-container">
     <div class="search-wrapper">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -288,6 +300,7 @@
     let allLoadedPosts = [];
     let socket = null;
     let isLoadingPosts = false;
+    let currentFeedType = 'global'; // 'global' or 'following'
 
     async function initAuth() {
       try {
@@ -534,14 +547,15 @@
       document.getElementById('loadingSpinner').style.display = 'block';
 
       try {
-        const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
+        // Pass the current feed type to the API
+        const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}&type=${currentFeedType}`);
         const posts = await res.json();
         if (!Array.isArray(posts)) throw new Error("Invalid format");
 
         if (posts.length === 0) {
             hasMore = false; 
             if (currentPage === 1) {
-                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>No posts found.</p><a href="/create-post.html" class="btn-create-post">Create a Post</a></div>`;
+                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>${currentFeedType === 'following' ? 'No posts from people you follow.' : 'No posts found.'}</p><a href="/create-post.html" class="btn-create-post">Create a Post</a></div>`;
             }
         } else {
             if (posts.length < POSTS_PER_PAGE) hasMore = false;
@@ -555,6 +569,21 @@
 
       isLoadingPosts = false;
       document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    // --- Tab Switching Logic ---
+    function switchFeedType(type) {
+      if (currentFeedType === type) return;
+      currentFeedType = type;
+
+      // Update UI
+      const tabs = document.querySelectorAll('.feed-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      if (type === 'global') tabs[0].classList.add('active');
+      else tabs[1].classList.add('active');
+
+      // Reload feed
+      loadPosts(true);
     }
 
     function setupInfiniteScroll() {
@@ -583,6 +612,7 @@
       if (!query) {
         searchResultsContainer.style.display = 'none';
         feedContainer.style.display = 'block';
+        document.getElementById('feedTabs').style.display = 'flex'; // Show tabs again
         if (hasMore) { window.dispatchEvent(new Event('scroll')); } 
         window.history.replaceState({}, '', '/home.html');
         return;
@@ -591,6 +621,7 @@
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
         loadingSpinner.style.display = 'none';
+        document.getElementById('feedTabs').style.display = 'none'; // Hide tabs during search
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<p style="text-align:center; margin-top:20px;">Searching...</p>';
 
@@ -689,7 +720,6 @@
           console.log('Share cancelled or failed', err);
         }
       } else {
-        // Fallback for desktop
         navigator.clipboard.writeText(`${textToShare}\n\n${url}`).then(() => {
           alert('Post link copied to clipboard!');
         }).catch(() => {

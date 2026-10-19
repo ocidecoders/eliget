@@ -115,6 +115,8 @@
   
     /* Chat Badge */
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+  
+    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
   </style>
 </head>
 <body>
@@ -195,8 +197,11 @@
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        if (user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-        else document.getElementById('navProfilePic').style.background = '#10B981';
+        
+        const navPic = document.getElementById('navProfilePic');
+        if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
+        else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
+  
         
         fetchNotifBadge();
         loadJobs();

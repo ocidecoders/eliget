@@ -18,20 +18,20 @@
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-    .nav-icons { display: flex; align-items: center; gap: 15px; }
+    .nav-icons { display: flex; align-items: center; gap: 12px; }
     
-    .icon-btn-wrapper { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: background 0.2s; }
+    .icon-btn-wrapper { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: background 0.2s; }
     .icon-btn-wrapper:hover { background: #E5E7EB; }
     .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-badge { position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center; border: 2px solid var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-    .search-container { position: sticky; top: 67px; z-index: 90; background: var(--surface); padding: 10px 20px; border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
+    .search-container { position: sticky; top: 65px; z-index: 90; background: var(--surface); padding: 10px 20px; border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
     .search-wrapper { position: relative; width: 100%; }
     .search-wrapper svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .search-wrapper input { width: 100%; padding: 12px 14px 12px 42px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; }
     .search-wrapper input:focus { border-color: var(--green); background: var(--surface); }
 
-    .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
 
     .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 16px; position: relative; border: 1px solid var(--line); will-change: transform; }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
@@ -112,8 +112,9 @@
     .btn-send svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-left: -2px; margin-top: 2px; }
     .empty-comments { text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 0.95rem; }
 
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
+    .empty-state p { font-size: 1rem; font-weight: 500; }
     .svg-badge { width: 18px; height: 18px; }
     
     .btn-load-more { display: block; width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; text-align: center; transition: background 0.2s; }
@@ -126,7 +127,7 @@
     .nav-item.plus-btn { flex: 0.5; }
     .nav-item.plus-btn .plus-circle { position: absolute; top: -30px; width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transition: transform 0.2s; }
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
-    .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
+    .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 12px; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
@@ -151,7 +152,7 @@
   </div>
 
   <div class="container">
-    <div id="feedContainer"></div>
+    <div id="feedContainer" style="flex:1;"></div>
     <button class="btn-load-more" id="loadMoreBtn" style="display:none;">Load More Posts</button>
   </div>
 
@@ -223,16 +224,12 @@
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        if (user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-        else {
-          document.getElementById('navProfilePic').style.background = '#10B981';
-          document.getElementById('navProfilePic').style.display = 'flex';
-          document.getElementById('navProfilePic').style.justifyContent = 'center';
-          document.getElementById('navProfilePic').style.alignItems = 'center';
-          document.getElementById('navProfilePic').style.color = 'white';
-          document.getElementById('navProfilePic').style.fontWeight = '700';
-          document.getElementById('navProfilePic').style.fontSize = '12px';
-          document.getElementById('navProfilePic').innerText = user.fullName.charAt(0).toUpperCase();
+        const navPic = document.getElementById('navProfilePic');
+        if (user.profilePic) {
+          navPic.style.backgroundImage = `url(${user.profilePic})`;
+        } else {
+          navPic.style.background = '#10B981';
+          navPic.innerText = user.fullName.charAt(0).toUpperCase();
         }
         
         fetchBadges();
@@ -403,13 +400,15 @@
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
         const posts = await res.json();
 
-        if (posts.length < POSTS_PER_PAGE) hasMore = false;
-
-        if (posts.length > 0) {
-          appendPosts(posts);
-          currentPage++;
-        } else if (currentPage === 1) {
-          document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><p>No posts found.</p></div>`;
+        if (posts.length === 0) {
+            hasMore = false; // Fix: Stop showing button if no posts
+            if (currentPage === 1) {
+                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><p>No posts found.</p></div>`;
+            }
+        } else {
+            if (posts.length < POSTS_PER_PAGE) hasMore = false;
+            appendPosts(posts);
+            currentPage++;
         }
       } catch (err) { console.error(err); }
 

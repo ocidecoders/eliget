@@ -19,10 +19,12 @@
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-    .nav-icons { display: flex; align-items: center; gap: 15px; }
-    .icon-btn { background: none; border: none; cursor: pointer; position: relative; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
-    .icon-btn svg { width: 24px; height: 24px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-badge { position: absolute; top: 0px; right: 0px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+    .nav-icons { display: flex; align-items: center; gap: 12px; }
+    
+    .icon-btn-wrapper { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: background 0.2s; }
+    .icon-btn-wrapper:hover { background: #E5E7EB; }
+    .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-badge { position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center; border: 2px solid var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
     .cover-container { position: relative; width: 100%; height: 140px; background: #000000; background-size: cover; background-position: center; }
     .edit-cover-btn { position: absolute; top: 10px; right: 20px; z-index: 10; background: rgba(0,0,0,0.6); color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px); transition: background 0.2s; }
@@ -31,7 +33,10 @@
 
     .profile-info-container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; margin-top: -50px; }
     .avatar-wrapper { position: relative; width: 100px; height: 100px; }
+    
     .avatar { width: 100%; height: 100%; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; border: 4px solid var(--surface); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 2.5rem; }
+    
     .edit-avatar-btn { position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .edit-avatar-btn svg { width: 16px; height: 16px; stroke: var(--text); }
 
@@ -124,11 +129,8 @@
     .nav-item.plus-btn { flex: 0.5; }
     .nav-item.plus-btn .plus-circle { position: absolute; top: -30px; width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transition: transform 0.2s; }
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
-    .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
+    .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 12px; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-  
-    /* Chat Badge */
-    .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
 </head>
 <body>
@@ -136,13 +138,13 @@
   <div class="top-nav">
     <div class="logo">Eli<span>get</span></div>
     <div class="nav-icons">
-      <button class="icon-btn" onclick="window.location.href='/notifications.html'">
+      <div class="icon-btn-wrapper" onclick="window.location.href='/notifications.html'">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
-      </button>
-      <button class="icon-btn" onclick="window.location.href='/settings.html'">
+      </div>
+      <div class="icon-btn-wrapper" onclick="window.location.href='/settings.html'">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      </button>
+      </div>
     </div>
   </div>
 
@@ -235,7 +237,6 @@
     <a href="/chat.html" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       Chats
-    
       <span class="chat-badge" id="navChatBadge" style="display:none;">0</span>
     </a>
     <a href="/dashboard.html" class="nav-item profile-nav active" id="navProfileBtn">
@@ -255,10 +256,12 @@
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        if (user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-        else document.getElementById('navProfilePic').style.background = '#10B981';
+        const navPic = document.getElementById('navProfilePic');
+        if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
+        else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
         
         fetchNotifBadge();
+        fetchChatBadge();
         initProfile();
       } catch (err) {
         localStorage.removeItem('eliget_user');
@@ -278,6 +281,18 @@
       } catch (err) {}
     }
 
+    async function fetchChatBadge() {
+      try {
+        const res = await fetch('/api/chat/unread');
+        const data = await res.json();
+        const badge = document.getElementById('navChatBadge');
+        if (badge && data.unreadCount > 0) {
+          badge.style.display = 'block';
+          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+        }
+      } catch (err) {}
+    }
+
     const badgeSVGs = {
       "Singer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
       "Freelancer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
@@ -290,7 +305,14 @@
       document.getElementById('myName').innerHTML = user.fullName + ' ' + (badgeSVGs[user.badge || 'General']);
       document.getElementById('myUsername').innerText = '@' + user.username;
       
-      if (user.profilePic) document.getElementById('myAvatar').style.backgroundImage = `url(${user.profilePic})`;
+      const avatarDiv = document.getElementById('myAvatar');
+      if (user.profilePic) {
+        avatarDiv.style.backgroundImage = `url(${user.profilePic})`;
+      } else {
+        avatarDiv.classList.add('avatar-text');
+        avatarDiv.innerText = user.fullName.charAt(0).toUpperCase();
+      }
+      
       if (user.coverPic) document.getElementById('coverContainer').style.backgroundImage = `url(${user.coverPic})`;
 
       loadUserPosts();
@@ -304,8 +326,13 @@
         const res = await fetch('/api/upload-avatar/' + user.id, { method: 'POST', body: formData });
         const data = await res.json();
         if (res.ok) {
-          document.getElementById('myAvatar').style.backgroundImage = `url(${data.imageUrl})`;
+          const avatarDiv = document.getElementById('myAvatar');
+          avatarDiv.classList.remove('avatar-text');
+          avatarDiv.innerText = '';
+          avatarDiv.style.backgroundImage = `url(${data.imageUrl})`;
+          
           document.getElementById('navProfilePic').style.backgroundImage = `url(${data.imageUrl})`;
+          document.getElementById('navProfilePic').innerText = '';
           user.profilePic = data.imageUrl; localStorage.setItem('eliget_user', JSON.stringify(user));
         } else { alert('Upload failed'); }
       } catch (err) { alert('Error uploading'); }
@@ -398,7 +425,7 @@
               </div>
             </div>
             <div class="post-content">${post.content}</div>
-            ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
+            ${post.image ? `<img src="${post.image}" class="post-image" loading="lazy">` : ''}
             
             <div class="action-bar">
               <div class="action-left">
@@ -438,13 +465,11 @@
     }
 
     function openCommentsModal(postId, postAuthorId) {
-      currentPostIdForComment = postId;
-      currentPostAuthorId = postAuthorId;
+      currentPostIdForComment = postId; currentPostAuthorId = postAuthorId;
       document.getElementById('commentsModal').classList.add('show');
       document.getElementById('commentInput').value = '';
       loadComments(postId);
     }
-
     function closeCommentsModal() { document.getElementById('commentsModal').classList.remove('show'); currentPostIdForComment = null; currentPostAuthorId = null; }
 
     async function loadComments(postId) {
@@ -459,7 +484,7 @@
           const isCommentOwner = c.author._id === user.id;
           return `
           <div class="comment-item">
-            <div class="comment-avatar" style="background-image: url('${c.author.profilePic || ''}')"></div>
+            ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
             <div class="comment-body">
               ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
               <h5>${c.author.fullName} ${badgeSVGs[c.author.badge || 'General']}</h5>
@@ -482,41 +507,20 @@
       btn.disabled = true;
       try {
         const res = await fetch(`/api/posts/${currentPostIdForComment}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) });
-        if (res.ok) {
-          input.value = '';
-          const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`);
-          if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1;
-          loadComments(currentPostIdForComment);
-        }
+        if (res.ok) { input.value = ''; const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`); if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1; loadComments(currentPostIdForComment); }
       } catch (err) {}
       btn.disabled = false;
     });
 
     async function deleteComment(commentId, postId) {
       if (!confirm('Delete this comment?')) return;
-      try {
-        const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
-        if (res.ok) {
-          const countSpan = document.getElementById(`comment-count-${postId}`);
-          if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1);
-          loadComments(postId);
-        }
-      } catch (err) {}
+      try { const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' }); if (res.ok) { const countSpan = document.getElementById(`comment-count-${postId}`); if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); loadComments(postId); } } catch (err) {}
     }
-
     async function togglePin(commentId, postId) {
-      try {
-        const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' });
-        const data = await res.json();
-        if (res.ok) loadComments(postId); else alert(data.message);
-      } catch (err) {}
+      try { const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); const data = await res.json(); if (res.ok) loadComments(postId); else alert(data.message); } catch (err) {}
     }
 
-    function toggleMenu(e, id) {
-      e.stopPropagation();
-      document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
-      document.getElementById(`menu-${id}`).classList.toggle('show');
-    }
+    function toggleMenu(e, id) { e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show')); document.getElementById(`menu-${id}`).classList.toggle('show'); }
     document.addEventListener('click', () => { document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show')); });
 
     function openEditModal(id) {
@@ -537,21 +541,6 @@
     }
 
     initAuth();
-  
-    // Fetch Chat Badge
-    async function fetchChatBadge() {
-      try {
-        const res = await fetch('/api/chat/unread');
-        const data = await res.json();
-        const badge = document.getElementById('navChatBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
-        }
-      } catch (err) { console.error(err); }
-    }
-    fetchChatBadge();
-  
   </script>
 </body>
 </html>

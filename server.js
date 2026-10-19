@@ -77,7 +77,6 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- AUTH APIS ---
 app.get('/api/check-username/:username', async (req, res) => {
   try {
     const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -126,7 +125,6 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-// --- USER APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
     const { fullName, bio, websiteTitle, websiteUrl } = req.body;
@@ -224,7 +222,11 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     const alreadyFollowing = targetUser.followers.includes(req.user.id);
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
-    if (!alreadyFollowing) { await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); }
+    
+    if (!alreadyFollowing) { 
+      await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); 
+      io.to(req.params.targetId).emit('newNotification', { type: 'follow' });
+    }
     res.status(200).json({ message: "Followed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to follow" }); }
 });
@@ -237,7 +239,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
 });
 
-// --- SAVE POST APIS ---
 app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -254,13 +255,11 @@ app.get('/api/posts/saved', authenticateToken, async (req, res) => {
       path: 'savedPosts',
       populate: { path: 'author', select: 'fullName username profilePic badge' }
     });
-    // Filter out nulls if a post was deleted
     const validPosts = user.savedPosts.filter(p => p != null);
     res.status(200).json(validPosts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch saved posts" }); }
 });
 
-// --- CHAT APIS ---
 app.get('/api/chats', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
@@ -294,7 +293,6 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
 
-// --- POST APIS ---
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType } = req.body;
@@ -345,6 +343,7 @@ app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
       post.likes.push(req.user.id); 
       if (post.author.toString() !== req.user.id) {
         await new Notification({ receiver: post.author, sender: req.user.id, type: 'like', postId: post._id }).save();
+        io.to(post.author.toString()).emit('newNotification', { type: 'like' });
       }
     }
     await post.save();
@@ -377,6 +376,7 @@ app.post('/api/posts/:postId/comments', authenticateToken, async (req, res) => {
     await newComment.save();
     if (post.author.toString() !== req.user.id) {
       await new Notification({ receiver: post.author, sender: req.user.id, type: 'comment', postId: post._id }).save();
+      io.to(post.author.toString()).emit('newNotification', { type: 'comment' });
     }
     const populatedComment = await Comment.findById(newComment._id).populate('author', 'fullName username profilePic badge');
     res.status(201).json(populatedComment);
@@ -431,36 +431,20 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
   } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
 });
 
-// --- GET POSTS WITH SAFETY CHECKS ---
-
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
     if (!query || query.trim() === '') return res.status(200).json({ users: [], posts: [] });
-
     const regex = new RegExp(query, 'i');
 
-    // Search Users
-    const users = await User.find({
-      $or: [{ fullName: regex }, { username: regex }]
-    }).select('fullName username profilePic badge').limit(10).lean();
-
-    // Search Posts
-    const posts = await Post.find({ content: regex })
-      .populate('author', 'fullName username profilePic badge')
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+    const users = await User.find({ $or: [{ fullName: regex }, { username: regex }] }).select('fullName username profilePic badge').limit(10).lean();
+    const posts = await Post.find({ content: regex }).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).limit(20).lean();
 
     const validPosts = posts.filter(p => p.author != null);
-    for (let post of validPosts) {
-      post.commentCount = await Comment.countDocuments({ postId: post._id });
-    }
+    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
 
     res.status(200).json({ users, posts: validPosts });
-  } catch (error) {
-    res.status(500).json({ message: "Search failed" });
-  }
+  } catch (error) { res.status(500).json({ message: "Search failed" }); }
 });
 
 app.get('/api/posts', async (req, res) => {
@@ -478,17 +462,14 @@ app.get('/api/posts', async (req, res) => {
     }
 
     const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-
     const validPosts = posts.filter(post => post.author != null);
 
     for (let post of validPosts) {
       post.commentCount = await Comment.countDocuments({ postId: post._id });
       post.relationship = 'none';
       post.isSaved = false;
-      
       if (currentUser) {
         if (currentUser.savedPosts.includes(post._id)) post.isSaved = true;
-        
         if (post.author._id.toString() !== currentUser._id.toString()) {
           const followers = post.author.followers || [];
           const isFollowing = currentUser.following.includes(post.author._id);
@@ -514,12 +495,8 @@ app.get('/api/posts/jobs', async (req, res) => {
     if (search) { query.content = { $regex: search, $options: 'i' }; }
 
     const posts = await Post.find(query).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-    
     const validPosts = posts.filter(post => post.author != null);
-
-    for (let post of validPosts) { 
-      post.commentCount = await Comment.countDocuments({ postId: post._id }); 
-    }
+    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
     res.status(200).json(validPosts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch jobs" }); }
 });

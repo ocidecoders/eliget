@@ -33,7 +33,6 @@
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
 
-    /* Search Results Specific UI */
     .search-section-title { font-family: 'Archivo', sans-serif; font-size: 1.1rem; color: var(--text); margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
     .search-users-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .search-user-item { display: flex; align-items: center; gap: 12px; background: var(--surface); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: background 0.2s; }
@@ -42,7 +41,6 @@
     .search-user-info h4 { font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
     .search-user-info span { font-size: 0.8rem; color: var(--text-muted); }
 
-    /* Post Card Styling */
     .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid var(--line); }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -137,7 +135,6 @@
     .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
     .empty-state p { font-size: 1rem; font-weight: 500; margin-bottom: 20px; }
     .btn-create-post { display: inline-block; padding: 12px 24px; background: var(--green); color: white; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
-    .svg-badge { width: 18px; height: 18px; }
     
     .btn-load-more { display: block; width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; text-align: center; transition: background 0.2s; }
     .btn-load-more:hover { background: #E5E7EB; }
@@ -152,6 +149,9 @@
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 12px; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
+    .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
@@ -179,7 +179,11 @@
     <button class="btn-load-more" id="loadMoreBtn" style="display:none;">Load More Posts</button>
   </div>
 
-  <!-- Modals (Edit, Comments) -->
+  <div class="toast-notification" id="toastNotif">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    <span>New notification received!</span>
+  </div>
+
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
       <h3>Edit Post</h3>
@@ -233,12 +237,14 @@
     </a>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     let user = null;
     let currentPage = 1;
     const POSTS_PER_PAGE = 10;
     let hasMore = true;
     let allLoadedPosts = [];
+    let socket = null;
 
     async function initAuth() {
       try {
@@ -253,11 +259,22 @@
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
         
         fetchBadges();
+        setupSocket();
         loadPosts(true);
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
       }
+    }
+
+    function setupSocket() {
+      socket = io();
+      socket.on('newNotification', (data) => {
+        fetchBadges();
+        const toast = document.getElementById('toastNotif');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      });
     }
 
     async function fetchBadges() {
@@ -279,14 +296,6 @@
         }
       } catch (err) {}
     }
-
-    const badgeSVGs = {
-      "Singer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
-      "Freelancer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
-      "Business": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
-      "Writer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>`,
-      "General": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`
-    };
 
     let editingPostId = null;
     let currentPostIdForComment = null;
@@ -328,7 +337,6 @@
       return `<div class="avatar avatar-text">${author.fullName.charAt(0).toUpperCase()}</div>`;
     }
 
-    // Extract Post HTML generation to a function so it can be reused for search
     function generatePostHTML(post) {
       const isOwner = post.author._id === user.id;
       const isLiked = post.likes && post.likes.includes(user.id);
@@ -354,7 +362,7 @@
           <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
             ${getAvatarHTML(post.author)}
             <div>
-              <h4>${post.author.fullName} ${badgeSVGs[post.author.badge || 'General']}</h4>
+              <h4>${post.author.fullName}</h4>
               <span class="username">@${post.author.username}</span>
             </div>
           </div>
@@ -441,7 +449,6 @@
             currentPage++;
         }
       } catch (err) { 
-        console.error(err);
         document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
       }
 
@@ -451,7 +458,6 @@
 
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
 
-    // --- Global Search Logic ---
     let searchTimeout = null;
     document.getElementById('searchInput').addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
@@ -492,7 +498,7 @@
                   ${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div class="search-user-info">
-                  <h4>${u.fullName} ${badgeSVGs[u.badge || 'General']}</h4>
+                  <h4>${u.fullName}</h4>
                   <span>@${u.username}</span>
                 </div>
               </div>
@@ -505,12 +511,12 @@
           }
 
           searchResultsContainer.innerHTML = html;
-          setupViewTracking(); // For views on search results
+          setupViewTracking();
 
         } catch (err) {
           searchResultsContainer.innerHTML = '<p style="text-align:center; color:red; margin-top:20px;">Error searching. Please try again.</p>';
         }
-      }, 500); // 500ms debounce
+      }, 500);
     });
 
     async function followUser(targetId) {
@@ -518,11 +524,8 @@
         const res = await fetch(`/api/user/follow/${targetId}`, { method: 'POST' });
         if (res.ok) { 
             const currentQuery = document.getElementById('searchInput').value.trim();
-            if (currentQuery) {
-                document.getElementById('searchInput').dispatchEvent(new Event('input'));
-            } else {
-                loadPosts(true); 
-            }
+            if (currentQuery) document.getElementById('searchInput').dispatchEvent(new Event('input'));
+            else loadPosts(true); 
         }
       } catch (err) {}
     }
@@ -565,7 +568,6 @@
       });
     }
 
-    // --- Comments Logic ---
     function openCommentsModal(postId, postAuthorId) {
       currentPostIdForComment = postId; currentPostAuthorId = postAuthorId;
       document.getElementById('commentsModal').classList.add('show');
@@ -589,7 +591,7 @@
             ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
             <div class="comment-body">
               ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
-              <h5>${c.author.fullName} ${badgeSVGs[c.author.badge || 'General']}</h5>
+              <h5>${c.author.fullName}</h5>
               <p>${c.content}</p>
               <div class="comment-actions">
                 ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}

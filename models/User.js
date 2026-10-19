@@ -7,6 +7,11 @@ const UserSchema = new mongoose.Schema({
   profilePic: { type: String, default: "" },
   coverPic: { type: String, default: "" },
   badge: { type: String, default: "General" },
+  bio: { type: String, maxLength: 100, default: "" },
+  website: {
+    title: { type: String, default: "" },
+    url: { type: String, default: "" }
+  },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });

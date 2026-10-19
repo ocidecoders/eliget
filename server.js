@@ -108,7 +108,7 @@ app.post('/api/login', async (req, res) => {
     
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie('eliget_token', token, { httpOnly: true, secure: false, sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
-    res.status(200).json({ message: "Login successful!", user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge } });
+    res.status(200).json({ message: "Login successful!", user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website } });
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -121,18 +121,26 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json({ user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge } });
+    res.status(200).json({ user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website } });
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
 // --- USER SETTINGS APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
-    const { fullName, badge } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(req.user.id, { fullName, badge }, { new: true });
+    const { fullName, bio, websiteTitle, websiteUrl } = req.body;
+    
+    // Trim and limit bio to 100 chars
+    const safeBio = bio ? bio.substring(0, 100) : "";
+    const website = {
+      title: websiteTitle || "",
+      url: websiteUrl || ""
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, { fullName, bio: safeBio, website }, { new: true });
     res.status(200).json({ 
       message: "Profile updated successfully!", 
-      user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge } 
+      user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge, bio: updatedUser.bio, website: updatedUser.website } 
     });
   } catch (error) { res.status(500).json({ message: "Failed to update profile" }); }
 });
@@ -158,17 +166,12 @@ app.post('/api/user/change-password', authenticateToken, async (req, res) => {
 app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Delete User's Data
     await Post.deleteMany({ author: userId });
     await Comment.deleteMany({ author: userId });
     await Notification.deleteMany({ $or: [{ receiver: userId }, { sender: userId }] });
     await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
-    
-    // Delete User
     await User.findByIdAndDelete(userId);
     
-    // Clear cookie
     res.clearCookie('eliget_token');
     res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) { res.status(500).json({ message: "Failed to delete account" }); }

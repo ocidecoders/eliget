@@ -42,8 +42,13 @@
 
     .user-details { margin-top: 15px; margin-bottom: 20px; }
     .user-details h1 { font-family: 'Archivo', sans-serif; font-size: 1.6rem; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-    .user-details .username { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; display: block; }
+    .user-details .username { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; display: block; margin-bottom: 12px; }
     
+    .bio-text { font-size: 0.95rem; color: var(--text); line-height: 1.4; margin-bottom: 10px; }
+    .website-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--green); text-decoration: none; background: #ecfdf5; padding: 6px 12px; border-radius: 8px; transition: background 0.2s; }
+    .website-link:hover { background: #d1fae5; }
+    .website-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
     .svg-badge { width: 22px; height: 22px; }
     input[type="file"] { display: none; }
 
@@ -168,6 +173,11 @@
     <div class="user-details">
       <h1 id="myName">Loading...</h1>
       <span class="username" id="myUsername"></span>
+      <p class="bio-text" id="myBio" style="display:none;"></p>
+      <a href="#" class="website-link" id="myWebsite" target="_blank" style="display:none;">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <span id="myWebsiteTitle"></span>
+      </a>
     </div>
   </div>
 
@@ -178,6 +188,7 @@
     </div>
   </div>
 
+  <!-- Modals (Edit, Crop, Comments) as before -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
       <h3>Edit Post</h3>
@@ -312,12 +323,26 @@
         avatarDiv.classList.add('avatar-text');
         avatarDiv.innerText = user.fullName.charAt(0).toUpperCase();
       }
+
+      if (user.bio) {
+        document.getElementById('myBio').innerText = user.bio;
+        document.getElementById('myBio').style.display = 'block';
+      }
+
+      if (user.website && user.website.title && user.website.url) {
+        let url = user.website.url;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+        document.getElementById('myWebsite').href = url;
+        document.getElementById('myWebsiteTitle').innerText = user.website.title;
+        document.getElementById('myWebsite').style.display = 'inline-flex';
+      }
       
       if (user.coverPic) document.getElementById('coverContainer').style.backgroundImage = `url(${user.coverPic})`;
 
       loadUserPosts();
     }
 
+    // Image Uploads, Crop logic, Post rendering, Comments logic (Same as previous file)
     document.getElementById('avatarInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;

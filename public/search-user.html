@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+</head>
+<body>
+  <p style="text-align:center; margin-top: 50px; font-family: sans-serif;">Redirecting to profile...</p>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('username');
+    if (!username) {
+      window.location.href = '/home.html';
+    } else {
+      fetch(`/api/search?q=${encodeURIComponent(username)}`)
+        .then(res => res.json())
+        .then(data => {
+          const exactUser = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+          if (exactUser) {
+            window.location.href = `/profile.html?id=${exactUser._id}`;
+          } else {
+            alert(`User @${username} not found.`);
+            window.location.href = '/home.html';
+          }
+        })
+        .catch(() => window.location.href = '/home.html');
+    }
+  </script>
+</body>
+</html>

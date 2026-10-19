@@ -52,6 +52,8 @@
     .post-header .username { font-size: 0.85rem; color: var(--text-muted); display: block; }
     
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
+    .post-content a { color: var(--green); font-weight: 600; text-decoration: none; }
+    .post-content a:hover { text-decoration: underline; }
     
     .post-image { width: 100%; height: auto; max-height: 600px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 5px; display: block; background-color: var(--bg); }
 
@@ -136,8 +138,7 @@
     .empty-state p { font-size: 1rem; font-weight: 500; margin-bottom: 20px; }
     .btn-create-post { display: inline-block; padding: 12px 24px; background: var(--green); color: white; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
     
-    .btn-load-more { display: block; width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; text-align: center; transition: background 0.2s; }
-    .btn-load-more:hover { background: #E5E7EB; }
+    .loading-spinner { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; display: none; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
     .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
@@ -176,7 +177,7 @@
   <div class="container">
     <div id="searchResultsContainer" style="display:none; flex:1;"></div>
     <div id="feedContainer" style="flex:1;"></div>
-    <button class="btn-load-more" id="loadMoreBtn" style="display:none;">Load More Posts</button>
+    <div class="loading-spinner" id="loadingSpinner">Loading more posts...</div>
   </div>
 
   <div class="toast-notification" id="toastNotif">
@@ -245,6 +246,7 @@
     let hasMore = true;
     let allLoadedPosts = [];
     let socket = null;
+    let isLoadingPosts = false;
 
     async function initAuth() {
       try {
@@ -261,6 +263,7 @@
         fetchBadges();
         setupSocket();
         loadPosts(true);
+        setupInfiniteScroll();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
@@ -269,11 +272,14 @@
 
     function setupSocket() {
       socket = io();
-      socket.on('newNotification', (data) => {
+      socket.on('newNotification', () => {
         fetchBadges();
         const toast = document.getElementById('toastNotif');
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
+      });
+      socket.on('newChatMessage', () => {
+        fetchBadges(); // Update chat badge
       });
     }
 
@@ -295,6 +301,25 @@
           cBadge.innerText = chatData.unreadCount > 99 ? '99+' : chatData.unreadCount;
         }
       } catch (err) {}
+    }
+
+    // --- Helper to format Hashtags and Mentions ---
+    function formatContent(text) {
+      if (!text) return '';
+      // Escape HTML to prevent XSS
+      let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      
+      // Replace Hashtags (#tag) -> Link to search
+      safeText = safeText.replace(/(^|\s)#(\w+)/g, (match, space, tag) => {
+        return `${space}<a href="/home.html?search=%23${tag}" onclick="event.stopPropagation();">#${tag}</a>`;
+      });
+
+      // Replace Mentions (@username) -> Link to profile
+      safeText = safeText.replace(/(^|\s)@(\w+)/g, (match, space, username) => {
+        return `${space}<a href="/search-user.html?username=${username}" onclick="event.stopPropagation();">@${username}</a>`;
+      });
+
+      return safeText;
     }
 
     let editingPostId = null;
@@ -384,7 +409,7 @@
             </div>` : ''}
           </div>
         </div>
-        <div class="post-content">${post.content}</div>
+        <div class="post-content">${formatContent(post.content)}</div>
         ${imageHTML}
         
         <div class="action-bar">
@@ -428,10 +453,10 @@
         allLoadedPosts = [];
         document.getElementById('feedContainer').innerHTML = '';
       }
-      if (!hasMore) return;
+      if (!hasMore || isLoadingPosts) return;
 
-      const btn = document.getElementById('loadMoreBtn');
-      btn.innerText = 'Loading...'; btn.style.display = 'block'; btn.disabled = true;
+      isLoadingPosts = true;
+      document.getElementById('loadingSpinner').style.display = 'block';
 
       try {
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
@@ -449,14 +474,31 @@
             currentPage++;
         }
       } catch (err) { 
+        console.error(err);
         document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
       }
 
-      if (hasMore) { btn.innerText = 'Load More Posts'; btn.style.display = 'block'; btn.disabled = false; }
-      else { btn.style.display = 'none'; }
+      isLoadingPosts = false;
+      document.getElementById('loadingSpinner').style.display = 'none';
     }
 
-    document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
+    // --- Infinite Scroll Logic ---
+    function setupInfiniteScroll() {
+      window.addEventListener('scroll', () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 && hasMore && !isLoadingPosts) {
+          loadPosts(false);
+        }
+      });
+    }
+
+    // --- Check URL for search query ---
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('search')) {
+        const searchQ = urlParams.get('search');
+        document.getElementById('searchInput').value = searchQ;
+        // Trigger search manually since input event won't fire on load
+        setTimeout(() => document.getElementById('searchInput').dispatchEvent(new Event('input')), 100);
+    }
 
     let searchTimeout = null;
     document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -464,18 +506,19 @@
       const query = e.target.value.trim();
       const searchResultsContainer = document.getElementById('searchResultsContainer');
       const feedContainer = document.getElementById('feedContainer');
-      const loadMoreBtn = document.getElementById('loadMoreBtn');
+      const loadingSpinner = document.getElementById('loadingSpinner');
 
       if (!query) {
         searchResultsContainer.style.display = 'none';
         feedContainer.style.display = 'block';
-        if (hasMore) loadMoreBtn.style.display = 'block';
+        if (hasMore) { window.dispatchEvent(new Event('scroll')); } // Check scroll
+        window.history.replaceState({}, '', '/home.html'); // Clear query from URL
         return;
       }
 
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
-        loadMoreBtn.style.display = 'none';
+        loadingSpinner.style.display = 'none';
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<p style="text-align:center; margin-top:20px;">Searching...</p>';
 
@@ -592,7 +635,7 @@
             <div class="comment-body">
               ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
               <h5>${c.author.fullName}</h5>
-              <p>${c.content}</p>
+              <p>${formatContent(c.content)}</p>
               <div class="comment-actions">
                 ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}
                 ${isCommentOwner ? `<button class="comment-action-btn delete" onclick="deleteComment('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}

@@ -63,6 +63,8 @@ io.on('connection', (socket) => {
       await newMessage.save();
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);
+      io.to(receiverId).emit('newChatMessage'); // Update badge for receiver
+      io.to(socket.userId).emit('newChatMessage'); // Update badge for sender
     } catch (err) { console.error(err); }
   });
 });

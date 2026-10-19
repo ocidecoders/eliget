@@ -253,7 +253,6 @@ app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
     if (!targetUser) return res.status(404).json({ message: "User not found" });
     const currentUser = await User.findById(req.user.id);
     
-    // Fixed Mongoose ObjectId comparison
     const currentFollowing = (currentUser.following || []).map(id => id.toString());
     const targetFollowing = (targetUser.following || []).map(id => id.toString());
     
@@ -427,7 +426,6 @@ app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
     
-    // Fixed ObjectId comparison
     const postLikes = (post.likes || []).map(id => id.toString());
     const isLiked = postLikes.includes(req.user.id.toString());
     
@@ -581,7 +579,6 @@ app.get('/api/posts', async (req, res) => {
       post.isSaved = false;
       
       if (currentUser) {
-        // Fixed ObjectId comparison using .map() to strings
         const savedPosts = (currentUser.savedPosts || []).map(id => id.toString());
         const currentFollowing = (currentUser.following || []).map(id => id.toString());
         

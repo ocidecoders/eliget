@@ -12,6 +12,12 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .input-area { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .message.received { background-color: var(--surface); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] .input-area input { background-color: var(--bg); color: var(--text); }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
 
@@ -20,53 +26,29 @@
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     
     .header-user { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .header-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; }
+    .header-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; background-color: var(--green); }
     .header-name { font-family: 'Archivo', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); }
 
-    .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; }
     
-    .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; }
+    .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; cursor: pointer; transition: background 0.2s; }
     .message.received { background: var(--surface); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--line); }
     .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
     .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.7; }
+    
+    .typing-indicator { display: none; align-self: flex-start; background: var(--surface); padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--line); margin-top: 5px; }
+    .typing-indicator.show { display: flex; gap: 4px; align-items: center; }
+    .typing-dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
     .input-area { padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 15px); }
-    .input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); }
+    .input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); color: var(--text); }
     .input-area input:focus { border-color: var(--green); background: var(--surface); }
+    [data-theme="dark"] .input-area input:focus { background: var(--bg); }
     .btn-send { background: var(--green); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; }
     .btn-send svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-left: -2px; margin-top: 2px; }
-  
-    /* Chat Badge */
-    .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
   </style>
 </head>
 <body>
@@ -76,14 +58,17 @@
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
     <div class="header-user" id="headerUser" onclick="window.location.href='/profile.html?id=' + targetUserId">
-      <div class="header-avatar" id="headerAvatar">
-    
-</div>
+      <div class="header-avatar" id="headerAvatar"></div>
       <div class="header-name" id="headerName">Loading...</div>
     </div>
   </div>
 
   <div class="chat-container" id="chatContainer"></div>
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  </div>
 
   <div class="input-area">
     <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
@@ -97,6 +82,7 @@
     let user = null;
     let targetUserId = null;
     let socket = null;
+    let typingTimeout = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     targetUserId = urlParams.get('id');
@@ -127,7 +113,9 @@
         const data = await res.json();
         if (res.ok) {
           document.getElementById('headerName').innerText = data.user.fullName;
-          if (data.user.profilePic) document.getElementById('headerAvatar').style.backgroundImage = `url(${data.user.profilePic})`;
+          const avatarDiv = document.getElementById('headerAvatar');
+          if (data.user.profilePic) avatarDiv.style.backgroundImage = `url(${data.user.profilePic})`;
+          else { avatarDiv.innerText = data.user.fullName.charAt(0).toUpperCase(); }
         }
       } catch (err) {}
     }
@@ -142,7 +130,7 @@
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           return `
-            <div class="message ${isSent ? 'sent' : 'received'}">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
               ${msg.text}
               <div class="message-time">${time}</div>
             </div>
@@ -154,25 +142,18 @@
     }
 
     function setupSocket() {
-      socket = io();
-      socket.on('newChatMessage', () => {
-        if (typeof fetchChatBadge === 'function') fetchChatBadge();
-        else if (typeof fetchBadges === 'function') fetchBadges();
-        else {
-            // Fallback fetch directly
-            fetch('/api/chat/unread').then(r=>r.json()).then(d=>{
-                const b = document.getElementById('navChatBadge');
-                if(b && d.unreadCount > 0) { b.style.display='block'; b.innerText = d.unreadCount > 99 ? '99+' : d.unreadCount; }
-            }).catch(()=>{});
-        }
-      }); 
+      socket = io(); 
       socket.on('receiveMessage', (msg) => {
         if ((msg.sender === user.id && msg.receiver === targetUserId) || (msg.sender === targetUserId && msg.receiver === user.id)) {
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          
+          // Remove typing indicator when message arrives
+          document.getElementById('typingIndicator').classList.remove('show');
+
           const msgHTML = `
-            <div class="message ${isSent ? 'sent' : 'received'}">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
               ${msg.text}
               <div class="message-time">${time}</div>
             </div>
@@ -181,6 +162,18 @@
           scrollToBottom();
         }
       });
+
+      socket.on('userTyping', (data) => {
+        if (data.senderId === targetUserId) {
+          document.getElementById('typingIndicator').classList.add('show');
+          scrollToBottom();
+        }
+      });
+
+      socket.on('messageDeleted', (data) => {
+        const msgElement = document.getElementById(`msg-${data.messageId}`);
+        if (msgElement) msgElement.remove();
+      });
     }
 
     function scrollToBottom() {
@@ -188,35 +181,35 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    const messageInput = document.getElementById('messageInput');
+    messageInput.addEventListener('input', () => {
+      if (!socket) return;
+      socket.emit('typing', { receiverId: targetUserId });
+    });
+
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
     function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
+      const text = messageInput.value.trim();
       if (!text || !socket) return;
       socket.emit('sendMessage', { receiverId: targetUserId, text });
-      input.value = '';
+      messageInput.value = '';
     }
 
-    initAuth();
-  
-    // Fetch Chat Badge
-    async function fetchChatBadge() {
+    async function deleteMessage(msgId) {
+      if (!confirm('Delete this message?')) return;
       try {
-        const res = await fetch('/api/chat/unread');
-        const data = await res.json();
-        const badge = document.getElementById('navChatBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+        const res = await fetch(`/api/messages/${msgId}`, { method: 'DELETE' });
+        if (res.ok) {
+          // UI will be updated via socket event 'messageDeleted'
         }
-      } catch (err) { console.error(err); }
+      } catch (err) { alert('Failed to delete message'); }
     }
-    fetchChatBadge();
-  
+
+    initVoiceCall(); // Placeholder for future audio feature
+
+    initAuth();
   </script>
-<script src="/anti-addiction.js"></script>
-<script src="/theme.js"></script>
 </body>
 </html>

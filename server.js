@@ -56,6 +56,7 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   socket.join(socket.userId);
+
   socket.on('sendMessage', async (data) => {
     try {
       const { receiverId, text } = data;
@@ -63,9 +64,13 @@ io.on('connection', (socket) => {
       await newMessage.save();
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);
-      io.to(receiverId).emit('newChatMessage'); // Update badge for receiver
-      io.to(socket.userId).emit('newChatMessage'); // Update badge for sender
+      io.to(receiverId).emit('newChatMessage');
+      io.to(socket.userId).emit('newChatMessage');
     } catch (err) { console.error(err); }
+  });
+
+  socket.on('typing', (data) => {
+    io.to(data.receiverId).emit('userTyping', { senderId: socket.userId });
   });
 });
 
@@ -224,11 +229,7 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     const alreadyFollowing = targetUser.followers.includes(req.user.id);
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
-    
-    if (!alreadyFollowing) { 
-      await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); 
-      io.to(req.params.targetId).emit('newNotification', { type: 'follow' });
-    }
+    if (!alreadyFollowing) { await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); }
     res.status(200).json({ message: "Followed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to follow" }); }
 });
@@ -293,6 +294,20 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
     await Message.updateMany({ sender: req.params.targetUserId, receiver: req.user.id, isRead: false }, { isRead: true });
     res.status(200).json(messages);
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
+});
+
+app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    
+    await Message.findByIdAndDelete(req.params.messageId);
+    io.to(message.receiver.toString()).emit('messageDeleted', { messageId: req.params.messageId });
+    io.to(message.sender.toString()).emit('messageDeleted', { messageId: req.params.messageId });
+    
+    res.status(200).json({ message: "Message deleted" });
+  } catch (error) { res.status(500).json({ message: "Failed to delete message" }); }
 });
 
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {

@@ -32,7 +32,7 @@
     .notif-text { font-size: 0.95rem; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
     .notif-text strong { font-weight: 600; }
     .notif-time { font-size: 0.75rem; color: var(--text-muted); }
-    
+
     .notif-icon { display: flex; justify-content: center; align-items: center; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
     .notif-icon.like { background: #FEE2E2; }
     .notif-icon.like svg { stroke: #EF4444; fill: #EF4444; }
@@ -55,12 +55,12 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-  
+
     /* Chat Badge */
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
-  
+
     .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
-  
+
     /* Dark Theme Styles */
     [data-theme="dark"] {
       --bg: #111827;
@@ -88,17 +88,14 @@
     [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
     [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
     [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
   </style>
 
-  <!-- Favicon -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="shortcut icon" href="/favicon.ico">
 
-  <!-- SEO Meta Tags -->
   <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
   <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
   <meta name="author" content="Ocide Coders">
@@ -108,10 +105,7 @@
   <meta property="og:url" content="https://eliget-social.onrender.com">
   <meta name="twitter:card" content="summary_large_image">
 
-  <!-- Google & Bing Verification (Replace the content values after getting them from search console) -->
-  
   <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE_HERE" />
-
   <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
 </head>
 <body>
@@ -120,9 +114,7 @@
     <button class="back-btn" onclick="window.history.back()">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <div class="logo">Notifi<span>cations</span>
-    
-</div>
+    <div class="logo">Notifi<span>cations</span></div>
   </div>
 
   <div class="container" id="notificationsContainer">
@@ -149,7 +141,6 @@
     <a href="/chat.html" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       Chats
-    
       <span class="chat-badge" id="navChatBadge" style="display:none;">0</span>
     </a>
     <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
@@ -157,8 +148,11 @@
     </a>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     let user = null;
+    let socket = null;
+
     async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
@@ -168,10 +162,26 @@
         localStorage.setItem('eliget_user', JSON.stringify(user));
         if(user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
         loadNotifications();
+        initSocket();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
       }
+    }
+
+    function initSocket() {
+      if (typeof io === 'undefined') {
+        console.warn('Socket.io client not loaded.');
+        return;
+      }
+      socket = io();
+      socket.on('newNotification', (data) => {
+        // Notifications reload and auto-marked as read
+        loadNotifications();
+      });
+      socket.on('newChatMessage', () => {
+        fetchChatBadge();
+      });
     }
 
     function timeAgo(dateParam) {
@@ -197,6 +207,7 @@
         const res = await fetch(`/api/notifications/${user.id}`);
         const notifications = await res.json();
 
+        // Mark as read on backend
         await fetch(`/api/notifications/${user.id}/read`, { method: 'POST' });
 
         if (notifications.length === 0) {
@@ -216,7 +227,7 @@
 
           if (notif.type === 'like') {
             text = `<strong>${notif.sender.fullName}</strong> liked your post.`;
-            link = `/home.html`; 
+            link = `/home.html`;
             iconSVG = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
           } else if (notif.type === 'comment') {
             text = `<strong>${notif.sender.fullName}</strong> commented on your post.`;
@@ -246,24 +257,26 @@
       }
     }
 
-    initAuth();
-  
-    // Fetch Chat Badge
     async function fetchChatBadge() {
       try {
         const res = await fetch('/api/chat/unread');
         const data = await res.json();
         const badge = document.getElementById('navChatBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+        if (badge) {
+          if (data.unreadCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+          } else {
+            badge.style.display = 'none';
+          }
         }
       } catch (err) { console.error(err); }
     }
+
+    initAuth();
     fetchChatBadge();
-  
   </script>
-<script src="/anti-addiction.js"></script>
-<script src="/theme.js"></script>
+  <script src="/anti-addiction.js"></script>
+  <script src="/theme.js"></script>
 </body>
 </html>

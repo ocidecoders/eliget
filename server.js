@@ -282,7 +282,10 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     const alreadyFollowing = targetUser.followers.includes(req.user.id);
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
-    if (!alreadyFollowing) { await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); }
+    if (!alreadyFollowing) {
+      await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save();
+      io.to(req.params.targetId).emit('newNotification', { type: 'follow' });
+    }
     res.status(200).json({ message: "Followed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to follow" }); }
 });

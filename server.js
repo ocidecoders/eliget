@@ -253,12 +253,12 @@ app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
     if (!targetUser) return res.status(404).json({ message: "User not found" });
     const currentUser = await User.findById(req.user.id);
     
-    // Safe array check
-    const currentFollowing = currentUser.following || [];
-    const targetFollowers = targetUser.following || [];
+    // Fixed Mongoose ObjectId comparison
+    const currentFollowing = (currentUser.following || []).map(id => id.toString());
+    const targetFollowing = (targetUser.following || []).map(id => id.toString());
     
-    const isFollowing = currentFollowing.includes(req.params.userId);
-    const isMutual = isFollowing && targetFollowers.includes(req.user.id);
+    const isFollowing = currentFollowing.includes(req.params.userId.toString());
+    const isMutual = isFollowing && targetFollowing.includes(req.user.id.toString());
     
     res.status(200).json({ user: targetUser, followersCount: targetUser.followers.length, followingCount: targetUser.following.length, isFollowing, isMutual });
   } catch (error) { res.status(500).json({ message: "Failed to fetch profile" }); }
@@ -284,8 +284,8 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     const targetUser = await User.findById(req.params.targetId);
     if(!targetUser) return res.status(404).json({message: "User not found"});
     
-    const targetFollowers = targetUser.followers || [];
-    const alreadyFollowing = targetFollowers.includes(req.user.id);
+    const targetFollowers = (targetUser.followers || []).map(id => id.toString());
+    const alreadyFollowing = targetFollowers.includes(req.user.id.toString());
     
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
@@ -308,8 +308,9 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
 app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const savedPosts = user.savedPosts || [];
-    const isSaved = savedPosts.includes(req.params.postId);
+    const savedPosts = (user.savedPosts || []).map(id => id.toString());
+    const isSaved = savedPosts.includes(req.params.postId.toString());
+    
     if (isSaved) { user.savedPosts.pull(req.params.postId); } else { user.savedPosts.push(req.params.postId); }
     await user.save();
     res.status(200).json({ message: isSaved ? "Post unsaved" : "Post saved", saved: !isSaved });
@@ -425,7 +426,11 @@ app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
-    const isLiked = post.likes.includes(req.user.id);
+    
+    // Fixed ObjectId comparison
+    const postLikes = (post.likes || []).map(id => id.toString());
+    const isLiked = postLikes.includes(req.user.id.toString());
+    
     if (isLiked) { post.likes.pull(req.user.id); } else {
       post.likes.push(req.user.id);
       if (post.author.toString() !== req.user.id) {
@@ -534,7 +539,7 @@ app.get('/api/search', async (req, res) => {
 app.get('/api/users/suggested', authenticateToken, async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.id);
-    const currentFollowing = currentUser.following || [];
+    const currentFollowing = (currentUser.following || []).map(id => id.toString());
     const users = await User.find({
       _id: { $nin: [...currentFollowing, currentUser._id] }
     }).select('fullName username profilePic').limit(5).lean();
@@ -562,8 +567,8 @@ app.get('/api/posts', async (req, res) => {
     let query = { postType: { $ne: 'job' } };
 
     if (feedType === 'following' && currentUser) {
-      const currentFollowing = currentUser.following || [];
-      const followingList = [...currentFollowing, currentUser._id];
+      const currentFollowing = (currentUser.following || []).map(id => id.toString());
+      const followingList = [...currentFollowing, currentUser._id.toString()];
       query.author = { $in: followingList };
     }
 
@@ -576,14 +581,16 @@ app.get('/api/posts', async (req, res) => {
       post.isSaved = false;
       
       if (currentUser) {
-        const savedPosts = currentUser.savedPosts || [];
-        const currentFollowing = currentUser.following || [];
+        // Fixed ObjectId comparison using .map() to strings
+        const savedPosts = (currentUser.savedPosts || []).map(id => id.toString());
+        const currentFollowing = (currentUser.following || []).map(id => id.toString());
         
-        if (savedPosts.includes(post._id)) post.isSaved = true;
+        if (savedPosts.includes(post._id.toString())) post.isSaved = true;
+        
         if (post.author._id.toString() !== currentUser._id.toString()) {
-          const followers = post.author.followers || [];
-          const isFollowing = currentFollowing.includes(post.author._id);
-          const isFollower = followers.includes(currentUser._id);
+          const followers = (post.author.followers || []).map(id => id.toString());
+          const isFollowing = currentFollowing.includes(post.author._id.toString());
+          const isFollower = followers.includes(currentUser._id.toString());
           
           if (isFollowing && isFollower) post.relationship = 'mutual';
           else if (isFollowing) post.relationship = 'following';
@@ -592,7 +599,10 @@ app.get('/api/posts', async (req, res) => {
       }
     }
     res.status(200).json(validPosts);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch posts" }); }
+  } catch (error) { 
+    console.error("API /api/posts Error:", error);
+    res.status(500).json({ message: error.message || "Failed to fetch posts" }); 
+  }
 });
 
 app.get('/api/posts/jobs', async (req, res) => {

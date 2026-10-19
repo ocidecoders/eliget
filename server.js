@@ -22,8 +22,20 @@ const io = new Server(server, { cors: { origin: '*', credentials: true } });
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: 'http://localhost:5000', credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => {
+  const token = req.cookies.eliget_token;
+  if (!token) return res.redirect('/login.html');
+  
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      res.clearCookie('eliget_token');
+      return res.redirect('/login.html');
+    }
+    return res.redirect('/home.html');
+  });
+});
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected to Eliget'))

@@ -77,6 +77,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// --- AUTH APIS ---
 app.get('/api/check-username/:username', async (req, res) => {
   try {
     const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -125,6 +126,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
+// --- USER APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
     const { fullName, bio, websiteTitle, websiteUrl } = req.body;
@@ -200,6 +202,20 @@ app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch profile" }); }
 });
 
+app.get('/api/user/:userId/followers', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate('followers', 'fullName username profilePic badge');
+    res.status(200).json(user.followers);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch followers" }); }
+});
+
+app.get('/api/user/:userId/following', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate('following', 'fullName username profilePic badge');
+    res.status(200).json(user.following);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch following" }); }
+});
+
 app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
   try {
     if (req.user.id === req.params.targetId) return res.status(400).json({ message: "Cannot follow yourself" });
@@ -221,6 +237,30 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
 });
 
+// --- SAVE POST APIS ---
+app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const isSaved = user.savedPosts.includes(req.params.postId);
+    if (isSaved) { user.savedPosts.pull(req.params.postId); } else { user.savedPosts.push(req.params.postId); }
+    await user.save();
+    res.status(200).json({ message: isSaved ? "Post unsaved" : "Post saved", saved: !isSaved });
+  } catch (error) { res.status(500).json({ message: "Failed to save post" }); }
+});
+
+app.get('/api/posts/saved', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate({
+      path: 'savedPosts',
+      populate: { path: 'author', select: 'fullName username profilePic badge' }
+    });
+    // Filter out nulls if a post was deleted
+    const validPosts = user.savedPosts.filter(p => p != null);
+    res.status(200).json(validPosts);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch saved posts" }); }
+});
+
+// --- CHAT APIS ---
 app.get('/api/chats', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
@@ -254,6 +294,7 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
 
+// --- POST APIS ---
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType } = req.body;
@@ -321,7 +362,7 @@ app.post('/api/posts/:postId/view', async (req, res) => {
 app.get('/api/posts/:postId/comments', async (req, res) => {
   try {
     const comments = await Comment.find({ postId: req.params.postId }).populate('author', 'fullName username profilePic badge').sort({ isPinned: -1, createdAt: -1 });
-    const validComments = comments.filter(c => c.author != null); // Filter out comments from deleted users
+    const validComments = comments.filter(c => c.author != null);
     res.status(200).json(validComments);
   } catch (error) { res.status(500).json({ message: "Failed to fetch comments" }); }
 });
@@ -371,7 +412,7 @@ app.post('/api/comments/:commentId/pin', authenticateToken, async (req, res) => 
 app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
   try {
     const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic').sort({ createdAt: -1 }).lean();
-    const validNotifs = notifications.filter(n => n.sender != null); // Filter out notifications from deleted users
+    const validNotifs = notifications.filter(n => n.sender != null);
     res.status(200).json(validNotifs);
   } catch (error) { res.status(500).json({ message: "Failed to fetch notifications" }); }
 });
@@ -407,19 +448,24 @@ app.get('/api/posts', async (req, res) => {
 
     const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
 
-    // Filter out posts from deleted users
     const validPosts = posts.filter(post => post.author != null);
 
     for (let post of validPosts) {
       post.commentCount = await Comment.countDocuments({ postId: post._id });
       post.relationship = 'none';
-      if (currentUser && post.author._id.toString() !== currentUser._id.toString()) {
-        const followers = post.author.followers || [];
-        const isFollowing = currentUser.following.includes(post.author._id);
-        const isFollower = followers.includes(currentUser._id);
-        if (isFollowing && isFollower) post.relationship = 'mutual';
-        else if (isFollowing) post.relationship = 'following';
-        else if (isFollower) post.relationship = 'follower';
+      post.isSaved = false;
+      
+      if (currentUser) {
+        if (currentUser.savedPosts.includes(post._id)) post.isSaved = true;
+        
+        if (post.author._id.toString() !== currentUser._id.toString()) {
+          const followers = post.author.followers || [];
+          const isFollowing = currentUser.following.includes(post.author._id);
+          const isFollower = followers.includes(currentUser._id);
+          if (isFollowing && isFollower) post.relationship = 'mutual';
+          else if (isFollowing) post.relationship = 'following';
+          else if (isFollower) post.relationship = 'follower';
+        }
       }
     }
     res.status(200).json(validPosts);
@@ -438,7 +484,6 @@ app.get('/api/posts/jobs', async (req, res) => {
 
     const posts = await Post.find(query).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
     
-    // Filter out posts from deleted users
     const validPosts = posts.filter(post => post.author != null);
 
     for (let post of validPosts) { 

@@ -41,7 +41,6 @@ mongoose.connect(process.env.MONGO_URI)
 const upload = multer({ storage: multer.memoryStorage() });
 const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
 
-// --- SOCKET.IO AUTH & EVENTS ---
 io.use((socket, next) => {
   const cookies = socket.request.headers.cookie;
   if (!cookies) return next(new Error('Authentication error'));
@@ -68,7 +67,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.status(401).json({ message: "Unauthorized" });
@@ -79,7 +77,6 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- AUTH APIS ---
 app.get('/api/check-username/:username', async (req, res) => {
   try {
     const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -128,7 +125,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-// --- USER APIS ---
+// --- USER SETTINGS APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
     const { fullName, badge } = req.body;
@@ -138,6 +135,43 @@ app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res)
       user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge } 
     });
   } catch (error) { res.status(500).json({ message: "Failed to update profile" }); }
+});
+
+app.post('/api/user/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) return res.status(400).json({ message: "Please provide old and new passwords." });
+    if (newPassword.length < 6) return res.status(400).json({ message: "New password must be at least 6 characters." });
+
+    const user = await User.findById(req.user.id);
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Incorrect old password." });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully!" });
+  } catch (error) { res.status(500).json({ message: "Failed to change password" }); }
+});
+
+app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Delete User's Data
+    await Post.deleteMany({ author: userId });
+    await Comment.deleteMany({ author: userId });
+    await Notification.deleteMany({ $or: [{ receiver: userId }, { sender: userId }] });
+    await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+    
+    // Delete User
+    await User.findByIdAndDelete(userId);
+    
+    // Clear cookie
+    res.clearCookie('eliget_token');
+    res.status(200).json({ message: "Account deleted successfully." });
+  } catch (error) { res.status(500).json({ message: "Failed to delete account" }); }
 });
 
 app.post('/api/upload-avatar/:userId', authenticateToken, upload.single('image'), async (req, res) => {
@@ -197,7 +231,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
 });
 
-// --- CHAT APIS ---
 app.get('/api/chats', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
@@ -231,7 +264,6 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
 
-// --- POST APIS ---
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType } = req.body;
@@ -366,7 +398,6 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
   } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
 });
 
-// --- GET POSTS WITH PAGINATION & RELATIONSHIP ---
 app.get('/api/posts', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -398,7 +429,6 @@ app.get('/api/posts', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch posts" }); }
 });
 
-// --- UPDATED JOBS API WITH PAGINATION & SEARCH ---
 app.get('/api/posts/jobs', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

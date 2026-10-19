@@ -38,6 +38,35 @@
   
     /* Chat Badge */
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+  
+    /* Dark Theme Styles */
+    [data-theme="dark"] {
+      --bg: #111827;
+      --surface: #1F2937;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --line: #374151;
+    }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
+    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
+    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
+    [data-theme="dark"] .logo { color: var(--text); }
+    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
+    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
+    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
+    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
+    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
+    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .post-content a { color: var(--green); }
+    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
+    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
+    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
+
   </style>
 </head>
 <body>
@@ -47,7 +76,11 @@
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
     <div class="header-user" id="headerUser" onclick="window.location.href='/profile.html?id=' + targetUserId">
-      <div class="header-avatar" id="headerAvatar"></div>
+      <div class="header-avatar" id="headerAvatar">
+    <button class="icon-btn-wrapper theme-toggle" style="margin-left: 5px; border: none; background: transparent;" title="Toggle Theme">
+      <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+    </button>
+</div>
       <div class="header-name" id="headerName">Loading...</div>
     </div>
   </div>
@@ -186,5 +219,6 @@
   
   </script>
 <script src="/anti-addiction.js"></script>
+<script src="/theme.js"></script>
 </body>
 </html>

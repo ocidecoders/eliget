@@ -14,7 +14,7 @@
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box, [data-theme="dark"] .suggested-user-card { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box, [data-theme="dark"] .suggested-user-card, [data-theme="dark"] .skeleton-card { background-color: var(--surface); border-color: var(--line); }
     [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
     [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
     [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
@@ -29,15 +29,17 @@
     [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
     [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
     [data-theme="dark"] .post-content a { color: var(--green); }
-    
+    [data-theme="dark"] .skeleton-avatar, [data-theme="dark"] .skeleton-line, [data-theme="dark"] .skeleton-image, [data-theme="dark"] .skeleton-action { background: var(--line); }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
+    
+    /* Smooth Page Transition */
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
     .nav-icons { display: flex; align-items: center; gap: 12px; }
-    
     .icon-btn-wrapper { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: background 0.2s; }
     .icon-btn-wrapper:hover { background: #E5E7EB; }
     .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -85,18 +87,18 @@
     
     .post-header h4 { font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
     .post-header .username { font-size: 0.85rem; color: var(--text-muted); display: block; }
-    
+
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     .post-content a { color: var(--green); font-weight: 600; text-decoration: none; }
     .post-content a:hover { text-decoration: underline; }
-    
+
     .video-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; display: flex; justify-content: center; align-items: center; cursor: pointer; margin-top: 5px; }
     .video-container img { width: 100%; height: auto; max-height: 600px; object-fit: contain; opacity: 0.8; transition: opacity 0.2s; }
     .video-container:hover img { opacity: 0.6; }
     .play-btn-overlay { position: absolute; width: 60px; height: 60px; background: rgba(16, 185, 129, 0.9); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
     .video-container:hover .play-btn-overlay { transform: scale(1.1); }
     .play-btn-overlay svg { width: 30px; height: 30px; fill: white; stroke: white; margin-left: 4px; }
-
+    
     .post-image { width: 100%; height: auto; max-height: 600px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 5px; display: block; background-color: var(--bg); }
 
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
@@ -151,23 +153,19 @@
     .comments-header { padding: 15px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
     .comments-header h3 { font-family: 'Archivo', sans-serif; font-size: 1.1rem; }
     .comments-list { flex: 1; overflow-y: auto; padding: 20px; }
-    
     .comment-item { display: flex; gap: 12px; margin-bottom: 15px; }
     .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; flex-shrink: 0; }
     .comment-body { flex: 1; background: var(--bg); padding: 10px 14px; border-radius: 0 12px 12px 12px; position: relative; }
     .comment-body h5 { font-size: 0.85rem; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
     .comment-body p { font-size: 0.9rem; color: var(--text); line-height: 1.4; word-break: break-word; }
-    
     .comment-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; }
     .comment-action-btn { background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 2px; }
     .comment-action-btn:hover { color: var(--text); }
     .comment-action-btn.delete:hover { color: #EF4444; }
     .comment-action-btn.pin:hover { color: var(--green); }
     .comment-action-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-
     .pinned-indicator { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--green); font-weight: 600; margin-bottom: 5px; }
     .pinned-indicator svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
-
     .comment-input-area { padding: 15px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; background: var(--surface); padding-bottom: 20px; }
     .comment-input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); }
     .comment-input-area input:focus { border-color: var(--green); background: var(--surface); }
@@ -179,8 +177,30 @@
     .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
     .empty-state p { font-size: 1rem; font-weight: 500; margin-bottom: 20px; }
     .btn-create-post { display: inline-block; padding: 12px 24px; background: var(--green); color: white; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
-    
+
     .loading-spinner { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; display: none; }
+
+    /* Skeleton Loader CSS */
+    .skeleton-card { background: var(--surface); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--line); animation: skeletonPulse 1.5s infinite ease-in-out; }
+    .skeleton-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+    .skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
+    .skeleton-text-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .skeleton-line { height: 12px; background: var(--line); border-radius: 4px; }
+    .skeleton-title { width: 40%; height: 16px; }
+    .skeleton-subtitle { width: 25%; height: 12px; }
+    .skeleton-content { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+    .skeleton-content .skeleton-line:nth-child(1) { width: 100%; }
+    .skeleton-content .skeleton-line:nth-child(2) { width: 85%; }
+    .skeleton-content .skeleton-line:nth-child(3) { width: 60%; }
+    .skeleton-image { width: 100%; height: 200px; border-radius: 12px; background: var(--line); margin-bottom: 15px; }
+    .skeleton-actions { display: flex; gap: 20px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
+    .skeleton-action { width: 60px; height: 24px; border-radius: 12px; background: var(--line); }
+
+    @keyframes skeletonPulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
     .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
@@ -203,6 +223,7 @@
     .video-player-close svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
     .direct-video { max-width: 100%; max-height: 80vh; outline: none; }
   </style>
+
   <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
 </head>
 <body>
@@ -232,7 +253,6 @@
   <div class="container">
     <div id="searchResultsContainer" style="display:none; flex:1;"></div>
     
-    <!-- Suggested Users Section (Shows only on Global Feed) -->
     <div class="suggested-section" id="suggestedSection">
       <h3 class="suggested-title">Who to follow</h3>
       <div class="suggested-scroll" id="suggestedContainer"></div>
@@ -311,6 +331,11 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="/theme.js"></script>
   <script>
+    // Trigger Fade-in
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.style.opacity = '1';
+    });
+
     let user = null;
     let currentPage = 1;
     const POSTS_PER_PAGE = 10;
@@ -318,7 +343,7 @@
     let allLoadedPosts = [];
     let socket = null;
     let isLoadingPosts = false;
-    let currentFeedType = 'global'; 
+    let currentFeedType = 'global';
 
     async function initAuth() {
       try {
@@ -331,7 +356,7 @@
         const navPic = document.getElementById('navProfilePic');
         if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
-        
+
         fetchBadges();
         setupSocket();
         loadSuggestedUsers();
@@ -343,21 +368,51 @@
       }
     }
 
+    // --- Skeleton Loader Logic ---
+    function getSkeletonHTML() {
+      let html = '';
+      for (let i = 0; i < 3; i++) {
+        html += `
+          <div class="skeleton-card">
+            <div class="skeleton-header">
+              <div class="skeleton-avatar"></div>
+              <div class="skeleton-text-group">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line skeleton-subtitle"></div>
+              </div>
+            </div>
+            <div class="skeleton-content">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="skeleton-image"></div>
+            <div class="skeleton-actions">
+              <div class="skeleton-action"></div>
+              <div class="skeleton-action"></div>
+              <div class="skeleton-action"></div>
+            </div>
+          </div>
+        `;
+      }
+      return html;
+    }
+
     async function loadSuggestedUsers() {
       try {
         const res = await fetch('/api/users/suggested');
         const users = await res.json();
         if (users.length > 0) {
-            const container = document.getElementById('suggestedContainer');
-            container.innerHTML = users.map(u => `
-                <div class="suggested-user-card">
-                    <div class="suggested-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}</div>
-                    <div class="suggested-name">${u.fullName}</div>
-                    <span class="suggested-username">@${u.username}</span>
-                    <button class="btn-follow-sm" onclick="followUser('${u._id}')">Follow</button>
-                </div>
-            `).join('');
-            document.getElementById('suggestedSection').classList.add('show');
+          const container = document.getElementById('suggestedContainer');
+          container.innerHTML = users.map(u => `
+            <div class="suggested-user-card">
+              <div class="suggested-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}</div>
+              <div class="suggested-name">${u.fullName}</div>
+              <span class="suggested-username">@${u.username}</span>
+              <button class="btn-follow-sm" onclick="followUser('${u._id}')">Follow</button>
+            </div>
+          `).join('');
+          document.getElementById('suggestedSection').classList.add('show');
         }
       } catch (err) {}
     }
@@ -409,7 +464,7 @@
 
     const viewTimers = new Map();
     let observer = null;
-    const COOLDOWN_MS = 30 * 60 * 1000; 
+    const COOLDOWN_MS = 30 * 60 * 1000;
 
     function setupViewTracking() {
       if (observer) observer.disconnect();
@@ -472,7 +527,7 @@
         <button class="video-player-close" onclick="closeVideoPlayer()">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-      `; 
+      `;
     }
 
     function generatePostHTML(post) {
@@ -482,7 +537,7 @@
       const viewsCount = post.views || 0;
       const commentCount = post.commentCount || 0;
       const isSaved = post.isSaved || false;
-      
+
       let actionHtml = '';
       if (post.relationship === 'mutual') {
         actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); window.location.href='/chat-room.html?id=${post.author._id}'">Message</button>`;
@@ -508,60 +563,59 @@
       }
 
       return `
-      <div class="post-card" data-post-id="${post._id}">
-        <div class="post-header">
-          <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
-            ${getAvatarHTML(post.author)}
-            <div>
-              <h4>${post.author.fullName}</h4>
-              <span class="username">@${post.author.username}</span>
+        <div class="post-card" data-post-id="${post._id}">
+          <div class="post-header">
+            <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
+              ${getAvatarHTML(post.author)}
+              <div>
+                <h4>${post.author.fullName}</h4>
+                <span class="username">@${post.author.username}</span>
+              </div>
+            </div>
+            <div class="header-right">
+              ${actionHtml}
+              ${isOwner ? `
+                <div class="menu-container">
+                  <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+                  </button>
+                  <div class="dropdown-menu" id="menu-${post._id}">
+                    <div class="dropdown-item" onclick="openEditModal('${post._id}')">
+                      <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
+                    </div>
+                    <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
+                      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
+                    </div>
+                  </div>
+                </div>` : ''}
             </div>
           </div>
-          <div class="header-right">
-            ${actionHtml}
-            ${isOwner ? `
-            <div class="menu-container">
-              <button class="menu-btn" onclick="toggleMenu(event, '${post._id}')">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          <div class="post-content">${formatContent(post.content)}</div>
+          ${mediaHTML}
+          <div class="action-bar">
+            <div class="action-left">
+              <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <span id="like-count-${post._id}">${likesCount}</span>
               </button>
-              <div class="dropdown-menu" id="menu-${post._id}">
-                <div class="dropdown-item" onclick="openEditModal('${post._id}')">
-                  <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> Edit
-                </div>
-                <div class="dropdown-item delete" onclick="deletePost('${post._id}')">
-                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
-                </div>
-              </div>
-            </div>` : ''}
+              <button class="action-btn" onclick="openCommentsModal('${post._id}', '${post.author._id}')">
+                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                <span id="comment-count-${post._id}">${commentCount}</span>
+              </button>
+              <button class="action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${post._id}')" id="save-btn-${post._id}">
+                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              </button>
+              <button class="action-btn" onclick="sharePost('${post._id}', '${post.author.username}', \`${post.content.replace(/`/g, '')}\`)">
+                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+              </button>
+            </div>
+            <div class="view-count">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span id="view-count-${post._id}">${viewsCount}</span>
+            </div>
           </div>
         </div>
-        <div class="post-content">${formatContent(post.content)}</div>
-        ${mediaHTML}
-        
-        <div class="action-bar">
-          <div class="action-left">
-            <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
-              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-              <span id="like-count-${post._id}">${likesCount}</span>
-            </button>
-            <button class="action-btn" onclick="openCommentsModal('${post._id}', '${post.author._id}')">
-              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-              <span id="comment-count-${post._id}">${commentCount}</span>
-            </button>
-            <button class="action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${post._id}')" id="save-btn-${post._id}">
-              <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-            </button>
-            <button class="action-btn" onclick="sharePost('${post._id}', '${post.author.username}', \`${post.content.replace(/`/g, '')}\`)">
-              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-            </button>
-          </div>
-          <div class="view-count">
-            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            <span id="view-count-${post._id}">${viewsCount}</span>
-          </div>
-        </div>
-      </div>
-    `;
+      `;
     }
 
     function appendPosts(postsToRender) {
@@ -577,31 +631,42 @@
         currentPage = 1;
         hasMore = true;
         allLoadedPosts = [];
-        document.getElementById('feedContainer').innerHTML = '';
+        // Show Skeleton Loader while loading new content
+        document.getElementById('feedContainer').innerHTML = getSkeletonHTML();
       }
       if (!hasMore || isLoadingPosts) return;
 
       isLoadingPosts = true;
-      document.getElementById('loadingSpinner').style.display = 'block';
+      // Show bottom spinner only on infinite scroll (not initial load)
+      if (!reset) {
+        document.getElementById('loadingSpinner').style.display = 'block';
+      }
 
       try {
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}&type=${currentFeedType}`);
         const posts = await res.json();
         if (!Array.isArray(posts)) throw new Error("Invalid format");
 
-        if (posts.length === 0) {
-            hasMore = false; 
-            if (currentPage === 1) {
-                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>${currentFeedType === 'following' ? 'No posts from people you follow.' : 'No posts found.'}</p><a href="/create-post.html" class="btn-create-post">Create a Post</a></div>`;
-            }
-        } else {
-            if (posts.length < POSTS_PER_PAGE) hasMore = false;
-            appendPosts(posts);
-            currentPage++;
+        // Clear skeletons once real data arrives
+        if (reset) {
+          document.getElementById('feedContainer').innerHTML = '';
         }
-      } catch (err) { 
+
+        if (posts.length === 0) {
+          hasMore = false;
+          if (currentPage === 1) {
+            document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>${currentFeedType === 'following' ? 'No posts from people you follow.' : 'No posts found.'}</p><a href="/create-post.html" class="btn-create-post">Create a Post</a></div>`;
+          }
+        } else {
+          if (posts.length < POSTS_PER_PAGE) hasMore = false;
+          appendPosts(posts);
+          currentPage++;
+        }
+      } catch (err) {
         console.error(err);
-        document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
+        if (reset) {
+          document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
+        }
       }
 
       isLoadingPosts = false;
@@ -635,9 +700,9 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('search')) {
-        const searchQ = urlParams.get('search');
-        document.getElementById('searchInput').value = searchQ;
-        setTimeout(() => document.getElementById('searchInput').dispatchEvent(new Event('input')), 100);
+      const searchQ = urlParams.get('search');
+      document.getElementById('searchInput').value = searchQ;
+      setTimeout(() => document.getElementById('searchInput').dispatchEvent(new Event('input')), 100);
     }
 
     let searchTimeout = null;
@@ -651,9 +716,9 @@
       if (!query) {
         searchResultsContainer.style.display = 'none';
         feedContainer.style.display = 'block';
-        document.getElementById('feedTabs').style.display = 'flex'; 
+        document.getElementById('feedTabs').style.display = 'flex';
         document.getElementById('suggestedSection').classList.add('show');
-        if (hasMore) { window.dispatchEvent(new Event('scroll')); } 
+        if (hasMore) { window.dispatchEvent(new Event('scroll')); }
         window.history.replaceState({}, '', '/home.html');
         return;
       }
@@ -661,7 +726,7 @@
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
         loadingSpinner.style.display = 'none';
-        document.getElementById('feedTabs').style.display = 'none'; 
+        document.getElementById('feedTabs').style.display = 'none';
         document.getElementById('suggestedSection').classList.remove('show');
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<p style="text-align:center; margin-top:20px;">Searching...</p>';
@@ -709,11 +774,11 @@
     async function followUser(targetId) {
       try {
         const res = await fetch(`/api/user/follow/${targetId}`, { method: 'POST' });
-        if (res.ok) { 
-            loadSuggestedUsers(); // Refresh suggested users
-            const currentQuery = document.getElementById('searchInput').value.trim();
-            if (currentQuery) document.getElementById('searchInput').dispatchEvent(new Event('input'));
-            else loadPosts(true); 
+        if (res.ok) {
+          loadSuggestedUsers(); 
+          const currentQuery = document.getElementById('searchInput').value.trim();
+          if (currentQuery) document.getElementById('searchInput').dispatchEvent(new Event('input'));
+          else loadPosts(true);
         }
       } catch (err) {}
     }
@@ -776,7 +841,12 @@
       document.getElementById('commentInput').value = '';
       loadComments(postId);
     }
-    function closeCommentsModal() { document.getElementById('commentsModal').classList.remove('show'); currentPostIdForComment = null; currentPostAuthorId = null; }
+
+    function closeCommentsModal() {
+      document.getElementById('commentsModal').classList.remove('show');
+      currentPostIdForComment = null;
+      currentPostAuthorId = null;
+    }
 
     async function loadComments(postId) {
       const list = document.getElementById('commentsList');
@@ -789,18 +859,19 @@
         list.innerHTML = comments.map(c => {
           const isCommentOwner = c.author._id === user.id;
           return `
-          <div class="comment-item">
-            ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
-            <div class="comment-body">
-              ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
-              <h5>${c.author.fullName}</h5>
-              <p>${formatContent(c.content)}</p>
-              <div class="comment-actions">
-                ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}
-                ${isCommentOwner ? `<button class="comment-action-btn delete" onclick="deleteComment('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}
+            <div class="comment-item">
+              ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
+              <div class="comment-body">
+                ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
+                <h5>${c.author.fullName}</h5>
+                <p>${formatContent(c.content)}</p>
+                <div class="comment-actions">
+                  ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}
+                  ${isCommentOwner ? `<button class="comment-action-btn delete" onclick="deleteComment('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}
+                </div>
               </div>
-            </div>
-          </div>`}).join('');
+            </div>`
+        }).join('');
         list.scrollTop = list.scrollHeight;
       } catch (err) { list.innerHTML = '<p style="text-align:center; color:red; font-size:0.9rem;">Failed to load comments.</p>'; }
     }
@@ -822,6 +893,7 @@
       if (!confirm('Delete this comment?')) return;
       try { const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' }); if (res.ok) { const countSpan = document.getElementById(`comment-count-${postId}`); if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); loadComments(postId); } } catch (err) {}
     }
+
     async function togglePin(commentId, postId) {
       try { const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); const data = await res.json(); if (res.ok) loadComments(postId); else alert(data.message); } catch (err) {}
     }

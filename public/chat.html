@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Messages — Eliget</title>
+  <title>Chats — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -12,32 +12,34 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .chat-item { background-color: var(--surface); border-color: var(--line); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-    .nav-icons { display: flex; align-items: center; gap: 15px; }
-    .icon-btn { background: none; border: none; cursor: pointer; position: relative; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
-    .icon-btn svg { width: 24px; height: 24px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-badge { position: absolute; top: 0px; right: 0px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; }
 
-    .chat-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--surface); border-radius: 16px; margin-bottom: 10px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-    .chat-item:hover { background: var(--bg); }
-    .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; flex-shrink: 0; border: 2px solid var(--green); }
+    .chat-item { background: var(--surface); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid var(--line); transition: background 0.2s; }
+    .chat-item:hover { background: #E5E7EB; }
+    [data-theme="dark"] .chat-item:hover { background: var(--line); }
+    
+    .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.2rem; background-color: var(--green); flex-shrink: 0; }
     .chat-info { flex: 1; overflow: hidden; }
-    .chat-name { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
-    .chat-last-msg { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .chat-meta { text-align: right; flex-shrink: 0; }
-    .chat-time { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; }
-    .unread-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; display: inline-block; }
+    .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .chat-name { font-weight: 600; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-time { font-size: 0.75rem; color: var(--text-muted); }
+    .chat-msg { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .unread-badge { background: var(--green); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; margin-left: 10px; }
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-    .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
-    .empty-state p { font-size: 0.95rem; }
+    .empty-state p { font-size: 1rem; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
     .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
@@ -48,82 +50,20 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-  
-    /* Chat Badge */
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
-  
-    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
   </style>
-
-  <!-- Favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="shortcut icon" href="/favicon.ico">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <!-- Google & Bing Verification (Replace the content values after getting them from search console) -->
-  
-  <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE_HERE" />
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
 </head>
 <body>
 
   <div class="top-nav">
-    <div class="logo">Eli<span>get</span></div>
-    <div class="nav-icons">
-      
-    
-
-      <button class="icon-btn" onclick="window.location.href='/notifications.html'">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
-      </button>
-    </div>
+    <button class="back-btn" onclick="window.history.back()">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <div class="logo">Chat<span>s</span></div>
   </div>
 
   <div class="container" id="chatListContainer">
-    <p style="text-align:center; color:var(--text-muted); margin-top:20px;">Loading chats...</p>
+    <div class="empty-state"><p>Loading chats...</p></div>
   </div>
 
   <div class="bottom-nav">
@@ -143,7 +83,6 @@
     <a href="/chat.html" class="nav-item active">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       Chats
-    
       <span class="chat-badge" id="navChatBadge" style="display:none;">0</span>
     </a>
     <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
@@ -151,7 +90,10 @@
     </a>
   </div>
 
+  <script src="/splash.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
+
     let user = null;
     async function initAuth() {
       try {
@@ -161,13 +103,10 @@
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        
         const navPic = document.getElementById('navProfilePic');
         if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
-  
         
-        fetchNotifBadge();
         loadChats();
       } catch (err) {
         localStorage.removeItem('eliget_user');
@@ -175,29 +114,21 @@
       }
     }
 
-    async function fetchNotifBadge() {
-      try {
-        const res = await fetch('/api/notifications/' + user.id + '/unread');
-        const data = await res.json();
-        const badge = document.getElementById('topNotifBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
-        }
-      } catch (err) {}
-    }
-
     function timeAgo(dateParam) {
       const date = new Date(dateParam);
       const now = new Date();
       const seconds = Math.floor((now - date) / 1000);
-      let interval = seconds / 86400;
-      if (interval > 1) return Math.floor(interval) + "d ago";
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + "y";
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + "mo";
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + "d";
       interval = seconds / 3600;
-      if (interval > 1) return Math.floor(interval) + "h ago";
+      if (interval > 1) return Math.floor(interval) + "h";
       interval = seconds / 60;
-      if (interval > 1) return Math.floor(interval) + "m ago";
-      return "Just now";
+      if (interval > 1) return Math.floor(interval) + "m";
+      return Math.floor(seconds) + "s";
     }
 
     async function loadChats() {
@@ -207,36 +138,35 @@
         const chats = await res.json();
 
         if (chats.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <p>No messages yet. Go to someone's profile to start a chat!</p>
-            </div>
-          `;
+          container.innerHTML = `<div class="empty-state"><p>No messages yet.</p></div>`;
           return;
         }
 
-        container.innerHTML = chats.map(chat => `
-          <div class="chat-item" onclick="window.location.href='/chat-room.html?id=${chat.user._id}'">
-            <div class="chat-avatar" style="background-image: url('${chat.user.profilePic || ''}')"></div>
-            <div class="chat-info">
-              <div class="chat-name">${chat.user.fullName}</div>
-              <div class="chat-last-msg">${chat.lastMessage}</div>
+        container.innerHTML = chats.map(chat => {
+          const initial = chat.user.fullName.charAt(0).toUpperCase();
+          const avatarStyle = chat.user.profilePic ? `background-image: url('${chat.user.profilePic}')` : '';
+          
+          return `
+            <div class="chat-item" onclick="navigateWithSplash('/chat-room.html?id=${chat.user._id}', 'Loading ${chat.user.fullName}\\'s Chatroom...')">
+              <div class="chat-avatar" style="${avatarStyle}">${chat.user.profilePic ? '' : initial}</div>
+              <div class="chat-info">
+                <div class="chat-header">
+                  <span class="chat-name">${chat.user.fullName}</span>
+                  <span class="chat-time">${timeAgo(chat.time)}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="chat-msg">${chat.lastMessage}</span>
+                  ${chat.unread ? `<span class="unread-badge">1</span>` : ''}
+                </div>
+              </div>
             </div>
-            <div class="chat-meta">
-              <div class="chat-time">${timeAgo(chat.time)}</div>
-              ${chat.unread ? `<div class="unread-dot"></div>` : ''}
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } catch (err) {
-        container.innerHTML = `<p style="text-align:center; color:red;">Failed to load chats.</p>`;
+        container.innerHTML = '<p style="text-align:center; color:red;">Failed to load chats.</p>';
       }
     }
 
-    initAuth();
-  
-    // Fetch Chat Badge
     async function fetchChatBadge() {
       try {
         const res = await fetch('/api/chat/unread');
@@ -246,12 +176,11 @@
           badge.style.display = 'block';
           badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
         }
-      } catch (err) { console.error(err); }
+      } catch (err) {}
     }
+
+    initAuth();
     fetchChatBadge();
-  
   </script>
-<script src="/anti-addiction.js"></script>
-<script src="/theme.js"></script>
 </body>
 </html>

@@ -330,6 +330,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/theme.js"></script>
+  <script src="/splash.js"></script>
   <script>
     // Trigger Fade-in
     document.addEventListener('DOMContentLoaded', () => {
@@ -540,7 +541,7 @@
 
       let actionHtml = '';
       if (post.relationship === 'mutual') {
-        actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); window.location.href='/chat-room.html?id=${post.author._id}'">Message</button>`;
+        actionHtml = `<button class="small-btn message" onclick="event.stopPropagation(); navigateWithSplash('/chat-room.html?id=${post.author._id}', 'Loading ${post.author.fullName}\\'s Chatroom...')">Message</button>`;
       } else if (post.relationship === 'follower') {
         actionHtml = `<button class="small-btn follow-back" onclick="event.stopPropagation(); followUser('${post.author._id}')">Follow Back</button>`;
       } else if (post.relationship === 'following') {
@@ -631,13 +632,11 @@
         currentPage = 1;
         hasMore = true;
         allLoadedPosts = [];
-        // Show Skeleton Loader while loading new content
         document.getElementById('feedContainer').innerHTML = getSkeletonHTML();
       }
       if (!hasMore || isLoadingPosts) return;
 
       isLoadingPosts = true;
-      // Show bottom spinner only on infinite scroll (not initial load)
       if (!reset) {
         document.getElementById('loadingSpinner').style.display = 'block';
       }
@@ -647,7 +646,6 @@
         const posts = await res.json();
         if (!Array.isArray(posts)) throw new Error("Invalid format");
 
-        // Clear skeletons once real data arrives
         if (reset) {
           document.getElementById('feedContainer').innerHTML = '';
         }

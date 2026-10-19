@@ -3,150 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Login — Eliget</title>
+  <title>Eliget - Anti-Addiction Social Media</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  
-  
-  
-  
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .login-box { background: var(--surface); width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-    .logo { font-family: 'Archivo', sans-serif; font-size: 2rem; font-weight: 900; color: var(--text); text-align: center; margin-bottom: 5px; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .login-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 10px; }
     .logo span { color: var(--green); }
-    .subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
+    .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 30px; }
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
+    .form-group input:focus { border-color: var(--green); background: var(--surface); }
+    .btn-login { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+    .btn-login:hover { background: #059669; }
+    .bottom-link { margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); }
+    .bottom-link a { color: var(--green); font-weight: 600; text-decoration: none; }
     
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
-    .form-group input { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #F9FAFB; font-family: inherit; font-size: 1rem; outline: none; transition: all 0.2s; }
-    .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px #ecfdf5; }
-
-    .btn-login { width: 100%; background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
-    .btn-login:hover { opacity: 0.9; }
-    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .footer-text { text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 20px; }
-    .footer-text a { color: var(--green); text-decoration: none; font-weight: 600; }
-    #errorMsg { color: #EF4444; font-size: 0.85rem; font-weight: 600; text-align: center; margin-top: 15px; display: none; }
-  
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
+    /* Dark Theme */
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-
+    [data-theme="dark"] .login-box { background: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] input { background: var(--bg); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] input:focus { background: var(--surface); }
   </style>
 
-  <!-- Favicon -->
-  
-  
-  
-  
-  
-
-  <!-- SEO Meta Tags -->
-  
-  
-  
-  
-  
-  
-  
-  
-
-  <!-- Google & Bing Verification (Replace the content values after getting them from search console) -->
-  
-  
-
-  
-
-  <!-- Favicon -->
+  <!-- Favicon & SEO -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  
-  <!-- Open Graph (Facebook) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com/">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://eliget-social.onrender.com/">
-  <meta property="twitter:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="twitter:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="twitter:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
-
 </head>
 <body>
 
   <div class="login-box">
     <div class="logo">Eli<span>get</span></div>
-    <div class="subtitle">Welcome back! Log in to continue.</div>
+    <div class="subtitle">Anti-addiction, no-algorithm social media.</div>
     
-    <form id="loginForm">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="username" placeholder="@username" required autocomplete="username">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-      </div>
-      <button type="submit" class="btn-login" id="submitBtn">Log In</button>
-      <div id="errorMsg"></div>
-    </form>
-
-    <div class="footer-text">
-      Don't have an account? <a href="/register.html">Sign up</a>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="@username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    
+    <button class="btn-login" id="loginBtn">Log In</button>
+    
+    <div class="bottom-link">
+      Don't have an account? <a href="/register.html">Sign Up</a>
     </div>
   </div>
 
+  <script src="/theme.js"></script>
   <script>
-    localStorage.removeItem('eliget_user');
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-      const btn = document.getElementById('submitBtn');
-      const errorMsg = document.getElementById('errorMsg');
+      const password = document.getElementById('password').value.trim();
+      const btn = document.getElementById('loginBtn');
 
-      btn.innerText = 'Logging in...'; btn.disabled = true;
-      errorMsg.style.display = 'none';
+      if (!username || !password) return alert('Please enter username and password.');
+
+      btn.innerText = 'Logging in...';
+      btn.disabled = true;
 
       try {
         const res = await fetch('/api/login', {
@@ -160,17 +80,20 @@
           localStorage.setItem('eliget_user', JSON.stringify(data.user));
           window.location.href = '/home.html';
         } else {
-          errorMsg.innerText = data.message || 'Login failed';
-          errorMsg.style.display = 'block';
-          btn.innerText = 'Log In'; btn.disabled = false;
+          alert(data.message || 'Login failed');
+          btn.innerText = 'Log In';
+          btn.disabled = false;
         }
       } catch (err) {
-        errorMsg.innerText = 'Server error. Please try again.';
-        errorMsg.style.display = 'block';
-        btn.innerText = 'Log In'; btn.disabled = false;
+        alert('Server error. Please try again.');
+        btn.innerText = 'Log In';
+        btn.disabled = false;
       }
     });
+
+    document.getElementById('password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
   </script>
-<script src="/theme.js"></script>
 </body>
 </html>

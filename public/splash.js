@@ -5,7 +5,7 @@
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg, #F3F4F6); z-index: 99999;
       display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
     }
     #eligetSplash.show { opacity: 1; pointer-events: all; }
     .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; }
@@ -32,11 +32,10 @@
       </div>
     `;
     
-    void splash.offsetWidth; // Trigger reflow
+    void splash.offsetWidth; // Force browser to apply opacity
     splash.classList.add('show');
     
-    setTimeout(() => {
-      window.location.href = url;
-    }, 800); // 800ms delay to show the animation
+    // No delay. Instantly navigate to the new page.
+    window.location.href = url;
   };
 })();

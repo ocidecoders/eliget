@@ -112,11 +112,12 @@
           return;
         }
 
+        // Fetch data first
         await loadTargetUserInfo();
         await loadMessages();
         setupSocket();
 
-        // Hide Splash Screen
+        // All data loaded. Now hide Splash Screen and show page.
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
         setTimeout(() => splash.style.display = 'none', 300);

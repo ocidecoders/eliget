@@ -58,7 +58,6 @@
   </div>
 
   <script>
-    // Clear any old localStorage cache when landing on login page
     localStorage.removeItem('eliget_user');
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -80,9 +79,6 @@
         const data = await res.json();
 
         if (res.ok) {
-          // Note: We do NOT save the token to localStorage. 
-          // The browser automatically handles the HttpOnly cookie.
-          // We only save user data for UI rendering.
           localStorage.setItem('eliget_user', JSON.stringify(data.user));
           window.location.href = '/home.html';
         } else {

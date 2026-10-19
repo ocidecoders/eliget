@@ -24,11 +24,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Redirect root based on login status
 app.get('/', (req, res) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.redirect('/login.html');
-  
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production', (err) => {
     if (err) {
       res.clearCookie('eliget_token');
       return res.redirect('/login.html');
@@ -48,7 +49,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_
 io.use((socket, next) => {
   const cookies = socket.request.headers.cookie;
   if (!cookies) return next(new Error('Authentication error'));
-  
   const tokenCookie = cookies.split(';').find(c => c.trim().startsWith('eliget_token='));
   if (!tokenCookie) return next(new Error('Authentication error'));
 
@@ -61,27 +61,19 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('User connected to chat:', socket.userId);
-  socket.join(socket.userId); // Join a room named by their userId
-
+  socket.join(socket.userId);
   socket.on('sendMessage', async (data) => {
     try {
       const { receiverId, text } = data;
       const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text });
       await newMessage.save();
-      
-      // Emit to receiver and sender
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);
     } catch (err) { console.error(err); }
   });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.userId);
-  });
 });
 
-// --- AUTH MIDDLEWARE ---
+// --- MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.eliget_token;
   if (!token) return res.status(401).json({ message: "Unauthorized" });
@@ -141,7 +133,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
-// --- USER & FOLLOW APIS ---
+// --- USER APIS ---
 app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res) => {
   try {
     const { fullName, badge } = req.body;
@@ -169,18 +161,13 @@ app.post('/api/upload-avatar/:userId', authenticateToken, upload.single('image')
 app.post('/api/upload-cover/:userId', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No image provided." });
-    if (!process.env.IMGBB_API_KEY) return res.status(500).json({ message: "ImgBB API key missing." });
-
     const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
     const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
     const data = await response.json();
-    
     if (data.success) {
       await User.findByIdAndUpdate(req.user.id, { coverPic: data.data.url });
       res.status(200).json({ message: "Cover updated!", imageUrl: data.data.url });
-    } else { 
-      res.status(500).json({ message: "ImgBB rejected image." }); 
-    }
+    } else { res.status(500).json({ message: "ImgBB rejected image." }); }
   } catch (error) { res.status(500).json({ message: error.message || "Upload failed" }); }
 });
 
@@ -188,18 +175,10 @@ app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
   try {
     const targetUser = await User.findById(req.params.userId).select('-password');
     if (!targetUser) return res.status(404).json({ message: "User not found" });
-
     const currentUser = await User.findById(req.user.id);
     const isFollowing = currentUser.following.includes(req.params.userId);
     const isMutual = isFollowing && targetUser.following.includes(req.user.id);
-
-    res.status(200).json({
-      user: targetUser,
-      followersCount: targetUser.followers.length,
-      followingCount: targetUser.following.length,
-      isFollowing,
-      isMutual
-    });
+    res.status(200).json({ user: targetUser, followersCount: targetUser.followers.length, followingCount: targetUser.following.length, isFollowing, isMutual });
   } catch (error) { res.status(500).json({ message: "Failed to fetch profile" }); }
 });
 
@@ -208,13 +187,9 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     if (req.user.id === req.params.targetId) return res.status(400).json({ message: "Cannot follow yourself" });
     const targetUser = await User.findById(req.params.targetId);
     const alreadyFollowing = targetUser.followers.includes(req.user.id);
-
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
-
-    if (!alreadyFollowing) {
-      await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save();
-    }
+    if (!alreadyFollowing) { await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save(); }
     res.status(200).json({ message: "Followed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to follow" }); }
 });
@@ -230,21 +205,13 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
 // --- CHAT APIS ---
 app.get('/api/chats', authenticateToken, async (req, res) => {
   try {
-    // Find unique users this user has chatted with
-    const messages = await Message.find({
-      $or: [{ sender: req.user.id }, { receiver: req.user.id }]
-    }).sort({ createdAt: -1 });
-
+    const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
     const chatUsers = new Map();
     messages.forEach(msg => {
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
-      if (!chatUsers.has(otherId)) {
-        chatUsers.set(otherId, { lastMessage: msg.text, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
-      } else if (!msg.isRead && msg.receiver.toString() === req.user.id) {
-        chatUsers.get(otherId).unread = true;
-      }
+      if (!chatUsers.has(otherId)) { chatUsers.set(otherId, { lastMessage: msg.text, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) }); }
+      else if (!msg.isRead && msg.receiver.toString() === req.user.id) { chatUsers.get(otherId).unread = true; }
     });
-
     const result = [];
     for (let [userId, data] of chatUsers.entries()) {
       const user = await User.findById(userId).select('fullName username profilePic');
@@ -256,16 +223,8 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
 
 app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   try {
-    const messages = await Message.find({
-      $or: [
-        { sender: req.user.id, receiver: req.params.targetUserId },
-        { sender: req.params.targetUserId, receiver: req.user.id }
-      ]
-    }).sort({ createdAt: 1 }); // Oldest first
-
-    // Mark as read
+    const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
     await Message.updateMany({ sender: req.params.targetUserId, receiver: req.user.id, isRead: false }, { isRead: true });
-    
     res.status(200).json(messages);
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
@@ -312,7 +271,6 @@ app.delete('/api/posts/:postId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to delete post" }); }
 });
 
-// --- LIKE & VIEW APIS ---
 app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -336,7 +294,6 @@ app.post('/api/posts/:postId/view', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to count view" }); }
 });
 
-// --- COMMENT APIS ---
 app.get('/api/posts/:postId/comments', async (req, res) => {
   try {
     const comments = await Comment.find({ postId: req.params.postId }).populate('author', 'fullName username profilePic badge').sort({ isPinned: -1, createdAt: -1 });
@@ -386,7 +343,6 @@ app.post('/api/comments/:commentId/pin', authenticateToken, async (req, res) => 
   } catch (error) { res.status(500).json({ message: "Failed to pin comment" }); }
 });
 
-// --- NOTIFICATION APIS ---
 app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
   try {
     const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic').sort({ createdAt: -1 });
@@ -408,7 +364,6 @@ app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) 
   } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
 });
 
-// --- GET POSTS ---
 app.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find({ postType: { $ne: 'job' } }).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).lean();
@@ -436,7 +391,6 @@ app.get('/api/posts/user/:userId', async (req, res) => {
 
 app.use('/api', (req, res) => { res.status(404).json({ message: "API Route Not Found" }); });
 app.use((err, req, res, next) => {
-  console.error("Global Error Caught:", err);
   if (err instanceof multer.MulterError) return res.status(400).json({ message: "Multer Error: " + err.message });
   res.status(500).json({ message: "Internal Server Error", error: err.message });
 });

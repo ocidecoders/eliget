@@ -120,17 +120,12 @@
     }
 
     function setupSocket() {
-      socket = io(); // Connects using the httpOnly cookie
-
+      socket = io(); 
       socket.on('receiveMessage', (msg) => {
-        // Only append if it's part of this conversation
-        if ((msg.sender === user.id && msg.receiver === targetUserId) || 
-            (msg.sender === targetUserId && msg.receiver === user.id)) {
-          
+        if ((msg.sender === user.id && msg.receiver === targetUserId) || (msg.sender === targetUserId && msg.receiver === user.id)) {
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          
           const msgHTML = `
             <div class="message ${isSent ? 'sent' : 'received'}">
               ${msg.text}
@@ -149,15 +144,12 @@
     }
 
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
     function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
       if (!text || !socket) return;
-
       socket.emit('sendMessage', { receiverId: targetUserId, text });
       input.value = '';
     }

@@ -15,7 +15,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
 
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
     .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
@@ -43,7 +43,7 @@
 
     .posts-section { max-width: 600px; margin: 0 auto; padding: 0 20px; margin-top: 20px; }
     .section-title { font-family: 'Archivo', sans-serif; font-size: 1.2rem; color: var(--text); border-bottom: 2px solid var(--line); padding-bottom: 10px; margin-bottom: 15px; }
-    .post-card { background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 15px; }
+    .post-card { background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 15px; border: 1px solid var(--line); }
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.5; margin-bottom: 10px; white-space: pre-wrap; }
     .post-image { width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid var(--line); }
     
@@ -58,9 +58,6 @@
     .empty-posts { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 0.95rem; }
     .svg-badge { width: 22px; height: 22px; }
 
-    /* Modal / Comments */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex; }
     #commentsModal { align-items: flex-end; padding: 0; }
     .comments-box { background: var(--surface); width: 100%; max-width: 600px; border-radius: 24px 24px 0 0; height: 75vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -102,9 +99,6 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-  
-    /* Notification Badge */
-    .nav-badge { position: absolute; top: -4px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
 </head>
 <body>
@@ -113,13 +107,7 @@
     <button class="back-btn" onclick="window.history.back()">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <div class="logo">Eli<span>get</span>
-      <button id="topNotifBell" style="background:none; border:none; cursor:pointer; position:relative; padding:8px; display:flex; align-items:center; border-radius:50%;" onclick="window.location.href='/notifications.html'">
-        <svg style="width:24px; height:24px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        <span id="topNotifBadge" class="nav-badge" style="display:none; position:absolute; top:0; right:0; background:#EF4444; color:white; font-size:0.6rem; font-weight:700; padding:2px 5px; border-radius:999px; min-width:16px; text-align:center; border:2px solid var(--surface);">0</span>
-      </button>
-
-    </div>
+    <div class="logo">Eli<span>get</span></div>
   </div>
 
   <div class="cover-container" id="targetCover"></div>
@@ -148,7 +136,6 @@
     </div>
   </div>
 
-  <!-- Comments Bottom Sheet Modal -->
   <div class="modal-overlay" id="commentsModal">
     <div class="comments-box">
       <div class="comments-header">
@@ -181,45 +168,44 @@
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </div>
     </a>
-    
     <a href="/chat.html" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       Chats
     </a>
-    
     <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
       <div class="profile-pic" id="navProfilePic"></div>
     </a>
   </div>
 
   <script>
-    
     let currentUser = null;
-    async function checkAuth() {
+    async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
         if (!res.ok) throw new Error();
         const data = await res.json();
         currentUser = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(currentUser));
+        
+        if (currentUser.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${currentUser.profilePic})`;
+        else document.getElementById('navProfilePic').style.background = '#10B981';
+        
+        initPage();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
-        throw err; // Stop execution
       }
     }
-    checkAuth().then(() => {
-      // Wrap all code below inside this .then() block to ensure it runs after auth
-      // We will use an IIFE to scope it properly
-      const runApp = () => {
-      
-    if (currentUser.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${currentUser.profilePic})`;
-    else document.getElementById('navProfilePic').style.background = '#10B981';
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetUserId = urlParams.get('id');
-    if (!targetUserId) window.location.href = '/home.html';
-    if (targetUserId === currentUser.id) window.location.href = '/dashboard.html';
+    
+    function initPage() {
+      if (!targetUserId) window.location.href = '/home.html';
+      if (targetUserId === currentUser.id) window.location.href = '/dashboard.html';
+      loadProfile();
+      loadTargetPosts();
+    }
 
     const badgeSVGs = {
       "Singer": `<svg class="svg-badge" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
@@ -231,7 +217,7 @@
 
     async function loadProfile() {
       try {
-        const res = await fetch(`/api/user/profile/${targetUserId}?currentUserId=${currentUser.id}`);
+        const res = await fetch(`/api/user/profile/${targetUserId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message);
 
@@ -266,12 +252,8 @@
       btn.disabled = true;
       const isCurrentlyFollowing = btn.classList.contains('btn-unfollow');
       const endpoint = isCurrentlyFollowing ? 'unfollow' : 'follow';
-
       try {
-        const res = await fetch(`/api/user/${endpoint}/${targetUserId}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentUserId: currentUser.id })
-        });
+        const res = await fetch(`/api/user/${endpoint}/${targetUserId}`, { method: 'POST' });
         if (res.ok) loadProfile();
         else { alert('Action failed'); btn.disabled = false; }
       } catch (err) { alert('Server error'); btn.disabled = false; }
@@ -280,7 +262,6 @@
     const viewTimers = new Map();
     let observer = null;
     const COOLDOWN_MS = 30 * 60 * 1000; 
-
     function setupViewTracking() {
       if (observer) observer.disconnect();
       observer = new IntersectionObserver((entries) => {
@@ -294,12 +275,7 @@
                 const now = Date.now();
                 if (!lastViewed || (now - parseInt(lastViewed)) > COOLDOWN_MS) {
                   localStorage.setItem(`viewed_${postId}`, now);
-                  fetch(`/api/posts/${postId}/view`, { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => {
-                      const viewSpan = document.getElementById(`view-count-${postId}`);
-                      if (viewSpan) viewSpan.innerText = data.views;
-                    }).catch(() => {});
+                  fetch(`/api/posts/${postId}/view`, { method: 'POST' }).catch(() => {});
                 }
               }, 2000);
               viewTimers.set(postId, timer);
@@ -321,12 +297,8 @@
       try {
         const res = await fetch(`/api/posts/user/${targetUserId}`);
         allTargetPosts = await res.json();
-
-        if (allTargetPosts.length === 0) {
-          container.innerHTML = `<p class="empty-posts">No posts yet.</p>`;
-          return;
-        }
-
+        if (allTargetPosts.length === 0) { container.innerHTML = `<p class="empty-posts">No posts yet.</p>`; return; }
+        
         container.innerHTML = allTargetPosts.map(post => {
           const isLiked = post.likes && post.likes.includes(currentUser.id);
           const likesCount = post.likes ? post.likes.length : 0;
@@ -337,7 +309,6 @@
           <div class="post-card" data-post-id="${post._id}">
             <div class="post-content">${post.content}</div>
             ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
-            
             <div class="action-bar">
               <div class="action-left">
                 <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
@@ -356,7 +327,6 @@
             </div>
           </div>
         `}).join('');
-
         setupViewTracking();
       } catch (err) { container.innerHTML = `<p class="empty-posts">Failed to load posts.</p>`; }
     }
@@ -364,29 +334,19 @@
     async function toggleLike(postId) {
       const btn = document.getElementById(`like-btn-${postId}`);
       const countSpan = document.getElementById(`like-count-${postId}`);
-      
       const isCurrentlyLiked = btn.classList.contains('liked');
-      if (isCurrentlyLiked) {
-        btn.classList.remove('liked'); countSpan.innerText = parseInt(countSpan.innerText) - 1;
-      } else {
-        btn.classList.add('liked'); countSpan.innerText = parseInt(countSpan.innerText) + 1;
-      }
-
+      if (isCurrentlyLiked) { btn.classList.remove('liked'); countSpan.innerText = parseInt(countSpan.innerText) - 1; }
+      else { btn.classList.add('liked'); countSpan.innerText = parseInt(countSpan.innerText) + 1; }
       try {
-        const res = await fetch(`/api/posts/${postId}/like`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id })
-        });
+        const res = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
         const data = await res.json();
         if (res.ok) {
           countSpan.innerText = data.likes.length;
-          if (data.likes.includes(currentUser.id)) btn.classList.add('liked');
-          else btn.classList.remove('liked');
+          if (data.likes.includes(currentUser.id)) btn.classList.add('liked'); else btn.classList.remove('liked');
         } else { loadTargetPosts(); }
       } catch (err) { loadTargetPosts(); }
     }
 
-    // --- Comments Logic ---
     function openCommentsModal(postId, postAuthorId) {
       currentPostIdForComment = postId;
       currentPostAuthorId = postAuthorId;
@@ -394,28 +354,16 @@
       document.getElementById('commentInput').value = '';
       loadComments(postId);
     }
-
-    function closeCommentsModal() {
-      document.getElementById('commentsModal').classList.remove('show');
-      currentPostIdForComment = null;
-      currentPostAuthorId = null;
-    }
+    function closeCommentsModal() { document.getElementById('commentsModal').classList.remove('show'); currentPostIdForComment = null; currentPostAuthorId = null; }
 
     async function loadComments(postId) {
       const list = document.getElementById('commentsList');
       list.innerHTML = '<p style="text-align:center; color:#6B7280; font-size:0.9rem;">Loading...</p>';
-      
       try {
         const res = await fetch(`/api/posts/${postId}/comments`);
         const comments = await res.json();
-        
-        if (comments.length === 0) {
-          list.innerHTML = `<p class="empty-comments">No comments yet. Be the first!</p>`;
-          return;
-        }
-
+        if (comments.length === 0) { list.innerHTML = `<p class="empty-comments">No comments yet. Be the first!</p>`; return; }
         const isPostOwner = currentUser.id === currentPostAuthorId;
-
         list.innerHTML = comments.map(c => {
           const isCommentOwner = c.author._id === currentUser.id;
           return `
@@ -425,103 +373,37 @@
               ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
               <h5>${c.author.fullName} ${badgeSVGs[c.author.badge || 'General']}</h5>
               <p>${c.content}</p>
-              
               <div class="comment-actions">
-                ${isPostOwner ? `
-                <button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')" title="${c.isPinned ? 'Unpin' : 'Pin'}">
-                  <svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
-                </button>` : ''}
-                ${isCommentOwner ? `
-                <button class="comment-action-btn delete" onclick="deleteComment('${c._id}', '${postId}')">
-                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>` : ''}
+                ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}
+                ${isCommentOwner ? `<button class="comment-action-btn delete" onclick="deleteComment('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}
               </div>
             </div>
-          </div>
-        `}).join('');
-        
+          </div>`}).join('');
         list.scrollTop = list.scrollHeight;
-      } catch (err) {
-        list.innerHTML = '<p style="text-align:center; color:red; font-size:0.9rem;">Failed to load comments.</p>';
-      }
+      } catch (err) { list.innerHTML = '<p style="text-align:center; color:red; font-size:0.9rem;">Failed to load comments.</p>'; }
     }
 
     document.getElementById('submitCommentBtn').addEventListener('click', async () => {
       const input = document.getElementById('commentInput');
       const content = input.value.trim();
       if (!content || !currentPostIdForComment) return;
-
       const btn = document.getElementById('submitCommentBtn');
       btn.disabled = true;
-
       try {
-        const res = await fetch(`/api/posts/${currentPostIdForComment}/comments`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id, content })
-        });
-        
-        if (res.ok) {
-          input.value = '';
-          const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`);
-          if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1;
-          loadComments(currentPostIdForComment);
-        }
-      } catch (err) { alert('Failed to post comment'); }
-      
+        const res = await fetch(`/api/posts/${currentPostIdForComment}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) });
+        if (res.ok) { input.value = ''; const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`); if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1; loadComments(currentPostIdForComment); }
+      } catch (err) {}
       btn.disabled = false;
     });
-
     async function deleteComment(commentId, postId) {
       if (!confirm('Delete this comment?')) return;
-      try {
-        const res = await fetch(`/api/comments/${commentId}?userId=${currentUser.id}`, { method: 'DELETE' });
-        if (res.ok) {
-          const countSpan = document.getElementById(`comment-count-${postId}`);
-          if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1);
-          loadComments(postId);
-        }
-      } catch (err) { alert('Failed to delete comment'); }
+      try { const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' }); if (res.ok) { const countSpan = document.getElementById(`comment-count-${postId}`); if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); loadComments(postId); } } catch (err) {}
     }
-
     async function togglePin(commentId, postId) {
-      try {
-        const res = await fetch(`/api/comments/${commentId}/pin`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          loadComments(postId);
-        } else {
-          alert(data.message);
-        }
-      } catch (err) { alert('Failed to pin comment'); }
+      try { const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); const data = await res.json(); if (res.ok) loadComments(postId); else alert(data.message); } catch (err) {}
     }
 
-    loadProfile();
-    loadTargetPosts();
-  
-    // Fetch Notification Badge
-    async function fetchNotifBadge() {
-      try {
-        const res = await fetch('/api/notifications/' + user.id + '/unread');
-        const data = await res.json();
-        const badge = document.getElementById('topNotifBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
-        }
-      } catch (err) { console.error(err); }
-    }
-    fetchNotifBadge();
-  
-  
-      }; // End of runApp
-      // Only run app if user was loaded
-      if (typeof user !== 'undefined' || typeof currentUser !== 'undefined') {
-         setTimeout(() => { if(document.body) runApp(); }, 50);
-      }
-    });
-    </script>
+    initAuth();
+  </script>
 </body>
 </html>

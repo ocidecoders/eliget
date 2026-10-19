@@ -14,22 +14,20 @@
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
+
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-    
+
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
-    .notification-item {
-      background: var(--surface); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px;
-      display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s;
-      border: 1px solid var(--line);
-    }
+    .notification-item { background: var(--surface); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--line); }
     .notification-item.unread { background: #ecfdf5; border-color: #a7f3d0; }
     .notification-item:hover { background: var(--bg); }
 
     .notif-avatar { width: 44px; height: 44px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; flex-shrink: 0; }
-    
     .notif-content { flex: 1; }
     .notif-text { font-size: 0.95rem; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
     .notif-text strong { font-weight: 600; }
@@ -48,7 +46,6 @@
     .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
     .empty-state p { font-size: 0.95rem; }
 
-    /* Bottom Nav with Badge */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
     .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
     .nav-item.active { color: var(--green); }
@@ -58,15 +55,15 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-
-    /* Badge */
-    .nav-badge { position: absolute; top: -4px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
 </head>
 <body>
 
   <div class="top-nav">
-    <div class="logo">Eli<span>get</span></div>
+    <button class="back-btn" onclick="window.history.back()">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <div class="logo">Notifi<span>cations</span></div>
   </div>
 
   <div class="container" id="notificationsContainer">
@@ -90,42 +87,32 @@
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </div>
     </a>
-    
     <a href="/chat.html" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       Chats
     </a>
-    
     <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
       <div class="profile-pic" id="navProfilePic"></div>
     </a>
   </div>
 
   <script>
-    
     let user = null;
-    async function checkAuth() {
+    async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
         if (!res.ok) throw new Error();
         const data = await res.json();
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
+        if(user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
+        loadNotifications();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
-        throw err; // Stop execution
       }
     }
-    checkAuth().then(() => {
-      // Wrap all code below inside this .then() block to ensure it runs after auth
-      // We will use an IIFE to scope it properly
-      const runApp = () => {
-      
-    if (user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-    else document.getElementById('navProfilePic').style.background = '#10B981';
 
-    // Time ago function
     function timeAgo(dateParam) {
       const date = new Date(dateParam);
       const now = new Date();
@@ -146,22 +133,9 @@
     async function loadNotifications() {
       const container = document.getElementById('notificationsContainer');
       try {
-        // Fetch unread count first to update badge, then mark as read
-        const unreadRes = await fetch(`/api/notifications/${user.id}/unread`);
-        const unreadData = await unreadRes.json();
-        
-        if (unreadData.unreadCount > 0) {
-          document.getElementById('navNotifBadge').style.display = 'block';
-          document.getElementById('navNotifBadge').innerText = unreadData.unreadCount > 99 ? '99+' : unreadData.unreadCount;
-        } else {
-          document.getElementById('navNotifBadge').style.display = 'none';
-        }
-
-        // Now fetch actual notifications
         const res = await fetch(`/api/notifications/${user.id}`);
         const notifications = await res.json();
 
-        // Mark all as read now that user is viewing the page
         await fetch(`/api/notifications/${user.id}/read`, { method: 'POST' });
 
         if (notifications.length === 0) {
@@ -181,7 +155,7 @@
 
           if (notif.type === 'like') {
             text = `<strong>${notif.sender.fullName}</strong> liked your post.`;
-            link = `/home.html`; // Ideally link to specific post
+            link = `/home.html`; 
             iconSVG = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
           } else if (notif.type === 'comment') {
             text = `<strong>${notif.sender.fullName}</strong> commented on your post.`;
@@ -211,14 +185,7 @@
       }
     }
 
-    loadNotifications();
-  
-      }; // End of runApp
-      // Only run app if user was loaded
-      if (typeof user !== 'undefined' || typeof currentUser !== 'undefined') {
-         setTimeout(() => { if(document.body) runApp(); }, 50);
-      }
-    });
-    </script>
+    initAuth();
+  </script>
 </body>
 </html>

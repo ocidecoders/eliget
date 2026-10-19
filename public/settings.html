@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Settings — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="shortcut icon" href="/favicon.ico">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --green-light: #ecfdf5; --danger: #EF4444; --danger-light: #FEF2F2; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 40px; color: var(--text); }
     
-    /* Top Navbar */
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
     .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
     .back-btn:hover { background: var(--bg); }
@@ -20,13 +24,11 @@
 
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     
-    /* Cards */
     .settings-card { background: var(--surface); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid var(--line); }
     .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 15px; }
     .card-header svg { width: 20px; height: 20px; stroke: var(--green); fill: none; stroke-width: 2; }
     .card-title { font-family: 'Archivo', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text); }
     
-    /* Form Groups */
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
     .input-wrapper { position: relative; }
@@ -35,24 +37,19 @@
     .input-wrapper input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px var(--green-light); }
     .input-wrapper input:disabled { background: var(--bg); color: var(--text-muted); cursor: not-allowed; }
 
-    /* Badge Selector */
     .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
     .badge-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; transition: all 0.2s; }
     .badge-option:hover { border-color: #D1D5DB; }
     .badge-option svg { width: 24px; height: 24px; stroke: var(--text-muted); fill: none; stroke-width: 2; transition: all 0.2s; }
     .badge-option span { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
-    
-    /* Active State */
     .badge-option.active { border-color: var(--green); background: var(--green-light); box-shadow: inset 0 0 0 1px var(--green); }
     .badge-option.active svg { stroke: var(--green); }
     .badge-option.active span { color: var(--green); }
 
-    /* Buttons */
     .btn-save { width: 100%; background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
     .btn-save:hover { opacity: 0.9; }
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* Account Actions */
     .action-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--line); }
     .action-row:last-child { border-bottom: none; padding-bottom: 0; }
     .action-info h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
@@ -62,31 +59,21 @@
     .btn-action.danger { background: var(--danger-light); color: var(--danger); border-color: #FCA5A5; }
     .btn-action.danger:hover { background: #FEE2E2; }
 
-    /* Toast Notification */
     .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 999px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast svg { width: 18px; height: 18px; stroke: var(--green); fill: none; stroke-width: 3; }
   </style>
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="shortcut icon" href="/favicon.ico">
 </head>
 <body>
 
-  <!-- Top Nav -->
   <div class="top-nav">
     <button class="back-btn" onclick="window.location.href='/dashboard.html'">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <div class="logo">Eli<span>get</span></div>
+    <div class="logo">Set<span>tings</span></div>
   </div>
 
   <div class="container">
-    
-    <!-- Profile Settings -->
     <div class="settings-card">
       <div class="card-header">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -136,7 +123,6 @@
       <button class="btn-save" id="saveBtn">Save Changes</button>
     </div>
 
-    <!-- Security Settings (UI Placeholder) -->
     <div class="settings-card">
       <div class="card-header">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -152,7 +138,6 @@
       <button class="btn-save" style="background: var(--text-muted);" onclick="alert('Password change will be available in the next update.')">Update Password</button>
     </div>
 
-    <!-- Account Actions -->
     <div class="settings-card">
       <div class="card-header">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -175,61 +160,46 @@
         <button class="btn-action danger" onclick="alert('Account deletion is currently disabled for safety.')">Delete</button>
       </div>
     </div>
-
   </div>
 
-  <!-- Toast Notification -->
   <div class="toast" id="toast">
     <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span id="toastMsg">Changes saved!</span>
   </div>
 
   <script>
-    
     let user = null;
-    async function checkAuth() {
+    let selectedBadge = 'General';
+
+    async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
         if (!res.ok) throw new Error();
         const data = await res.json();
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
+        
+        selectedBadge = user.badge || 'General';
+        document.getElementById('fullNameInput').value = user.fullName;
+        document.getElementById('usernameInput').value = '@' + user.username;
+        highlightBadge();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
-        throw err; // Stop execution
       }
     }
-    checkAuth().then(() => {
-      // Wrap all code below inside this .then() block to ensure it runs after auth
-      // We will use an IIFE to scope it properly
-      const runApp = () => {
-      
 
-    let selectedBadge = user.badge || 'General';
-
-    // Populate Data
-    document.getElementById('fullNameInput').value = user.fullName;
-    document.getElementById('usernameInput').value = '@' + user.username;
-
-    // Badge Setup
     function highlightBadge() {
       document.querySelectorAll('.badge-option').forEach(opt => {
         if (opt.dataset.badge === selectedBadge) opt.classList.add('active');
         else opt.classList.remove('active');
       });
     }
-    highlightBadge();
 
-    // Badge Click
     document.querySelectorAll('.badge-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        selectedBadge = opt.dataset.badge;
-        highlightBadge();
-      });
+      opt.addEventListener('click', () => { selectedBadge = opt.dataset.badge; highlightBadge(); });
     });
 
-    // Toast Function
     function showToast(message) {
       const toast = document.getElementById('toast');
       document.getElementById('toastMsg').innerText = message;
@@ -237,47 +207,31 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Save Changes
     document.getElementById('saveBtn').addEventListener('click', async () => {
       const newName = document.getElementById('fullNameInput').value.trim();
       const btn = document.getElementById('saveBtn');
-
       if (!newName) return alert('Full name cannot be empty!');
-
       btn.innerText = 'Saving...'; btn.disabled = true;
-
       try {
-        const res = await fetch(`/api/user/update-profile/${user.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName: newName, badge: selectedBadge })
-        });
+        const res = await fetch(`/api/user/update-profile/${user.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fullName: newName, badge: selectedBadge }) });
         const data = await res.json();
-
         if (res.ok) {
           localStorage.setItem('eliget_user', JSON.stringify(data.user));
           showToast('Profile updated successfully!');
-        } else {
-          alert(data.message || 'Failed to update profile.');
-        }
-      } catch (err) {
-        alert('Server error.');
-      }
+        } else { alert(data.message || 'Failed to update profile.'); }
+      } catch (err) { alert('Server error.'); }
       btn.innerText = 'Save Changes'; btn.disabled = false;
     });
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('eliget_user');
-      window.location.href = '/login.html';
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+        localStorage.removeItem('eliget_user');
+        window.location.href = '/login.html';
+      } catch (err) { alert('Error logging out'); }
     });
-  
-      }; // End of runApp
-      // Only run app if user was loaded
-      if (typeof user !== 'undefined' || typeof currentUser !== 'undefined') {
-         setTimeout(() => { if(document.body) runApp(); }, 50);
-      }
-    });
-    </script>
+
+    initAuth();
+  </script>
 </body>
 </html>

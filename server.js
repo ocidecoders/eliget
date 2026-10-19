@@ -464,6 +464,36 @@ app.get('/api/search', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Search failed" }); }
 });
 
+
+app.get('/api/users/suggested', authenticateToken, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    // Find users not followed by current user and not the current user
+    const users = await User.find({
+      _id: { $nin: [...currentUser.following, currentUser._id] }
+    }).select('fullName username profilePic').limit(5).lean();
+    
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch suggested users" });
+  }
+});
+
+
+app.get('/api/users/suggested', authenticateToken, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    // Find users not followed by current user and not the current user
+    const users = await User.find({
+      _id: { $nin: [...currentUser.following, currentUser._id] }
+    }).select('fullName username profilePic').limit(5).lean();
+    
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch suggested users" });
+  }
+});
+
 app.get('/api/posts', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

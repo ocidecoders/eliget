@@ -14,7 +14,7 @@
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box, [data-theme="dark"] .suggested-user-card { background-color: var(--surface); border-color: var(--line); }
     [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
     [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
     [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
@@ -43,7 +43,6 @@
     .icon-btn-wrapper svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-badge { position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center; border: 2px solid var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-    /* Feed Tabs */
     .feed-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--line); max-width: 600px; margin: 0 auto; }
     .feed-tab { flex: 1; text-align: center; padding: 14px; font-weight: 600; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.2s; }
     .feed-tab.active { color: var(--text); }
@@ -56,6 +55,18 @@
     .search-wrapper input:focus { border-color: var(--green); background: var(--surface); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
+
+    /* Suggested Users */
+    .suggested-section { margin-bottom: 20px; display: none; }
+    .suggested-section.show { display: block; }
+    .suggested-title { font-family: 'Archivo', sans-serif; font-size: 1rem; color: var(--text); margin-bottom: 10px; }
+    .suggested-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .suggested-scroll::-webkit-scrollbar { display: none; }
+    .suggested-user-card { background: var(--surface); border: 1px solid var(--line); padding: 15px; border-radius: 12px; min-width: 140px; text-align: center; flex-shrink: 0; }
+    .suggested-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.2rem; background-size: cover; background-position: center; border: 2px solid var(--green); margin: 0 auto 10px auto; }
+    .suggested-name { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggested-username { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: block; }
+    .btn-follow-sm { background: var(--text); color: var(--surface); border: none; padding: 6px 16px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; cursor: pointer; width: 100%; }
 
     .search-section-title { font-family: 'Archivo', sans-serif; font-size: 1.1rem; color: var(--text); margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
     .search-users-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
@@ -205,7 +216,6 @@
     </div>
   </div>
 
-  <!-- Feed Tabs -->
   <div class="feed-tabs" id="feedTabs">
     <div class="feed-tab active" onclick="switchFeedType('global')">Global</div>
     <div class="feed-tab" onclick="switchFeedType('following')">Following</div>
@@ -220,6 +230,13 @@
 
   <div class="container">
     <div id="searchResultsContainer" style="display:none; flex:1;"></div>
+    
+    <!-- Suggested Users Section (Shows only on Global Feed) -->
+    <div class="suggested-section" id="suggestedSection">
+      <h3 class="suggested-title">Who to follow</h3>
+      <div class="suggested-scroll" id="suggestedContainer"></div>
+    </div>
+
     <div id="feedContainer" style="flex:1;"></div>
     <div class="loading-spinner" id="loadingSpinner">Loading more posts...</div>
   </div>
@@ -300,7 +317,7 @@
     let allLoadedPosts = [];
     let socket = null;
     let isLoadingPosts = false;
-    let currentFeedType = 'global'; // 'global' or 'following'
+    let currentFeedType = 'global'; 
 
     async function initAuth() {
       try {
@@ -316,12 +333,32 @@
         
         fetchBadges();
         setupSocket();
+        loadSuggestedUsers();
         loadPosts(true);
         setupInfiniteScroll();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
       }
+    }
+
+    async function loadSuggestedUsers() {
+      try {
+        const res = await fetch('/api/users/suggested');
+        const users = await res.json();
+        if (users.length > 0) {
+            const container = document.getElementById('suggestedContainer');
+            container.innerHTML = users.map(u => `
+                <div class="suggested-user-card">
+                    <div class="suggested-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}</div>
+                    <div class="suggested-name">${u.fullName}</div>
+                    <span class="suggested-username">@${u.username}</span>
+                    <button class="btn-follow-sm" onclick="followUser('${u._id}')">Follow</button>
+                </div>
+            `).join('');
+            document.getElementById('suggestedSection').classList.add('show');
+        }
+      } catch (err) {}
     }
 
     function setupSocket() {
@@ -547,7 +584,6 @@
       document.getElementById('loadingSpinner').style.display = 'block';
 
       try {
-        // Pass the current feed type to the API
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}&type=${currentFeedType}`);
         const posts = await res.json();
         if (!Array.isArray(posts)) throw new Error("Invalid format");
@@ -571,18 +607,20 @@
       document.getElementById('loadingSpinner').style.display = 'none';
     }
 
-    // --- Tab Switching Logic ---
     function switchFeedType(type) {
       if (currentFeedType === type) return;
       currentFeedType = type;
 
-      // Update UI
       const tabs = document.querySelectorAll('.feed-tab');
       tabs.forEach(tab => tab.classList.remove('active'));
-      if (type === 'global') tabs[0].classList.add('active');
-      else tabs[1].classList.add('active');
+      if (type === 'global') {
+        tabs[0].classList.add('active');
+        document.getElementById('suggestedSection').classList.add('show');
+      } else {
+        tabs[1].classList.add('active');
+        document.getElementById('suggestedSection').classList.remove('show');
+      }
 
-      // Reload feed
       loadPosts(true);
     }
 
@@ -612,7 +650,8 @@
       if (!query) {
         searchResultsContainer.style.display = 'none';
         feedContainer.style.display = 'block';
-        document.getElementById('feedTabs').style.display = 'flex'; // Show tabs again
+        document.getElementById('feedTabs').style.display = 'flex'; 
+        document.getElementById('suggestedSection').classList.add('show');
         if (hasMore) { window.dispatchEvent(new Event('scroll')); } 
         window.history.replaceState({}, '', '/home.html');
         return;
@@ -621,7 +660,8 @@
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
         loadingSpinner.style.display = 'none';
-        document.getElementById('feedTabs').style.display = 'none'; // Hide tabs during search
+        document.getElementById('feedTabs').style.display = 'none'; 
+        document.getElementById('suggestedSection').classList.remove('show');
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<p style="text-align:center; margin-top:20px;">Searching...</p>';
 
@@ -669,6 +709,7 @@
       try {
         const res = await fetch(`/api/user/follow/${targetId}`, { method: 'POST' });
         if (res.ok) { 
+            loadSuggestedUsers(); // Refresh suggested users
             const currentQuery = document.getElementById('searchInput').value.trim();
             if (currentQuery) document.getElementById('searchInput').dispatchEvent(new Event('input'));
             else loadPosts(true); 

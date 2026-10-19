@@ -15,13 +15,21 @@
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box, [data-theme="dark"] .suggested-user-card { background-color: var(--surface); border-color: var(--line); }
     [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
     [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
     [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
     [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
     [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
     [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
+    [data-theme="dark"] .avatar { border-color: var(--surface); }
+    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
+    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
+    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
+    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
+    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
+    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
+    [data-theme="dark"] .post-content a { color: var(--green); }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
@@ -64,9 +72,14 @@
     .stat-item:hover strong { text-decoration: underline; }
     .stat-item strong { color: var(--text); font-weight: 700; }
 
-    .btn-edit-profile { display: flex; align-items: center; justify-content: center; gap: 8px; width: fit-content; padding: 10px 20px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+    .action-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .btn-edit-profile { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; flex: 1; }
     .btn-edit-profile:hover { background: var(--bg); border-color: #D1D5DB; }
     .btn-edit-profile svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    
+    .btn-share-profile { display: flex; align-items: center; justify-content: center; padding: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; cursor: pointer; transition: all 0.2s; width: 44px; }
+    .btn-share-profile:hover { background: var(--bg); border-color: #D1D5DB; }
+    .btn-share-profile svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     input[type="file"] { display: none; }
 
@@ -227,14 +240,18 @@
         <div class="stat-item" onclick="openUserList('following')"><strong id="followingCount">0</strong> Following</div>
       </div>
 
-      <button class="btn-edit-profile" onclick="window.location.href='/settings.html'">
-        <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
-        Edit Profile
-      </button>
+      <div class="action-buttons">
+        <button class="btn-edit-profile" onclick="window.location.href='/settings.html'">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+          Edit Profile
+        </button>
+        <button class="btn-share-profile" onclick="shareProfile()" title="Share Profile">
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Tab System -->
   <div class="tab-container">
     <button class="tab-btn active" id="tabMyPosts" onclick="switchTab('my-posts')">Your Posts</button>
     <button class="tab-btn" id="tabSaved" onclick="switchTab('saved')">Saved</button>
@@ -245,7 +262,6 @@
   </div>
   <button class="btn-load-more" id="loadMoreBtn" style="display:none; width: calc(100% - 40px); margin: 0 auto 20px auto;">Load More Posts</button>
 
-  <!-- Modals -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
       <h3>Edit Post</h3>
@@ -324,7 +340,7 @@
 
   <script>
     let user = null;
-    let currentTab = 'my-posts'; // 'my-posts' or 'saved'
+    let currentTab = 'my-posts'; 
     let currentPage = 1;
     const POSTS_PER_PAGE = 10;
     let hasMore = true;
@@ -412,7 +428,6 @@
       } catch (err) {}
     }
 
-    // --- Tab Logic ---
     function switchTab(tab) {
       if (currentTab === tab) return;
       currentTab = tab;
@@ -554,7 +569,24 @@
 
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadPosts(false));
 
-    // --- Image Upload & Crop ---
+    // --- Share Profile Logic ---
+    async function shareProfile() {
+      const url = `${window.location.origin}/profile.html?id=${user.id}`;
+      const text = `Check out @${user.username}'s profile on Eliget!`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Eliget Profile', text: text, url: url });
+        } catch (err) {
+          console.log('Share cancelled or failed', err);
+        }
+      } else {
+        navigator.clipboard.writeText(`${text}\n${url}`).then(() => {
+          alert('Profile link copied to clipboard!');
+        }).catch(() => alert('Failed to copy link.'));
+      }
+    }
+
     document.getElementById('avatarInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -616,7 +648,6 @@
       }, 'image/jpeg', 0.8);
     });
 
-    // --- Interactions ---
     async function toggleLike(postId) {
       const btn = document.getElementById(`like-btn-${postId}`);
       const countSpan = document.getElementById(`like-count-${postId}`);
@@ -705,7 +736,6 @@
       try { const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); const data = await res.json(); if (res.ok) loadComments(postId); else alert(data.message); } catch (err) {}
     }
 
-    // --- User List Modal ---
     async function openUserList(type) {
       const modal = document.getElementById('userListModal');
       const title = document.getElementById('userListTitle');

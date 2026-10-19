@@ -297,7 +297,7 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
 
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
-    const { content, postType } = req.body;
+    const { content, postType, videoLink } = req.body;
     let imageUrl = "";
     if (req.file) {
       const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
@@ -305,7 +305,7 @@ app.post('/api/posts', authenticateToken, upload.single('image'), async (req, re
       const data = await response.json();
       if (data.success) imageUrl = data.data.url;
     }
-    const newPost = new Post({ author: req.user.id, content, image: imageUrl, postType: postType || 'feed' });
+    const newPost = new Post({ author: req.user.id, content, image: imageUrl, videoLink: videoLink || '', postType: postType || 'feed' });
     await newPost.save();
     res.status(201).json({ message: "Post created successfully!" });
   } catch (error) { res.status(500).json({ message: "Failed to create post" }); }

@@ -4,6 +4,7 @@ const PostSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   image: { type: String, default: "" },
+  videoLink: { type: String, default: "" }, // NEW: For Video URL
   postType: { type: String, enum: ['feed', 'job'], default: 'feed' },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   views: { type: Number, default: 0 }

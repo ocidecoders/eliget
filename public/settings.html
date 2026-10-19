@@ -180,7 +180,6 @@
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        // Populate fields
         document.getElementById('fullNameInput').value = user.fullName || '';
         document.getElementById('bioInput').value = user.bio || '';
         document.getElementById('websiteTitleInput').value = user.website?.title || '';
@@ -192,7 +191,6 @@
       }
     }
 
-    // Bio character counter
     const bioInput = document.getElementById('bioInput');
     function updateBioCount() {
       document.getElementById('bioCount').innerText = `${bioInput.value.length}/100`;
@@ -206,7 +204,6 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Save Profile Info
     document.getElementById('saveBtn').addEventListener('click', async () => {
       const fullName = document.getElementById('fullNameInput').value.trim();
       const bio = document.getElementById('bioInput').value.trim();
@@ -228,7 +225,7 @@
 
         if (res.ok) {
           localStorage.setItem('eliget_user', JSON.stringify(data.user));
-          user = data.user; // update local var
+          user = data.user;
           showToast('Profile updated successfully!');
         } else {
           showToast(data.message || 'Failed to update profile.', true);
@@ -237,7 +234,6 @@
       btn.innerText = 'Save Changes'; btn.disabled = false;
     });
 
-    // Change Password
     document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
       const oldPassword = document.getElementById('oldPassword').value;
       const newPassword = document.getElementById('newPassword').value;
@@ -269,7 +265,6 @@
       btn.innerText = 'Update Password'; btn.disabled = false;
     });
 
-    // Logout
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       try {
         await fetch('/api/logout', { method: 'POST' });
@@ -278,7 +273,6 @@
       } catch (err) { showToast('Error logging out', true); }
     });
 
-    // Delete Account
     document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
       const confirm1 = confirm('Are you sure you want to delete your account? This action cannot be undone.');
       if (!confirm1) return;

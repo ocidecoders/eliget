@@ -51,17 +51,17 @@
     /* Post Content */
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     
-    /* Improved Image Styling (No Crop) */
+    /* Image Styling - No Crop */
     .post-image { 
       width: 100%; 
       height: auto;
       max-height: 600px;
-      object-fit: contain; /* Prevents cropping, shows full image */
+      object-fit: contain; 
       border-radius: 12px; 
       border: 1px solid var(--line);
       margin-top: 5px;
       display: block;
-      background-color: var(--bg); /* Background color for empty spaces */
+      background-color: var(--bg);
     }
 
     /* Action Bar Styling */
@@ -143,7 +143,9 @@
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
-    .empty-state p { font-size: 1rem; font-weight: 500; }
+    .empty-state p { font-size: 1rem; font-weight: 500; margin-bottom: 20px; }
+    .btn-create-post { display: inline-block; padding: 12px 24px; background: var(--green); color: white; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
+    .btn-create-post:hover { transform: scale(1.05); }
     .svg-badge { width: 18px; height: 18px; }
     
     .btn-load-more { display: block; width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; text-align: center; transition: background 0.2s; }
@@ -338,17 +340,22 @@
     }
 
     function getAvatarHTML(author) {
+      if (!author) return '';
       if (author.profilePic) {
         return `<div class="avatar" style="background-image: url('${author.profilePic}')"></div>`;
       } else {
-        const initial = author.fullName.charAt(0).toUpperCase();
+        const initial = author.fullName ? author.fullName.charAt(0).toUpperCase() : '?';
         return `<div class="avatar avatar-text">${initial}</div>`;
       }
     }
 
     function appendPosts(postsToRender) {
       const container = document.getElementById('feedContainer');
-      const html = postsToRender.map(post => {
+      
+      // SAFETY CHECK: Filter out posts where the author was deleted
+      const validPosts = postsToRender.filter(post => post.author !== null);
+
+      const html = validPosts.map(post => {
         const isOwner = post.author._id === user.id;
         const isLiked = post.likes && post.likes.includes(user.id);
         const likesCount = post.likes ? post.likes.length : 0;
@@ -363,6 +370,9 @@
         } else if (post.relationship === 'following') {
           actionHtml = `<span class="following-text">Following</span>`;
         }
+
+        // Image Error handling (prevents broken image icons)
+        const imageHTML = post.image ? `<img src="${post.image}" class="post-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">` : '';
 
         return `
         <div class="post-card" data-post-id="${post._id}">
@@ -393,7 +403,7 @@
             </div>
           </div>
           <div class="post-content">${post.content}</div>
-          ${post.image ? `<img src="${post.image}" class="post-image" loading="lazy">` : ''}
+          ${imageHTML}
           
           <div class="action-bar">
             <div class="action-left">
@@ -415,7 +425,7 @@
       `}).join('');
       
       container.insertAdjacentHTML('beforeend', html);
-      allLoadedPosts.push(...postsToRender);
+      allLoadedPosts.push(...validPosts);
       setupViewTracking();
     }
 
@@ -435,17 +445,31 @@
         const res = await fetch(`/api/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
         const posts = await res.json();
 
+        // SAFETY CHECK: Ensure response is an array (not an error object)
+        if (!Array.isArray(posts)) {
+          console.error("Invalid response format:", posts);
+          throw new Error("Invalid format");
+        }
+
         if (posts.length === 0) {
             hasMore = false; 
             if (currentPage === 1) {
-                document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><p>No posts found.</p></div>`;
+                document.getElementById('feedContainer').innerHTML = `
+                  <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <p>No posts found.</p>
+                    <a href="/create-post.html" class="btn-create-post">Create a Post</a>
+                  </div>`;
             }
         } else {
             if (posts.length < POSTS_PER_PAGE) hasMore = false;
             appendPosts(posts);
             currentPage++;
         }
-      } catch (err) { console.error(err); }
+      } catch (err) { 
+        console.error("Error loading posts:", err);
+        document.getElementById('feedContainer').innerHTML = `<div class="empty-state"><p>Error loading feed. Please refresh.</p></div>`;
+      }
 
       if (hasMore) { btn.innerText = 'Load More Posts'; btn.style.display = 'block'; btn.disabled = false; }
       else { btn.style.display = 'none'; }

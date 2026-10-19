@@ -21,7 +21,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*', credentials: true } });
 
-// Trust Render reverse proxy so rate-limit sees real client IP
 app.set('trust proxy', 1);
 
 app.use(express.json());
@@ -47,7 +46,6 @@ const COOKIE_CLEAR_OPTIONS = {
   path: '/'
 };
 
-// ============ RATE LIMITERS ============
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 600,
@@ -370,6 +368,12 @@ app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType, videoLink } = req.body;
+    
+    // Validation fix for Bug 1
+    if (!content && !req.file && !videoLink) {
+      return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
+    }
+
     let imageUrl = "";
     if (req.file) {
       const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
@@ -377,7 +381,7 @@ app.post('/api/posts', authenticateToken, upload.single('image'), async (req, re
       const data = await response.json();
       if (data.success) imageUrl = data.data.url;
     }
-    const newPost = new Post({ author: req.user.id, content, image: imageUrl, videoLink: videoLink || '', postType: postType || 'feed' });
+    const newPost = new Post({ author: req.user.id, content: content || '', image: imageUrl, videoLink: videoLink || '', postType: postType || 'feed' });
     await newPost.save();
     res.status(201).json({ message: "Post created successfully!" });
   } catch (error) { res.status(500).json({ message: "Failed to create post" }); }

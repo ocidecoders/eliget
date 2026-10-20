@@ -12,7 +12,6 @@ const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
-const helmet = require('helmet');
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -31,23 +30,6 @@ cloudinary.config({
 });
 
 app.set('trust proxy', 1);
-
-// 🛡️ Security Headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.youtube.com", "https://cdn.socket.io"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:"],
-      frameSrc: ["'self'", "https://www.youtube.com"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
 
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
@@ -124,9 +106,7 @@ io.on('connection', (socket) => {
     try {
       const { senderId } = data;
       await Message.updateMany({ sender: senderId, receiver: socket.userId, isRead: false }, { isRead: true });
-      // Notify sender that messages are read
       io.to(senderId).emit('messagesRead', { receiverId: socket.userId });
-      // Notify reader to update badge
       io.to(socket.userId).emit('unreadBadgeUpdate');
     } catch (err) { console.error(err); }
   });
@@ -534,7 +514,6 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
     const validComments = comments.filter(c => c.author != null);
     res.status(200).json({ comments: validComments, total });
   } catch (error) { 
-    // If error, return empty array so frontend doesn't break
     res.status(200).json({ comments: [], total: 0 }); 
   }
 });

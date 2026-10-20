@@ -65,7 +65,7 @@
 
   <div class="container">
 
-    <!-- PWA Install Card (Hidden by default, shown via JS if installable) -->
+    <!-- PWA Install Card -->
     <div class="settings-card" id="installAppCard" style="display: none;">
       <h3>Install App</h3>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Install Eliget on your home screen for a faster, full-screen experience without opening the browser.</p>
@@ -175,41 +175,47 @@
     let user = null;
     let deferredPrompt = null;
 
+    // Ensure SW is registered here as well
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
+    }
+
+    // Check if already installed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (!isStandalone) {
+      document.getElementById('installAppCard').style.display = 'block';
+    }
+
     // --- PWA Install Logic ---
     window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       deferredPrompt = e;
-      // Update UI notify the user they can install the PWA
-      document.getElementById('installAppCard').style.display = 'block';
     });
 
     document.getElementById('installBtn').addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      // Show the install prompt
-      deferredPrompt.prompt();
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
-      // We've used the prompt, and can't use it again, throw it away
-      deferredPrompt = null;
-      // Hide the install card after prompt
-      document.getElementById('installAppCard').style.display = 'none';
+      if (deferredPrompt) {
+        // Show the native browser install prompt
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installAppCard').style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        // Fallback instructions for Brave/Firefox/iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+          alert("To install Eliget:\n1. Tap the Share icon at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.");
+        } else {
+          alert("To install Eliget:\n1. Tap the browser menu (three dots ⋮) at the top right.\n2. Select 'Install app' or 'Add to Home screen'.");
+        }
+      }
     });
 
     window.addEventListener('appinstalled', () => {
-      // Log install to analytics
-      console.log('INSTALL: Success');
-      // Hide the install card
       document.getElementById('installAppCard').style.display = 'none';
       deferredPrompt = null;
     });
-
-    // Check if app is already installed (running in standalone mode)
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      document.getElementById('installAppCard').style.display = 'none';
-    }
 
     // --- General Logic ---
     function showToast(msg) {
@@ -346,17 +352,9 @@
       } catch (err) { showToast('Server error.'); }
     }
 
-    // --- Logout Logic ---
     function logout() {
       if (!confirm('Are you sure you want to log out?')) return;
-      
-      // Clear local storage
       localStorage.removeItem('eliget_user');
-      
-      // Optional: Call backend to clear HttpOnly cookies if you implement it later
-      // fetch('/api/logout', { method: 'POST' }).catch(() => {});
-
-      // Redirect to login
       window.location.href = '/login.html';
     }
 

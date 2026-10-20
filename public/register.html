@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Register — Eliget</title>
+  <!-- FIX: Title too short -->
+  <title>Create an Account on Eliget - Anti-Addiction Social Media</title>
+  <!-- FIX: Meta Description missing -->
+  <meta name="description" content="Join Eliget today. An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers. Sign up for free.">
   
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="/favicon.svg">
   
   <!-- Bing Verification -->
@@ -23,9 +25,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text); }
     
-    .register-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid var(--line); text-align: center; }
-    .logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 5px; letter-spacing: -1px; }
-    .logo span { color: var(--green); }
+    .register-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--line); text-align: center; }
+    
+    /* FIX: Changed to h1 tag */
+    h1.logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 5px; letter-spacing: -1px; }
+    h1.logo span { color: var(--green); }
+    
     .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 30px; }
     
     .form-group { margin-bottom: 15px; text-align: left; }
@@ -47,7 +52,8 @@
 <body>
 
   <div class="register-box">
-    <div class="logo">Eli<span>get</span></div>
+    <!-- FIX: Changed to h1 -->
+    <h1 class="logo">Eli<span>get</span></h1>
     <div class="subtitle">Join the no-algorithm network.</div>
     
     <div class="form-group">

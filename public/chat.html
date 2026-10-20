@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chats — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  
-  
-  
-  
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
@@ -33,10 +29,12 @@
     .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.2rem; background-color: var(--green); flex-shrink: 0; }
     .chat-info { flex: 1; overflow: hidden; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .chat-name { font-weight: 600; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-name { font-weight: 600; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
     .chat-time { font-size: 0.75rem; color: var(--text-muted); }
     .chat-msg { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .unread-badge { background: var(--green); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; margin-left: 10px; }
+
+    .badge-icon { width: 16px; height: 16px; fill: #3B82F6; vertical-align: text-bottom; }
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-state p { font-size: 1rem; }
@@ -52,37 +50,11 @@
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
     .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  
-  <!-- Open Graph (Facebook) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com/">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://eliget-social.onrender.com/">
-  <meta property="twitter:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="twitter:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="twitter:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
-
 </head>
 <body>
 
   <div class="top-nav">
-    <button class="back-btn" onclick="window.history.back()">
+    <button class="back-btn" onclick="window.location.href='/home.html'">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
     <div class="logo">Chat<span>s</span></div>
@@ -116,11 +88,21 @@
     </a>
   </div>
 
-  <script src="/splash.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/theme.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
 
     let user = null;
+    let socket = null;
+
+    function getBadgeSVG(author) {
+      if (author && author.badge && author.followers && author.followers.length >= 100) {
+        return `<svg class="badge-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+      }
+      return '';
+    }
+
     async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
@@ -134,10 +116,24 @@
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
         
         loadChats();
+        fetchChatBadge();
+        setupSocket();
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
       }
+    }
+
+    function setupSocket() {
+      socket = io();
+      socket.on('newChatMessage', () => {
+        fetchChatBadge();
+        loadChats(); // Reload list to show new message
+      });
+      socket.on('unreadBadgeUpdate', () => {
+        fetchChatBadge();
+        loadChats(); // Reload list to clear unread indicator
+      });
     }
 
     function timeAgo(dateParam) {
@@ -177,7 +173,7 @@
               <div class="chat-avatar" style="${avatarStyle}">${chat.user.profilePic ? '' : initial}</div>
               <div class="chat-info">
                 <div class="chat-header">
-                  <span class="chat-name">${chat.user.fullName}</span>
+                  <span class="chat-name">${chat.user.fullName} ${getBadgeSVG(chat.user)}</span>
                   <span class="chat-time">${timeAgo(chat.time)}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -198,15 +194,18 @@
         const res = await fetch('/api/chat/unread');
         const data = await res.json();
         const badge = document.getElementById('navChatBadge');
-        if (badge && data.unreadCount > 0) {
-          badge.style.display = 'block';
-          badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+        if (badge) {
+          if (data.unreadCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
+          } else {
+            badge.style.display = 'none';
+          }
         }
       } catch (err) {}
     }
 
     initAuth();
-    fetchChatBadge();
   </script>
 </body>
 </html>

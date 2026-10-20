@@ -5,123 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Settings — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  
-  
-  
-  
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --green-light: #ecfdf5; --danger: #EF4444; --danger-light: #FEF2F2; }
-    /* Dark Theme Styles */
+    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --red: #EF4444; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .settings-card, [data-theme="dark"] .modal-box { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] input { background-color: var(--bg); color: var(--text); border-color: var(--line); }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 40px; color: var(--text); }
-    
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
-    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
-    .back-btn:hover { background: var(--bg); }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
+
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     
-    .settings-card { background: var(--surface); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid var(--line); }
-    .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 15px; }
-    .card-header svg { width: 20px; height: 20px; stroke: var(--green); fill: none; stroke-width: 2; }
-    .card-title { font-family: 'Archivo', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .settings-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+    .settings-card h3 { font-family: 'Archivo', sans-serif; font-size: 1.2rem; margin-bottom: 15px; color: var(--text); border-bottom: 1px solid var(--line); padding-bottom: 10px; }
     
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
-    .form-group .char-count { font-size: 0.75rem; font-weight: 400; }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-item span { font-weight: 500; color: var(--text); font-size: 0.95rem; }
+    .setting-item svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:hover { background: #059669; }
+    .btn-danger { background: #FEE2E2; color: var(--red); margin-top: 15px; }
+    .btn-danger:hover { background: #FCA5A5; }
     
-    .input-wrapper { position: relative; }
-    .input-wrapper svg { position: absolute; left: 14px; top: 14px; width: 18px; height: 18px; stroke: #9CA3AF; fill: none; stroke-width: 2; }
-    .input-wrapper input, .input-wrapper textarea { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; transition: all 0.2s; }
-    .input-wrapper textarea { min-height: 80px; resize: vertical; padding-top: 14px; }
-    .input-wrapper input:focus, .input-wrapper textarea:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px var(--green-light); }
-    [data-theme="dark"] .input-wrapper input:focus, [data-theme="dark"] .input-wrapper textarea:focus { background: var(--bg); }
-
-    .btn-save { width: 100%; background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
-    .btn-save:hover { opacity: 0.9; }
-    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .action-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--line); }
-    .action-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .action-info h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .action-info p { font-size: 0.8rem; color: var(--text-muted); }
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
+    .form-group input:focus { border-color: var(--green); background: var(--surface); }
     
-    .btn-action { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
-    .btn-action.danger { background: var(--danger-light); color: var(--danger); border-color: #FCA5A5; }
-    .btn-action.danger:hover { background: #FEE2E2; }
-    .btn-action.danger-outline { background: transparent; color: var(--danger); border-color: var(--danger); }
-    .btn-action.danger-outline:hover { background: var(--danger-light); }
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 3000; }
+    .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* Toggle Switch Styling */
-    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--green); }
-    input:checked + .slider:before { transform: translateX(22px); }
-    [data-theme="dark"] .slider { background-color: #4B5563; }
+    /* App Download Banner Style */
+    .app-download-banner { background: linear-gradient(135deg, #10B981, #059669); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; color: white; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+    .app-download-banner svg { width: 40px; height: 40px; fill: white; flex-shrink: 0; }
+    .app-info h4 { font-family: 'Archivo', sans-serif; font-size: 1.1rem; margin-bottom: 4px; }
+    .app-info p { font-size: 0.8rem; opacity: 0.9; margin-bottom: 10px; }
+    .btn-download-app { background: white; color: var(--green); padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; text-decoration: none; display: inline-block; }
 
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 999px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
-    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-    .toast svg { width: 18px; height: 18px; stroke: var(--green); fill: none; stroke-width: 3; }
-    .toast.error svg { stroke: var(--danger); }
   </style>
-
-  <!-- Favicon -->
-  
-  
-  
-  
-  
-
-  <!-- SEO Meta Tags -->
-  
-  
-  
-  
-  
-  
-  
-  
-
-  <!-- Google & Bing Verification (Replace the content values after getting them from search console) -->
-  
-  
-
-  
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  
-  <!-- Open Graph (Facebook) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com/">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://eliget-social.onrender.com/">
-  <meta property="twitter:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="twitter:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="twitter:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
-
 </head>
 <body>
 
@@ -134,126 +66,76 @@
 
   <div class="container">
     
-    <!-- Appearance Section -->
-    <div class="settings-card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        <h2 class="card-title">Appearance</h2>
-      </div>
-      
-      <div class="action-row">
-        <div class="action-info">
-          <h4>Dark Mode</h4>
-          <p>Switch between light and dark theme.</p>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
-          <span class="slider"></span>
-        </label>
+    <!-- Official App Download Banner -->
+    <div class="app-download-banner">
+      <svg viewBox="0 0 24 24"><path d="M17.5 14.33c-.02-2.02 1.62-2.98 1.68-3.03-1.08-1.58-2.78-1.8-3.29-1.82-1.37-.14-2.68.81-3.38.81-.72 0-1.81-.79-2.98-.76-1.48.02-2.85.86-3.61 2.18-1.54 2.67-.39 6.64 1.11 8.81.73 1.06 1.61 2.25 2.76 2.21 1.13-.04 1.55-.73 2.92-.73s1.73.73 2.91.71c1.18-.02 1.94-1.07 2.67-2.14.84-1.22 1.19-2.4 1.21-2.46-.03-.01-2.35-.9-2.37-3.57zM15.34 5.69c.61-.74 1.01-1.76.9-2.79-.86.03-1.91.57-2.53 1.3-.56.65-1.05 1.71-.91 2.71.96.07 1.93-.49 2.54-1.22z"/></svg>
+      <div class="app-info">
+        <h4>Eliget for Android</h4>
+        <p>Install the official app for a better experience.</p>
+        <!-- The APK link path must match where you upload the file -->
+        <a href="/download/eliget.apk" class="btn-download-app" download>Download APK</a>
       </div>
     </div>
 
-    <!-- Profile Info Section -->
     <div class="settings-card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <h2 class="card-title">Profile Information</h2>
-      </div>
-      
+      <h3>Profile Information</h3>
       <div class="form-group">
         <label>Full Name</label>
-        <div class="input-wrapper">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <input type="text" id="fullNameInput" placeholder="Enter your full name">
-        </div>
+        <input type="text" id="fullName" placeholder="Your Name">
       </div>
-
       <div class="form-group">
-        <label>Bio <span class="char-count" id="bioCount">0/100</span></label>
-        <div class="input-wrapper">
-          <svg style="top: 14px;" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
-          <textarea id="bioInput" placeholder="Tell us about yourself..." maxlength="100"></textarea>
-        </div>
+        <label>Bio (Max 100 chars)</label>
+        <input type="text" id="bio" placeholder="Tell us about yourself" maxlength="100">
       </div>
-
-      <div class="form-group" style="margin-bottom: 10px;">
+      <div class="form-group">
         <label>Website Title</label>
-        <div class="input-wrapper">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          <input type="text" id="websiteTitleInput" placeholder="e.g. My Portfolio">
-        </div>
+        <input type="text" id="webTitle" placeholder="My Portfolio">
       </div>
-
       <div class="form-group">
         <label>Website URL</label>
-        <div class="input-wrapper">
-          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          <input type="url" id="websiteUrlInput" placeholder="https://example.com">
-        </div>
+        <input type="url" id="webUrl" placeholder="https://example.com">
       </div>
-
-      <button class="btn-save" id="saveBtn">Save Changes</button>
+      <button class="btn btn-primary" onclick="updateProfile()">Save Profile</button>
     </div>
 
-    <!-- Security Section -->
     <div class="settings-card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-        <h2 class="card-title">Security</h2>
-      </div>
-      
+      <h3>Change Password</h3>
       <div class="form-group">
-        <label>Current Password</label>
-        <div class="input-wrapper">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <input type="password" id="oldPassword" placeholder="Enter current password">
-        </div>
+        <label>Old Password</label>
+        <input type="password" id="oldPass" placeholder="••••••••">
       </div>
-
       <div class="form-group">
         <label>New Password</label>
-        <div class="input-wrapper">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <input type="password" id="newPassword" placeholder="Enter new password">
-        </div>
+        <input type="password" id="newPass" placeholder="••••••••">
       </div>
-
-      <button class="btn-save" id="updatePasswordBtn">Update Password</button>
+      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
     </div>
 
-    <!-- Account Actions Section -->
     <div class="settings-card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <h2 class="card-title">Account Actions</h2>
+      <h3>Account & Security</h3>
+      <div class="setting-item" onclick="toggleDarkMode()">
+        <span>Dark Mode</span>
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </div>
-      
-      <div class="action-row">
-        <div class="action-info">
-          <h4>Log Out</h4>
-          <p>Safely log out from this device.</p>
-        </div>
-        <button class="btn-action danger" id="logoutBtn">Log Out</button>
-      </div>
-
-      <div class="action-row">
-        <div class="action-info">
-          <h4>Delete Account</h4>
-          <p>Permanently delete your profile and all data.</p>
-        </div>
-        <button class="btn-action danger-outline" id="deleteAccountBtn">Delete</button>
+      <div class="setting-item" onclick="deleteAccount()">
+        <span style="color: var(--red);">Delete Account Permanently</span>
+        <svg viewBox="0 0 24 24" style="stroke: var(--red);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast">
-    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-    <span id="toastMsg">Changes saved!</span>
-  </div>
+  <div class="toast-notification" id="toast">Saved successfully!</div>
 
   <script src="/theme.js"></script>
   <script>
     let user = null;
+    
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
     async function initAuth() {
       try {
@@ -261,72 +143,41 @@
         if (!res.ok) throw new Error();
         const data = await res.json();
         user = data.user;
-        localStorage.setItem('eliget_user', JSON.stringify(user));
         
-        document.getElementById('fullNameInput').value = user.fullName || '';
-        document.getElementById('bioInput').value = user.bio || '';
-        document.getElementById('websiteTitleInput').value = user.website?.title || '';
-        document.getElementById('websiteUrlInput').value = user.website?.url || '';
-        updateBioCount();
+        document.getElementById('fullName').value = user.fullName || '';
+        document.getElementById('bio').value = user.bio || '';
+        if (user.website) {
+          document.getElementById('webTitle').value = user.website.title || '';
+          document.getElementById('webUrl').value = user.website.url || '';
+        }
       } catch (err) {
-        localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
       }
     }
 
-    const bioInput = document.getElementById('bioInput');
-    function updateBioCount() {
-      document.getElementById('bioCount').innerText = `${bioInput.value.length}/100`;
-    }
-    bioInput.addEventListener('input', updateBioCount);
-
-    function showToast(message, isError = false) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toastMsg').innerText = message;
-      toast.className = isError ? 'toast error show' : 'toast show';
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      const fullName = document.getElementById('fullNameInput').value.trim();
-      const bio = document.getElementById('bioInput').value.trim();
-      const websiteTitle = document.getElementById('websiteTitleInput').value.trim();
-      const websiteUrl = document.getElementById('websiteUrlInput').value.trim();
+    async function updateProfile() {
+      const fullName = document.getElementById('fullName').value.trim();
+      const bio = document.getElementById('bio').value.trim();
+      const webTitle = document.getElementById('webTitle').value.trim();
+      const webUrl = document.getElementById('webUrl').value.trim();
       
-      if (!fullName) return showToast('Full name cannot be empty.', true);
-
-      const btn = document.getElementById('saveBtn');
-      btn.innerText = 'Saving...'; btn.disabled = true;
-
       try {
-        const res = await fetch(`/api/user/update-profile/${user.id}`, {
+        const res = await fetch('/api/user/update-profile/' + user.id, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, bio, websiteTitle, websiteUrl })
+          body: JSON.stringify({ fullName, bio, websiteTitle: webTitle, websiteUrl: webUrl })
         });
-        const data = await res.json();
+        if (res.ok) showToast('Profile updated successfully!');
+        else showToast('Failed to update profile.');
+      } catch (err) { showToast('Server error.'); }
+    }
 
-        if (res.ok) {
-          localStorage.setItem('eliget_user', JSON.stringify(data.user));
-          user = data.user;
-          showToast('Profile updated successfully!');
-        } else {
-          showToast(data.message || 'Failed to update profile.', true);
-        }
-      } catch (err) { showToast('Server error.', true); }
-      btn.innerText = 'Save Changes'; btn.disabled = false;
-    });
-
-    document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
-      const oldPassword = document.getElementById('oldPassword').value;
-      const newPassword = document.getElementById('newPassword').value;
-      const btn = document.getElementById('updatePasswordBtn');
-
-      if (!oldPassword || !newPassword) return showToast('Please fill all fields.', true);
-      if (newPassword.length < 6) return showToast('New password must be at least 6 characters.', true);
-
-      btn.innerText = 'Updating...'; btn.disabled = true;
-
+    async function changePassword() {
+      const oldPassword = document.getElementById('oldPass').value;
+      const newPassword = document.getElementById('newPass').value;
+      
+      if (!oldPassword || !newPassword) return showToast('Please fill both password fields.');
+      
       try {
         const res = await fetch('/api/user/change-password', {
           method: 'POST',
@@ -334,52 +185,29 @@
           body: JSON.stringify({ oldPassword, newPassword })
         });
         const data = await res.json();
-
         if (res.ok) {
           showToast('Password updated successfully!');
-          document.getElementById('oldPassword').value = '';
-          document.getElementById('newPassword').value = '';
+          document.getElementById('oldPass').value = '';
+          document.getElementById('newPass').value = '';
         } else {
-          showToast(data.message || 'Failed to update password.', true);
+          showToast(data.message || 'Failed to update password.');
         }
-      } catch (err) {
-        showToast('Server error.', true);
-      }
-      btn.innerText = 'Update Password'; btn.disabled = false;
-    });
+      } catch (err) { showToast('Server error.'); }
+    }
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      try {
-        await fetch('/api/logout', { method: 'POST' });
-        localStorage.removeItem('eliget_user');
-        window.location.href = '/login.html';
-      } catch (err) { showToast('Error logging out', true); }
-    });
-
-    document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-      const confirm1 = confirm('Are you sure you want to delete your account? This action cannot be undone.');
-      if (!confirm1) return;
+    async function deleteAccount() {
+      if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) return;
       
-      const confirm2 = prompt('Type "DELETE" in capital letters to confirm:');
-      if (confirm2 !== 'DELETE') return showToast('Account deletion cancelled.', true);
-
-      const btn = document.getElementById('deleteAccountBtn');
-      btn.innerText = 'Deleting...'; btn.disabled = true;
-
       try {
         const res = await fetch('/api/user/delete-account', { method: 'DELETE' });
         if (res.ok) {
           localStorage.removeItem('eliget_user');
-          window.location.href = '/login.html';
+          window.location.href = '/register.html';
         } else {
-          showToast('Failed to delete account.', true);
-          btn.innerText = 'Delete'; btn.disabled = false;
+          showToast('Failed to delete account.');
         }
-      } catch (err) {
-        showToast('Server error.', true);
-        btn.innerText = 'Delete'; btn.disabled = false;
-      }
-    });
+      } catch (err) { showToast('Server error.'); }
+    }
 
     initAuth();
   </script>

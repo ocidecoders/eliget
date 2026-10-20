@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chat — Eliget</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#10B981">
+  
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
@@ -180,6 +184,11 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
+    }
+
     let user = null;
     let targetUserId = null;
     let socket = null;
@@ -188,7 +197,6 @@
     let audioChunks = [];
     let isRecording = false;
     
-    // State for action sheet
     let selectedMsgId = null;
     let selectedMsgText = "";
     let selectedMsgIsMedia = false;
@@ -294,7 +302,6 @@
           
           let editedText = msg.isEdited ? `<span class="edited-text">(edited)</span>` : '';
           
-          // Only sent messages can be clicked for edit/delete
           let clickAction = isSent ? `onclick="openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', ${!!msg.audioUrl || !!msg.imageUrl})"` : '';
 
           return `
@@ -347,11 +354,9 @@
         }
       });
 
-      // Handle Message Edit Real-time
       socket.on('messageEdited', (msg) => {
         const msgElement = document.getElementById(`msg-${msg._id}`);
         if (msgElement) {
-          // Update inner HTML directly
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const isSent = msg.sender === user.id;
           msgElement.innerHTML = `
@@ -361,7 +366,6 @@
               ${isSent ? getTicksHTML(msg.isRead) : ''}
             </div>
           `;
-          // Update click handler text
           msgElement.setAttribute('onclick', `openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', false)`);
         }
       });
@@ -393,7 +397,6 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // --- ACTION SHEET LOGIC ---
     function openActionSheet(msgId, text, isMedia) {
       selectedMsgId = msgId;
       selectedMsgText = text;
@@ -401,7 +404,7 @@
 
       const editBtn = document.getElementById('editMsgBtn');
       if (isMedia) {
-        editBtn.style.display = 'none'; // Can't edit audio/image
+        editBtn.style.display = 'none'; 
       } else {
         editBtn.style.display = 'flex';
       }
@@ -431,7 +434,6 @@
       fetch(`/api/messages/${selectedMsgId}`, { method: 'DELETE' });
     }
 
-    // --- IMAGE SENDING LOGIC ---
     const imageBtn = document.getElementById('imageBtn');
     const chatImageInput = document.getElementById('chatImageInput');
 
@@ -476,7 +478,6 @@
       document.getElementById('fullscreenImage').src = '';
     }
 
-    // --- CUSTOM AUDIO PLAYER LOGIC ---
     function setAudioDuration(audioEl) {
       const duration = audioEl.duration;
       if (!isNaN(duration)) {
@@ -521,7 +522,6 @@
       btn.querySelector('.icon-pause').style.display = 'none';
     }
 
-    // --- TEXT MESSAGE LOGIC ---
     const messageInput = document.getElementById('messageInput');
     messageInput.addEventListener('input', () => {
       if (!socket) return;
@@ -538,7 +538,6 @@
       messageInput.value = '';
     }
 
-    // --- VOICE RECORDING LOGIC ---
     const recordBtn = document.getElementById('recordBtn');
     
     recordBtn.addEventListener('click', async () => {

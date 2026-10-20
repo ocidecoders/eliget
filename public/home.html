@@ -5,17 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Home — Eliget</title>
   
-  <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Eliget">
   <link rel="apple-touch-icon" href="/favicon.svg">
   
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
+    /* CSS (আগের মতোই থাকবে, শুধু নিচে দেওয়া হলো) */
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
@@ -356,11 +354,8 @@
   <script src="/theme.js"></script>
   <script src="/splash.js"></script>
   <script>
-    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
-        console.log('SW Registered', reg);
-      }).catch(err => console.log('SW Register Error', err));
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
     }
 
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
@@ -378,9 +373,11 @@
     let currentCommentTotal = 0;
     const COMMENTS_PER_PAGE = 10;
 
-    function getBadgeSVG(badge) {
-      if (!badge) return '';
-      return `<svg class="badge-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+    function getBadgeSVG(author) {
+      if (author && author.badge && author.followers && author.followers.length >= 100) {
+        return `<svg class="badge-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+      }
+      return '';
     }
 
     async function initAuth() {
@@ -481,7 +478,7 @@
           container.innerHTML = users.map(u => `
             <div class="suggested-user-card">
               <div class="suggested-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}</div>
-              <div class="suggested-name">${u.fullName} ${getBadgeSVG(u.badge)}</div>
+              <div class="suggested-name">${u.fullName} ${getBadgeSVG(u)}</div>
               <span class="suggested-username">@${u.username}</span>
               <button class="btn-follow-sm" onclick="followUser('${u._id}')">Follow</button>
             </div>
@@ -500,6 +497,9 @@
         setTimeout(() => toast.classList.remove('show'), 3000);
       });
       socket.on('newChatMessage', () => {
+        fetchBadges();
+      });
+      socket.on('unreadBadgeUpdate', () => {
         fetchBadges();
       });
     }
@@ -642,7 +642,7 @@
             <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
               ${getAvatarHTML(post.author)}
               <div>
-                <h4>${post.author.fullName} ${getBadgeSVG(post.author.badge)}</h4>
+                <h4>${post.author.fullName} ${getBadgeSVG(post.author)}</h4>
                 <span class="username">@${post.author.username}</span>
               </div>
             </div>
@@ -828,7 +828,7 @@
                   ${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div class="search-user-info">
-                  <h4>${u.fullName} ${getBadgeSVG(u.badge)}</h4>
+                  <h4>${u.fullName} ${getBadgeSVG(u)}</h4>
                   <span>@${u.username}</span>
                 </div>
               </div>
@@ -965,7 +965,7 @@
               ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
               <div class="comment-body">
                 ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
-                <h5>${c.author.fullName} ${getBadgeSVG(c.author.badge)}</h5>
+                <h5>${c.author.fullName} ${getBadgeSVG(c.author)}</h5>
                 <p>${formatContent(c.content)}</p>
                 <div class="comment-actions">
                   ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}

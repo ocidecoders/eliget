@@ -57,22 +57,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// MongoDB Connection & Auto Badge Cleanup
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
     console.log('MongoDB Connected to Eliget');
     try {
-      const users = await User.find({});
-      let fixedCount = 0;
-      for (let u of users) {
-        if (u.followers.length < 100 && u.badge === true) {
-          u.badge = false;
-          await u.save();
-          fixedCount++;
-          console.log(`Auto-removed badge from @${u.username}`);
-        }
+      // STRICT BADGE CLEANUP ON STARTUP
+      await User.updateMany({ badge: true }, { $set: { badge: false } }); // Remove all first
+      const validUsers = await User.find({ 'followers.99': { $exists: true } }); // Users with >= 100 followers
+      for (let u of validUsers) {
+        u.badge = true;
+        await u.save();
       }
-      if (fixedCount > 0) console.log(`✅ Auto-cleaned ${fixedCount} incorrect badges on startup.`);
+      console.log(`✅ Auto-cleaned and verified badges for ${validUsers.length} valid users.`);
     } catch (e) { console.log('Error during auto-badge cleanup:', e); }
   })
   .catch(err => console.log('MongoDB Error:', err));
@@ -111,7 +107,12 @@ io.on('connection', (socket) => {
     try {
       const { senderId } = data;
       await Message.updateMany({ sender: senderId, receiver: socket.userId, isRead: false }, { isRead: true });
+      
+      // Notify sender that messages are read (Read Receipts)
       io.to(senderId).emit('messagesRead', { receiverId: socket.userId });
+      
+      // Notify the reader to update/clear their unread badge
+      io.to(socket.userId).emit('unreadBadgeUpdate');
     } catch (err) { console.error(err); }
   });
 
@@ -338,7 +339,6 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
         updatedTargetUser.badge = true;
         await updatedTargetUser.save();
       }
-
       await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save();
       io.to(req.params.targetId).emit('newNotification', { type: 'follow' });
     }
@@ -356,7 +356,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
         updatedTargetUser.badge = false;
         await updatedTargetUser.save();
     }
-
     res.status(200).json({ message: "Unfollowed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
 });
@@ -643,7 +642,7 @@ app.get('/api/users/suggested', authenticateToken, async (req, res) => {
     const currentFollowing = (currentUser.following || []).map(id => id.toString());
     const users = await User.find({
       _id: { $nin: [...currentFollowing, currentUser._id] }
-    }).select('fullName username profilePic badge').limit(5).lean();
+    }).select('fullName username profilePic badge followers').limit(5).lean();
     res.status(200).json(users);
   } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
 });

@@ -11,6 +11,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier'); // নতুন লাইব্রেরি
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -129,7 +130,6 @@ io.on('connection', (socket) => {
     } catch (err) { console.error(err); }
   });
 
-  // Read Receipts Logic
   socket.on('markRead', async (data) => {
     try {
       const { senderId } = data;
@@ -264,23 +264,35 @@ app.post('/api/upload-cover/:userId', authenticateToken, upload.single('image'),
   } catch (error) { res.status(500).json({ message: error.message || "Upload failed" }); }
 });
 
-// NEW: Audio Upload Route
+// CORRECTED: Audio Upload Route using streamifier
 app.post('/api/upload-audio', authenticateToken, upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No audio provided." });
     
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "video", folder: "eliget_audio" }, // Cloudinary uses 'video' type for audio
-      (error, result) => {
-        if (error) return res.status(500).json({ message: "Cloudinary upload failed." });
-        res.status(200).json({ audioUrl: result.secure_url });
-      }
-    );
+    const uploadPromise = new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: "video", folder: "eliget_audio" }, // Audio files use 'video' resource type
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary Error:", error);
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+      
+      // Convert buffer to stream and pipe
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    });
     
-    const Readable = require('stream').Readable;
-    const stream = Readable.from(req.file.buffer);
-    stream.pipe(uploadStream);
-  } catch (error) { res.status(500).json({ message: "Upload failed" }); }
+    const result = await uploadPromise;
+    res.status(200).json({ audioUrl: result.secure_url });
+    
+  } catch (error) { 
+    console.error("Upload Catch Error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message }); 
+  }
 });
 
 app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
@@ -395,7 +407,6 @@ app.get('/api/chat/unread', authenticateToken, async (req, res) => {
 app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
-    // Don't auto mark as read here, client socket handles it now
     res.status(200).json(messages);
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });

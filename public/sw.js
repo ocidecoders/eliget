@@ -3,7 +3,6 @@ const urlsToCache = [
   '/',
   '/home.html',
   '/login.html',
-  '/chat.html',
   '/manifest.json',
   '/favicon.svg',
   '/theme.js',
@@ -18,7 +17,6 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Don't cache API calls, only static assets
   if (event.request.url.includes('/api/')) {
     return;
   }

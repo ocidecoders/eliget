@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   
-  <!-- PWA Install Listener (Placed early to catch the event) -->
+  <!-- Capture the event as early as possible -->
   <script>
     window.deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -75,7 +75,7 @@
 
   <div class="container">
 
-    <!-- PWA Install Card -->
+    <!-- PWA Install Card (Hidden by default) -->
     <div class="settings-card" id="installAppCard" style="display: none;">
       <h3>Install App</h3>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Install Eliget on your home screen for a faster, full-screen experience without opening the browser.</p>
@@ -183,40 +183,50 @@
   <script src="/theme.js"></script>
   <script>
     let user = null;
+    const btn = document.getElementById('installBtn');
+    const installCard = document.getElementById('installAppCard');
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
     }
 
-    // Check if app is already installed
+    // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (!isStandalone) {
-      document.getElementById('installAppCard').style.display = 'block';
+
+    // Only show for iOS if not installed (iOS doesn't support beforeinstallprompt)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && !isStandalone) {
+      installCard.style.display = 'block';
+      btn.innerText = "How to Install on iOS";
+      btn.onclick = () => {
+        alert("To install Eliget:\n1. Tap the Share icon at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.");
+      };
     }
 
-    // Direct calling the PWA install action
-    document.getElementById('installBtn').addEventListener('click', async () => {
-      if (window.deferredPrompt) {
-        // Show the native browser install prompt
-        window.deferredPrompt.prompt();
-        const { outcome } = await window.deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installAppCard').style.display = 'none';
-        }
-        window.deferredPrompt = null;
-      } else {
-        // If Chrome needs more time or hasn't fired the event yet
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isIOS) {
-          alert("To install Eliget:\n1. Tap the Share icon at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.");
-        } else {
-          alert("Your browser is ready to install!\n\nPlease open the browser menu (three dots ⋮) and select 'Install app' or 'Add to Home screen'.\n\n(Or wait 2 seconds and try clicking this button again).");
-        }
+    // --- Claude's PWA Logic ---
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();          // stop the default mini-infobar
+      window.deferredPrompt = e;   // save it for later
+      
+      // Show the install card only when the event is ready
+      if (!isStandalone) {
+        installCard.style.display = 'block';
       }
     });
 
+    btn.addEventListener('click', async () => {
+      if (!window.deferredPrompt) return; // If event hasn't fired yet
+      
+      window.deferredPrompt.prompt();     // must be called from a user gesture
+      const { outcome } = await window.deferredPrompt.userChoice;
+      console.log('Install outcome:', outcome); // 'accepted' or 'dismissed'
+      
+      window.deferredPrompt = null;       // the event can only be used once
+      installCard.style.display = 'none';
+    });
+
     window.addEventListener('appinstalled', () => {
-      document.getElementById('installAppCard').style.display = 'none';
+      installCard.style.display = 'none';
       window.deferredPrompt = null;
     });
 

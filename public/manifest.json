@@ -1,12 +1,13 @@
 {
   "name": "Eliget - Anti-Addiction Social Media",
   "short_name": "Eliget",
-  "description": "An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers.",
+  "description": "Anti-addiction, No-algorithm, Text-focused social media platform.",
   "start_url": "/home.html",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F8FAFC",
   "theme_color": "#10B981",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",

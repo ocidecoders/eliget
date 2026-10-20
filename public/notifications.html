@@ -5,29 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Notifications — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  
-  
-  
-  
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; }
+    :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --blue: #3B82F6; }
+    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
+    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .notification-item { background-color: var(--surface); border-color: var(--line); }
+    [data-theme="dark"] .notification-item.unread { background-color: #0F172A; border-color: var(--green-dark); }
 
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
-    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
+
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
+    .back-btn:hover { background: var(--bg); }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
-    .notification-item { background: var(--surface); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--line); }
-    .notification-item.unread { background: #ecfdf5; border-color: #a7f3d0; }
-    .notification-item:hover { background: var(--bg); }
+    .notification-item { background: var(--surface); padding: 15px 20px; border-radius: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .notification-item:hover { background: #F1F5F9; }
+    .notification-item.unread { background: #ECFDF5; border-color: #A7F3D0; }
 
-    .notif-avatar { width: 44px; height: 44px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; flex-shrink: 0; }
+    .notif-avatar { width: 48px; height: 48px; border-radius: 50%; background: #E2E8F0; background-size: cover; background-position: center; flex-shrink: 0; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.1rem; background-color: var(--green); }
     .notif-content { flex: 1; }
     .notif-text { font-size: 0.95rem; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
     .notif-text strong { font-weight: 600; }
@@ -43,101 +45,28 @@
     .notif-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-    .empty-state svg { width: 80px; height: 80px; stroke: #D1D5DB; margin-bottom: 15px; }
+    .empty-state svg { width: 80px; height: 80px; stroke: #CBD5E1; margin-bottom: 15px; }
     .empty-state p { font-size: 0.95rem; }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; transition: color 0.2s; }
     .nav-item.active { color: var(--green); }
     .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-item.plus-btn { flex: 0.5; }
     .nav-item.plus-btn .plus-circle { position: absolute; top: -30px; width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transition: transform 0.2s; }
+    .nav-item.plus-btn:hover .plus-circle { transform: scale(1.05); }
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-
-    /* Chat Badge */
-    .chat-badge { position: absolute; top: -2px; right: 15px; background: #EF4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
-
-    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
-
-    /* Dark Theme Styles */
-    [data-theme="dark"] {
-      --bg: #111827;
-      --surface: #1F2937;
-      --text: #F9FAFB;
-      --text-muted: #9CA3AF;
-      --line: #374151;
-    }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input, [data-theme="dark"] textarea { background-color: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus { background-color: var(--surface); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .icon-btn-wrapper { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .icon-btn-wrapper:hover { background-color: var(--line); }
-    [data-theme="dark"] .logo { color: var(--text); }
-    [data-theme="dark"] .search-wrapper input { background-color: var(--bg); }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
-    [data-theme="dark"] .settings-btn:hover, [data-theme="dark"] .menu-btn:hover { background-color: var(--bg); }
-    [data-theme="dark"] .settings-btn svg, [data-theme="dark"] .menu-btn svg { stroke: var(--text-muted); }
-    [data-theme="dark"] .avatar-text, [data-theme="dark"] .search-user-avatar { background-color: var(--green); }
-    [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .post-content a { color: var(--green); }
-    [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
-    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
-    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
+    
+    .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
+    .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
-
-  
-  
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-  
-  
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  
-  <!-- Open Graph (Facebook) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com/">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://eliget-social.onrender.com/">
-  <meta property="twitter:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="twitter:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="twitter:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
-
 </head>
 <body>
 
   <div class="top-nav">
-    <button class="back-btn" onclick="window.history.back()">
+    <button class="back-btn" onclick="window.location.href='/home.html'">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
     <div class="logo">Notifi<span>cations</span></div>
@@ -165,9 +94,11 @@
       </div>
     </a>
     <a href="/chat.html" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <div class="nav-icon-wrapper">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span class="chat-badge" id="navChatBadge" style="display:none;">0</span>
+      </div>
       Chats
-      <span class="chat-badge" id="navChatBadge" style="display:none;">0</span>
     </a>
     <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
       <div class="profile-pic" id="navProfilePic"></div>
@@ -175,40 +106,13 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/theme.js"></script>
+  <script src="/splash.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
+
     let user = null;
     let socket = null;
-
-    async function initAuth() {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        user = data.user;
-        localStorage.setItem('eliget_user', JSON.stringify(user));
-        if(user.profilePic) document.getElementById('navProfilePic').style.backgroundImage = `url(${user.profilePic})`;
-        loadNotifications();
-        initSocket();
-      } catch (err) {
-        localStorage.removeItem('eliget_user');
-        window.location.href = '/login.html';
-      }
-    }
-
-    function initSocket() {
-      if (typeof io === 'undefined') {
-        console.warn('Socket.io client not loaded.');
-        return;
-      }
-      socket = io();
-      socket.on('newNotification', (data) => {
-        // Notifications reload and auto-marked as read
-        loadNotifications();
-      });
-      socket.on('newChatMessage', () => {
-        fetchChatBadge();
-      });
-    }
 
     function timeAgo(dateParam) {
       const date = new Date(dateParam);
@@ -227,13 +131,46 @@
       return Math.floor(seconds) + "s ago";
     }
 
+    async function initAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        user = data.user;
+        
+        const navPic = document.getElementById('navProfilePic');
+        if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
+        else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
+
+        loadNotifications();
+        setupSocket();
+      } catch (err) {
+        window.location.href = '/login.html';
+      }
+    }
+
+    function setupSocket() {
+      socket = io();
+      socket.on('newNotification', () => {
+        loadNotifications();
+      });
+      socket.on('newChatMessage', () => {
+        fetch('/api/chat/unread').then(r => r.json()).then(data => {
+          const badge = document.getElementById('navChatBadge');
+          if (badge && data.unreadCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = data.unreadCount;
+          }
+        });
+      });
+    }
+
     async function loadNotifications() {
       const container = document.getElementById('notificationsContainer');
       try {
         const res = await fetch(`/api/notifications/${user.id}`);
         const notifications = await res.json();
 
-        // Mark as read on backend
         await fetch(`/api/notifications/${user.id}/read`, { method: 'POST' });
 
         if (notifications.length === 0) {
@@ -250,6 +187,8 @@
           let text = '';
           let link = '#';
           let iconSVG = '';
+          const initial = notif.sender.fullName.charAt(0).toUpperCase();
+          const avatarStyle = notif.sender.profilePic ? `background-image: url('${notif.sender.profilePic}')` : '';
 
           if (notif.type === 'like') {
             text = `<strong>${notif.sender.fullName}</strong> liked your post.`;
@@ -267,7 +206,7 @@
 
           return `
             <div class="notification-item ${notif.isRead ? '' : 'unread'}" onclick="window.location.href='${link}'">
-              <div class="notif-avatar" style="background-image: url('${notif.sender.profilePic || ''}')"></div>
+              <div class="notif-avatar" style="${avatarStyle}">${notif.sender.profilePic ? '' : initial}</div>
               <div class="notif-content">
                 <div class="notif-text">${text}</div>
                 <div class="notif-time">${timeAgo(notif.createdAt)}</div>
@@ -283,26 +222,7 @@
       }
     }
 
-    async function fetchChatBadge() {
-      try {
-        const res = await fetch('/api/chat/unread');
-        const data = await res.json();
-        const badge = document.getElementById('navChatBadge');
-        if (badge) {
-          if (data.unreadCount > 0) {
-            badge.style.display = 'block';
-            badge.innerText = data.unreadCount > 99 ? '99+' : data.unreadCount;
-          } else {
-            badge.style.display = 'none';
-          }
-        }
-      } catch (err) { console.error(err); }
-    }
-
     initAuth();
-    fetchChatBadge();
   </script>
-  <script src="/anti-addiction.js"></script>
-  <script src="/theme.js"></script>
 </body>
 </html>

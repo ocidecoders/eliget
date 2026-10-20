@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   
-  <!-- Catch the event as early as possible -->
   <script>
     window.deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -47,7 +46,6 @@
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
 
-    /* Image Upload Section */
     .image-upload-section { display: flex; flex-direction: column; gap: 15px; }
     .upload-item { display: flex; align-items: center; gap: 15px; }
     .upload-preview { position: relative; cursor: pointer; flex-shrink: 0; }
@@ -63,7 +61,6 @@
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 3000; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* Custom Modal for Install Instruction */
     .install-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 4000; justify-content: center; align-items: center; padding: 20px; }
     .install-modal.show { display: flex; }
     .install-modal-box { background: var(--surface); width: 100%; max-width: 340px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -85,8 +82,6 @@
   </div>
 
   <div class="container">
-
-    <!-- PWA Install Card -->
     <div class="settings-card" id="installAppCard" style="display: none;">
       <h3>Install App</h3>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Install Eliget on your home screen for a faster, full-screen experience without opening the browser.</p>
@@ -96,12 +91,9 @@
       </button>
     </div>
 
-    <!-- Images Upload Card -->
     <div class="settings-card">
       <h3>Profile Pictures</h3>
       <div class="image-upload-section">
-
-        <!-- Cover Photo -->
         <div class="upload-item" style="flex-direction: column; align-items: flex-start; width: 100%;">
           <div class="upload-preview" style="width: 100%;" onclick="document.getElementById('coverInput').click()">
             <div class="cover-preview" id="coverPreview"></div>
@@ -115,8 +107,6 @@
             <span class="hint">Recommended size: 1200 x 400 pixels (Landscape)</span>
           </div>
         </div>
-
-        <!-- Profile Picture -->
         <div class="upload-item" style="margin-top: 10px;">
           <div class="upload-preview" onclick="document.getElementById('avatarInput').click()">
             <div class="avatar-preview" id="avatarPreview"></div>
@@ -130,11 +120,9 @@
             <span class="hint">Recommended size: 400 x 400 pixels (Square)</span>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- Profile Info Card -->
     <div class="settings-card">
       <h3>Profile Information</h3>
       <div class="form-group">
@@ -156,7 +144,6 @@
       <button class="btn btn-primary" onclick="updateProfile()">Save Profile</button>
     </div>
 
-    <!-- Password Card -->
     <div class="settings-card">
       <h3>Change Password</h3>
       <div class="form-group">
@@ -170,41 +157,35 @@
       <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
     </div>
 
-    <!-- Account Security Card -->
     <div class="settings-card">
       <h3>Account & Security</h3>
-      
-      <!-- Logout Button -->
       <div class="setting-item" onclick="logout()">
         <span style="color: var(--text);">Logout</span>
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
       </div>
-
-      <!-- Delete Account Button -->
       <div class="setting-item" onclick="deleteAccount()">
         <span style="color: var(--red);">Delete Account Permanently</span>
         <svg viewBox="0 0 24 24" style="stroke: var(--red);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </div>
     </div>
-
   </div>
 
   <!-- Custom Install Instructions Modal -->
   <div class="install-modal" id="installModal">
     <div class="install-modal-box">
       <h2>Install Eliget App</h2>
-      <p>আপনার ব্রাউজার সরাসরি ইনস্টল পপ-আপ দেখাতে পারছে না। দয়া করে নিচের নিয়মে ইনস্টল করুন:</p>
+      <p>Your browser couldn't show the direct install prompt. Please follow these steps to install:</p>
       
       <div class="install-step">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
-        <span>১. উপরের ডানদিকে ব্রাউজার মেনুতে (৩টি ডট) ক্লিক করুন।</span>
+        <span>1. Tap the browser menu (three dots ⋮) at the top right.</span>
       </div>
       <div class="install-step">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        <span>২. 'Install app' বা 'Add to Home screen' সিলেক্ট করুন।</span>
+        <span>2. Select 'Install app' or 'Add to Home screen'.</span>
       </div>
 
-      <button class="btn-close-modal" onclick="closeInstallModal()">বুঝেছি</button>
+      <button class="btn-close-modal" onclick="closeInstallModal()">Got it</button>
     </div>
   </div>
 
@@ -220,10 +201,7 @@
       navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
     }
 
-    // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-    // ALWAYS show card if not standalone (We handle the click gracefully)
     if (!isStandalone) {
       installCard.style.display = 'block';
     }
@@ -235,7 +213,6 @@
 
     btn.addEventListener('click', async () => {
       if (window.deferredPrompt) {
-        // If Chrome is ready, trigger native popup
         window.deferredPrompt.prompt();
         const { outcome } = await window.deferredPrompt.userChoice;
         if (outcome === 'accepted') {
@@ -243,7 +220,6 @@
         }
         window.deferredPrompt = null;
       } else {
-        // If Chrome hasn't fired the event, show our custom modal
         document.getElementById('installModal').classList.add('show');
       }
     });
@@ -257,7 +233,6 @@
       window.deferredPrompt = null;
     });
 
-    // --- General Logic ---
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -298,13 +273,10 @@
     async function uploadCover(input) {
       const file = input.files[0];
       if (!file) return;
-
       const originalBg = document.getElementById('coverPreview').style.backgroundImage;
       document.getElementById('coverPreview').style.opacity = '0.5';
-
       const formData = new FormData();
       formData.append('image', file);
-
       try {
         const res = await fetch(`/api/upload-cover/${user.id}`, { method: 'POST', body: formData });
         const data = await res.json();
@@ -327,13 +299,10 @@
     async function uploadAvatar(input) {
       const file = input.files[0];
       if (!file) return;
-
       const preview = document.getElementById('avatarPreview');
       preview.style.opacity = '0.5';
-
       const formData = new FormData();
       formData.append('image', file);
-
       try {
         const res = await fetch(`/api/upload-avatar/${user.id}`, { method: 'POST', body: formData });
         const data = await res.json();
@@ -357,7 +326,6 @@
       const bio = document.getElementById('bio').value.trim();
       const webTitle = document.getElementById('webTitle').value.trim();
       const webUrl = document.getElementById('webUrl').value.trim();
-
       try {
         const res = await fetch('/api/user/update-profile/' + user.id, {
           method: 'POST',
@@ -372,9 +340,7 @@
     async function changePassword() {
       const oldPassword = document.getElementById('oldPass').value;
       const newPassword = document.getElementById('newPass').value;
-
       if (!oldPassword || !newPassword) return showToast('Please fill both password fields.');
-
       try {
         const res = await fetch('/api/user/change-password', {
           method: 'POST',

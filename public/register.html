@@ -3,18 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- FIX: Title too short -->
   <title>Create an Account on Eliget - Anti-Addiction Social Media</title>
-  <!-- FIX: Meta Description missing -->
   <meta name="description" content="Join Eliget today. An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers. Sign up for free.">
 
-  <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- Bing Verification -->
   <meta name="msvalidate.01" content="548513EF12C6687B4259E20BBB79D6B8" />
 
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,7 +20,6 @@
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text); }
     .register-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--line); text-align: center; }
 
-    /* FIX: Changed to h1 tag */
     h1.logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 5px; letter-spacing: -1px; }
     h1.logo span { color: var(--green); }
     .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 30px; }
@@ -34,10 +28,14 @@
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    
+    /* New: Username Status Text */
+    .username-status { font-size: 0.75rem; margin-top: 5px; font-weight: 600; display: none; }
 
     .btn-register { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
     .btn-register:hover { background: var(--green-dark); }
     .btn-register:active { transform: scale(0.98); }
+    .btn-register:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .error-msg { color: #EF4444; font-size: 0.85rem; margin-top: 10px; display: none; text-align: left; }
     .bottom-link { margin-top: 25px; font-size: 0.9rem; color: var(--text-muted); }
@@ -48,7 +46,6 @@
 <body>
 
   <div class="register-box">
-    <!-- FIX: Changed to h1 -->
     <h1 class="logo">Eli<span>get</span></h1>
     <div class="subtitle">Join the no-algorithm network.</div>
 
@@ -58,7 +55,8 @@
     </div>
     <div class="form-group">
       <label>Username</label>
-      <input type="text" id="username" placeholder="@username" autocomplete="username">
+      <input type="text" id="username" placeholder="@username" autocomplete="username" oninput="checkUsername(this.value)">
+      <div id="usernameStatus" class="username-status"></div>
     </div>
     <div class="form-group">
       <label>Password</label>
@@ -80,6 +78,63 @@
     }
 
     const errorMsg = document.getElementById('errorMsg');
+    let isUsernameAvailable = false;
+    let checkTimeout;
+
+    // Live Username Checker Logic
+    function checkUsername(username) {
+      clearTimeout(checkTimeout);
+      const statusDiv = document.getElementById('usernameStatus');
+      const inputField = document.getElementById('username');
+      
+      if (!username) {
+        statusDiv.style.display = 'none';
+        isUsernameAvailable = false;
+        inputField.style.borderColor = 'var(--line)';
+        return;
+      }
+
+      if (username.length < 3) {
+        statusDiv.innerText = 'Username must be at least 3 characters.';
+        statusDiv.style.color = '#EF4444';
+        statusDiv.style.display = 'block';
+        isUsernameAvailable = false;
+        inputField.style.borderColor = '#EF4444';
+        return;
+      }
+
+      statusDiv.innerText = 'Checking...';
+      statusDiv.style.color = 'var(--text-muted)';
+      statusDiv.style.display = 'block';
+      isUsernameAvailable = false;
+      inputField.style.borderColor = 'var(--line)';
+
+      checkTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(username)}`);
+          const data = await res.json();
+          
+          // Check if exact match exists in search results
+          const exists = data.users && data.users.some(u => u.username.toLowerCase() === username.toLowerCase());
+          
+          if (exists) {
+            statusDiv.innerText = 'Username is already taken.';
+            statusDiv.style.color = '#EF4444';
+            inputField.style.borderColor = '#EF4444';
+            isUsernameAvailable = false;
+          } else {
+            statusDiv.innerText = 'Username is available!';
+            statusDiv.style.color = 'var(--green)';
+            inputField.style.borderColor = 'var(--green)';
+            isUsernameAvailable = true;
+          }
+        } catch (err) {
+          statusDiv.style.display = 'none';
+          isUsernameAvailable = false;
+        }
+      }, 500); // Wait 500ms after typing stops
+    }
+
     document.getElementById('registerBtn').addEventListener('click', async () => {
       const fullName = document.getElementById('fullName').value.trim();
       const username = document.getElementById('username').value.trim().toLowerCase();
@@ -93,6 +148,11 @@
       }
       if (password.length < 6) {
         errorMsg.innerText = 'Password must be at least 6 characters.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      if (!isUsernameAvailable) {
+        errorMsg.innerText = 'Please choose an available username.';
         errorMsg.style.display = 'block';
         return;
       }

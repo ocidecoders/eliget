@@ -3,49 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Eliget - Anti-Addiction Social Media</title>
+  <title>Login — Eliget</title>
   
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Eliget">
   <link rel="apple-touch-icon" href="/favicon.svg">
-
+  
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    :root { 
+      --bg: #F8FAFC; 
+      --surface: #FFFFFF; 
+      --text: #0F172A; 
+      --text-muted: #64748B; 
+      --line: #E2E8F0; 
+      --green: #10B981; 
+      --green-dark: #059669; 
+    }
+    [data-theme="dark"] { 
+      --bg: #0B1120; 
+      --surface: #1E293B; 
+      --text: #F8FAFC; 
+      --text-muted: #94A3B8; 
+      --line: #334155; 
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .login-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
-    .logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 10px; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text); }
+    
+    .login-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid var(--line); text-align: center; }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 5px; letter-spacing: -1px; }
     .logo span { color: var(--green); }
     .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 30px; }
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .form-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
-    .form-group input:focus { border-color: var(--green); background: var(--surface); }
-    .btn-login { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
-    .btn-login:hover { background: #059669; }
-    .bottom-link { margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); }
-    .bottom-link a { color: var(--green); font-weight: 600; text-decoration: none; }
     
-    /* Dark Theme */
-    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .login-box { background: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input { background: var(--bg); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] input:focus { background: var(--surface); }
+    .form-group { margin-bottom: 18px; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
+    .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    
+    .btn-login { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+    .btn-login:hover { background: var(--green-dark); }
+    .btn-login:active { transform: scale(0.98); }
+    
+    .error-msg { color: #EF4444; font-size: 0.85rem; margin-top: 10px; display: none; text-align: left; }
+    
+    .bottom-link { margin-top: 25px; font-size: 0.9rem; color: var(--text-muted); }
+    .bottom-link a { color: var(--green); font-weight: 600; text-decoration: none; }
+    .bottom-link a:hover { text-decoration: underline; }
+
+    .divider { display: flex; align-items: center; margin: 20px 0; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .divider span { padding: 0 10px; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
   </style>
 </head>
 <body>
 
   <div class="login-box">
     <div class="logo">Eli<span>get</span></div>
-    <div class="subtitle">Anti-addiction, no-algorithm social media.</div>
+    <div class="subtitle">Log in to your anti-addiction network.</div>
     
     <div class="form-group">
       <label>Username</label>
@@ -56,7 +74,11 @@
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     
+    <div class="error-msg" id="errorMsg"></div>
+    
     <button class="btn-login" id="loginBtn">Log In</button>
+    
+    <div class="divider"><span>OR</span></div>
     
     <div class="bottom-link">
       Don't have an account? <a href="/register.html">Sign Up</a>
@@ -67,20 +89,25 @@
   <script>
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
-        console.log('SW Registered', reg);
-      }).catch(err => console.log('SW Register Error', err));
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
     }
+
+    const errorMsg = document.getElementById('errorMsg');
 
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       const btn = document.getElementById('loginBtn');
 
-      if (!username || !password) return alert('Please enter username and password.');
+      if (!username || !password) {
+        errorMsg.innerText = 'Please enter username and password.';
+        errorMsg.style.display = 'block';
+        return;
+      }
 
       btn.innerText = 'Logging in...';
       btn.disabled = true;
+      errorMsg.style.display = 'none';
 
       try {
         const res = await fetch('/api/login', {
@@ -94,12 +121,14 @@
           localStorage.setItem('eliget_user', JSON.stringify(data.user));
           window.location.href = '/home.html';
         } else {
-          alert(data.message || 'Login failed');
+          errorMsg.innerText = data.message || 'Login failed';
+          errorMsg.style.display = 'block';
           btn.innerText = 'Log In';
           btn.disabled = false;
         }
       } catch (err) {
-        alert('Server error. Please try again.');
+        errorMsg.innerText = 'Server error. Please try again.';
+        errorMsg.style.display = 'block';
         btn.innerText = 'Log In';
         btn.disabled = false;
       }

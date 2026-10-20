@@ -42,6 +42,18 @@
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
     
+    /* Image Upload Section */
+    .image-upload-section { display: flex; flex-direction: column; gap: 15px; }
+    .upload-item { display: flex; align-items: center; gap: 15px; }
+    .upload-preview { position: relative; cursor: pointer; flex-shrink: 0; }
+    .upload-preview:hover .overlay { opacity: 1; }
+    .cover-preview { width: 100%; height: 100px; border-radius: 12px; background: #E2E8F0; background-size: cover; background-position: center; border: 1px solid var(--line); }
+    .avatar-preview { width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.5rem; background-size: cover; background-position: center; border: 2px solid var(--line); }
+    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); border-radius: inherit; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s; }
+    .overlay svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 2; }
+    .upload-info { flex: 1; }
+    .upload-info p { font-size: 0.85rem; color: var(--text-muted); }
+
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 3000; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
@@ -57,6 +69,43 @@
 
   <div class="container">
     
+    <!-- Images Upload Card -->
+    <div class="settings-card">
+      <h3>Profile Pictures</h3>
+      <div class="image-upload-section">
+        
+        <!-- Cover Photo -->
+        <div class="upload-item" style="flex-direction: column; align-items: flex-start;">
+          <div class="upload-preview" style="width: 100%;" onclick="document.getElementById('coverInput').click()">
+            <div class="cover-preview" id="coverPreview"></div>
+            <div class="overlay">
+              <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </div>
+          </div>
+          <input type="file" id="coverInput" accept="image/*" style="display: none;" onchange="uploadCover(this)">
+          <div class="upload-info" style="margin-top: 8px;">
+            <p>Click the banner above to change your Cover Photo.</p>
+          </div>
+        </div>
+
+        <!-- Profile Picture -->
+        <div class="upload-item">
+          <div class="upload-preview" onclick="document.getElementById('avatarInput').click()">
+            <div class="avatar-preview" id="avatarPreview"></div>
+            <div class="overlay" style="border-radius: 50%;">
+              <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </div>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">
+          <div class="upload-info">
+            <p>Click the avatar to change your Profile Picture.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Profile Info Card -->
     <div class="settings-card">
       <h3>Profile Information</h3>
       <div class="form-group">
@@ -78,6 +127,7 @@
       <button class="btn btn-primary" onclick="updateProfile()">Save Profile</button>
     </div>
 
+    <!-- Password Card -->
     <div class="settings-card">
       <h3>Change Password</h3>
       <div class="form-group">
@@ -91,6 +141,7 @@
       <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
     </div>
 
+    <!-- Account Security Card -->
     <div class="settings-card">
       <h3>Account & Security</h3>
       <div class="setting-item" onclick="toggleDarkMode()">
@@ -130,9 +181,80 @@
           document.getElementById('webTitle').value = user.website.title || '';
           document.getElementById('webUrl').value = user.website.url || '';
         }
+
+        // Load Images
+        if (user.profilePic) {
+          document.getElementById('avatarPreview').style.backgroundImage = `url(${user.profilePic})`;
+          document.getElementById('avatarPreview').innerText = '';
+        } else {
+          document.getElementById('avatarPreview').innerText = user.fullName.charAt(0).toUpperCase();
+        }
+
+        if (user.coverPic) {
+          document.getElementById('coverPreview').style.backgroundImage = `url(${user.coverPic})`;
+        }
+
         document.body.style.opacity = '1';
       } catch (err) {
         window.location.href = '/login.html';
+      }
+    }
+
+    async function uploadCover(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const originalBg = document.getElementById('coverPreview').style.backgroundImage;
+      document.getElementById('coverPreview').style.opacity = '0.5';
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const res = await fetch(`/api/upload-cover/${user.id}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('coverPreview').style.backgroundImage = `url(${data.imageUrl})`;
+          showToast('Cover photo updated!');
+        } else {
+          showToast('Failed to upload cover.');
+          document.getElementById('coverPreview').style.backgroundImage = originalBg;
+        }
+      } catch (err) {
+        showToast('Server error.');
+        document.getElementById('coverPreview').style.backgroundImage = originalBg;
+      } finally {
+        document.getElementById('coverPreview').style.opacity = '1';
+        input.value = ''; 
+      }
+    }
+
+    async function uploadAvatar(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const preview = document.getElementById('avatarPreview');
+      const originalText = preview.innerText;
+      preview.style.opacity = '0.5';
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const res = await fetch(`/api/upload-avatar/${user.id}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          preview.style.backgroundImage = `url(${data.imageUrl})`;
+          preview.innerText = '';
+          showToast('Profile picture updated!');
+        } else {
+          showToast('Failed to upload picture.');
+        }
+      } catch (err) {
+        showToast('Server error.');
+      } finally {
+        preview.style.opacity = '1';
+        input.value = ''; 
       }
     }
 

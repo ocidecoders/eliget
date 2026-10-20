@@ -8,9 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .chat-item { background-color: var(--surface); border-color: var(--line); }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
@@ -25,15 +23,14 @@
 
     .chat-item { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid var(--line); transition: transform 0.2s, background 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .chat-item:hover { background: #F1F5F9; transform: translateY(-2px); }
-    [data-theme="dark"] .chat-item:hover { background: #0F172A; }
-    
+
     .chat-avatar { width: 54px; height: 54px; border-radius: 50%; background: #E2E8F0; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.3rem; background-color: var(--green); flex-shrink: 0; }
     .chat-info { flex: 1; overflow: hidden; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .chat-name { font-weight: 600; font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
     .chat-time { font-size: 0.75rem; color: var(--text-muted); }
     .chat-msg { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
+
     .unread-badge { background: var(--green); color: white; font-size: 0.75rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-left: 10px; }
     .badge-icon { width: 16px; height: 16px; fill: var(--blue); vertical-align: text-bottom; }
 
@@ -51,8 +48,7 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-    
-    /* PERFECT BADGE POSITION */
+
     .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
     .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
@@ -122,11 +118,11 @@
         const data = await res.json();
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
-        
+
         const navPic = document.getElementById('navProfilePic');
         if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
-        
+
         loadChats();
         fetchChatBadge();
         setupSocket();
@@ -182,8 +178,7 @@
         container.innerHTML = chats.map((chat, index) => {
           const initial = chat.user.fullName.charAt(0).toUpperCase();
           const avatarStyle = chat.user.profilePic ? `background-image: url('${chat.user.profilePic}')` : '';
-          
-          // Removed onclick from here to attach via JS
+
           return `
             <div class="chat-item" data-index="${index}">
               <div class="chat-avatar" style="${avatarStyle}">${chat.user.profilePic ? '' : initial}</div>
@@ -201,7 +196,6 @@
           `;
         }).join('');
 
-        // Attach event listeners safely
         document.querySelectorAll('.chat-item').forEach(item => {
           item.addEventListener('click', () => {
             const index = parseInt(item.dataset.index);

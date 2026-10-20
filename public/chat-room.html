@@ -8,16 +8,6 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .input-area { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .message.received { background-color: var(--surface); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] .input-area input { background-color: #0F172A; color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] .btn-icon { background: #0F172A; border-color: var(--line); color: var(--text); }
-    [data-theme="dark"] .voice-message { background: #0F172A; }
-    [data-theme="dark"] .message.sent .voice-message { background: rgba(255,255,255,0.15); }
-    [data-theme="dark"] .action-sheet { background: var(--surface); }
-    [data-theme="dark"] .action-item { border-color: var(--line); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
@@ -38,13 +28,13 @@
     .message { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; position: relative; transition: background 0.2s; }
     .message.received { background: var(--surface); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
     .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(16,185,129,0.2); }
-    
+
     .message-time { font-size: 0.65rem; margin-top: 6px; text-align: right; opacity: 0.8; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
     .message.sent .message-time { color: rgba(255,255,255,0.9); }
     .message.received .message-time { color: var(--text-muted); }
 
     .edited-text { font-size: 0.65rem; opacity: 0.8; margin-right: 4px; }
-    
+
     .ticks { display: flex; align-items: center; margin-left: 4px; }
     .ticks svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
     .ticks.read svg { stroke: #60A5FA; }
@@ -54,7 +44,7 @@
 
     .voice-message { display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 10px 14px; border-radius: 14px; margin-bottom: 4px; min-width: 220px; }
     .message.sent .voice-message { background: rgba(255,255,255,0.2); }
-    
+
     .play-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--surface); border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; color: var(--green); box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
     .play-btn:hover { transform: scale(1.05); }
     .message.sent .play-btn { background: white; }
@@ -87,12 +77,12 @@
     .input-area { padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; padding-bottom: env(safe-area-inset-bottom, 15px); }
     .input-area input { flex: 1; padding: 14px 18px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .input-area input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-    
+
     .btn-icon { background: var(--bg); color: var(--text-muted); border: 1px solid var(--line); width: 46px; height: 46px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
     .btn-icon:hover { background: #F1F5F9; color: var(--text); }
     .btn-icon.recording { background: #EF4444; color: white; border-color: #EF4444; animation: pulse 1s infinite; }
     .btn-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    
+
     .btn-send { background: var(--green); color: white; border: none; width: 46px; height: 46px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; box-shadow: 0 2px 5px rgba(16,185,129,0.3); }
     .btn-send:hover { background: var(--green-dark); }
     .btn-send:active { transform: scale(0.95); }
@@ -155,7 +145,7 @@
     </button>
 
     <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
-    
+
     <button class="btn-send" id="sendBtn">
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
     </button>
@@ -191,14 +181,14 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let isRecording = false;
-    
+
     let selectedMsgId = null;
     let selectedMsgText = "";
     let selectedMsgIsMedia = false;
 
     const urlParams = new URLSearchParams(window.location.search);
     targetUserId = urlParams.get('id');
-    
+
     if (!targetUserId || targetUserId === 'undefined' || targetUserId === 'null') {
       window.location.href = '/chat.html';
       throw new Error("No target user ID provided");
@@ -225,14 +215,14 @@
         }
 
         await loadTargetUserInfo();
-        setupSocket(); // Socket initialized first
-        await loadMessages(); // Then messages are loaded
+        setupSocket();
+        await loadMessages();
 
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
         setTimeout(() => splash.style.display = 'none', 300);
         document.body.style.opacity = '1';
-        
+
       } catch (err) {
         localStorage.removeItem('eliget_user');
         window.location.href = '/login.html';
@@ -298,13 +288,12 @@
         container.innerHTML = messages.map(msg => {
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          
+
           let content = msg.text;
           if (msg.audioUrl) content = getAudioHTML(msg.audioUrl);
           else if (msg.imageUrl) content = getImageHTML(msg._id);
-          
+
           let editedText = msg.isEdited ? `<span class="edited-text">(edited)</span>` : '';
-          
           let clickAction = isSent ? `onclick="openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', ${!!msg.audioUrl || !!msg.imageUrl})"` : '';
 
           return `
@@ -319,8 +308,7 @@
         }).join('');
 
         scrollToBottom();
-        
-        // FIX: Emit markRead right after messages are loaded
+
         if (socket) socket.emit('markRead', { senderId: targetUserId });
 
       } catch (err) { console.error(err); }
@@ -328,24 +316,23 @@
 
     function setupSocket() {
       socket = io();
-      
-      // FIX: Emit markRead as soon as socket connects
+
       socket.on('connect', () => {
         socket.emit('markRead', { senderId: targetUserId });
       });
-      
+
       socket.on('receiveMessage', (msg) => {
         if ((msg.sender === user.id && msg.receiver === targetUserId) || (msg.sender === targetUserId && msg.receiver === user.id)) {
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          
+
           let content = msg.text;
           if (msg.audioUrl) content = getAudioHTML(msg.audioUrl);
           else if (msg.imageUrl) content = getImageHTML(msg._id);
 
           document.getElementById('typingIndicator').classList.remove('show');
-          
+
           let clickAction = isSent ? `onclick="openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', ${!!msg.audioUrl || !!msg.imageUrl})"` : '';
 
           const msgHTML = `
@@ -414,7 +401,7 @@
 
       const editBtn = document.getElementById('editMsgBtn');
       if (isMedia) {
-        editBtn.style.display = 'none'; 
+        editBtn.style.display = 'none';
       } else {
         editBtn.style.display = 'flex';
       }
@@ -472,7 +459,7 @@
         alert('Error uploading image.');
       } finally {
         imageBtn.innerHTML = originalSvg;
-        chatImageInput.value = ''; 
+        chatImageInput.value = '';
       }
     });
 
@@ -549,7 +536,7 @@
     }
 
     const recordBtn = document.getElementById('recordBtn');
-    
+
     recordBtn.addEventListener('click', async () => {
       if (!isRecording) {
         try {
@@ -589,7 +576,7 @@
           mediaRecorder.start();
           isRecording = true;
           recordBtn.classList.add('recording');
-          recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>`; 
+          recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>`;
         } catch (err) {
           alert('Microphone access denied or not available.');
         }

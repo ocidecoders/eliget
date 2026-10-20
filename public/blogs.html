@@ -7,28 +7,21 @@
   <meta name="description" content="Read the latest articles from Eliget about social media, anti-addiction, freelancing, and building a better digital life.">
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .blog-card { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .blog-card:hover { background: #0F172A; }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
-    
+
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
     .back-btn:hover { background: var(--bg); }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     .header-title { font-family: 'Archivo', sans-serif; font-size: 1.8rem; margin-bottom: 10px; color: var(--text); }
     .header-subtitle { color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem; line-height: 1.5; }
-    
+
     .blog-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 15px; text-decoration: none; display: block; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .blog-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     .blog-card h2 { font-family: 'Archivo', sans-serif; font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
@@ -45,7 +38,7 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-    
+
     .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
     .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
@@ -80,7 +73,7 @@
       <p>We compare the biggest social networks and why smaller, text-focused platforms are becoming the new trend.</p>
       <span class="read-more">Read Article &rarr;</span>
     </a>
-    
+
     <a href="/blog-trusted-job-platform.html" class="blog-card">
       <h2>Trusted Job Finding Platforms for Freelancers</h2>
       <p>Tired of scams? Here is a list of the most trusted platforms to find your next client or full-time job.</p>

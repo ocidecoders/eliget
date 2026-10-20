@@ -8,11 +8,6 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .job-card { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .search-wrapper input { background-color: #0F172A; }
-    [data-theme="dark"] .search-wrapper input:focus { background-color: var(--surface); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
@@ -36,10 +31,10 @@
     .job-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 20px; border: 1px solid var(--line); }
     .job-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-    
+
     .avatar { width: 48px; height: 48px; border-radius: 50%; background: #E2E8F0; background-size: cover; background-position: center; border: 2px solid var(--green); flex-shrink: 0; }
     .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.2rem; }
-    
+
     .job-header h4 { font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
     .job-header .username { font-size: 0.85rem; color: var(--text-muted); display: block; }
 
@@ -47,13 +42,12 @@
 
     .job-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     .job-content a { color: var(--green); font-weight: 600; text-decoration: none; }
-    
-    /* NEW: Image CSS for Job Posts */
+
     .job-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 10px; display: block; background-color: var(--bg); }
-    
+
     .job-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
     .job-date { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
-    
+
     .btn-message { background: var(--green); color: white; border: none; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .btn-message:hover { background: var(--green-dark); }
     .btn-message svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
@@ -74,7 +68,7 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-    
+
     .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
     .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
@@ -161,7 +155,7 @@
         if (!res.ok) throw new Error();
         const data = await res.json();
         user = data.user;
-        
+
         const navPic = document.getElementById('navProfilePic');
         if (user.profilePic) navPic.style.backgroundImage = `url(${user.profilePic})`;
         else { navPic.style.background = '#10B981'; navPic.innerText = user.fullName.charAt(0).toUpperCase(); }
@@ -189,7 +183,7 @@
     async function loadJobs(searchQuery = '') {
       const container = document.getElementById('jobsContainer');
       container.innerHTML = '<p style="text-align:center; padding:20px;">Loading jobs...</p>';
-      
+
       try {
         const url = searchQuery ? `/api/posts/jobs?search=${encodeURIComponent(searchQuery)}` : '/api/posts/jobs';
         const res = await fetch(url);
@@ -206,8 +200,7 @@
 
         container.innerHTML = jobs.map(job => {
           const time = new Date(job.createdAt).toLocaleDateString();
-          
-          // NEW: Render Image if it exists
+
           let mediaHTML = '';
           if (job.image) {
             mediaHTML = `<img src="${job.image}" class="job-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">`;

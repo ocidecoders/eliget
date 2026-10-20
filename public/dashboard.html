@@ -5,21 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard - Eliget Social Network</title>
   <meta name="description" content="View your Eliget profile, your posts, and saved items. Manage your dashboard on the anti-addiction social media platform.">
-  
+
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .post-card, [data-theme="dark"] .modal-box, [data-theme="dark"] .user-list-item { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .btn-outline { border-color: var(--line); color: var(--text); }
-    [data-theme="dark"] .btn-outline:hover { background: var(--bg); }
-    [data-theme="dark"] .tab-btn { color: var(--text-muted); }
-    [data-theme="dark"] .tab-btn.active { color: var(--text); border-color: var(--green); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
@@ -35,26 +28,25 @@
     .profile-header { position: relative; max-width: 600px; margin: 0 auto; background: var(--surface); border-bottom: 1px solid var(--line); }
     .cover-pic { width: 100%; height: 180px; background: #E2E8F0; background-size: cover; background-position: center; position: relative; }
     .cover-pic::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); }
-    
+
     .profile-info-container { padding: 0 20px 20px 20px; position: relative; }
     .avatar-wrapper { position: absolute; top: -50px; left: 20px; }
-    
-    /* FIXED: Ensure background is green */
+
     .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background-color: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-family: 'Archivo', sans-serif; font-weight: 700; border: 4px solid var(--surface); background-size: cover; background-position: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    
+
     .edit-badge { position: absolute; bottom: 5px; right: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .edit-badge svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2; }
 
     .profile-actions { display: flex; justify-content: flex-end; padding-top: 15px; margin-bottom: 10px; }
-    
+
     .profile-details h1 { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    
+
     .profile-username { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px; display: block; }
     .profile-bio { font-size: 1rem; color: var(--text); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
     .profile-website { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-weight: 600; font-size: 0.9rem; text-decoration: none; margin-bottom: 15px; }
     .profile-website:hover { text-decoration: underline; }
     .profile-website svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
-    
+
     .profile-stats { display: flex; gap: 20px; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; }
     .profile-stats span { font-weight: 700; color: var(--text); cursor: pointer; }
     .profile-stats span:hover { text-decoration: underline; }
@@ -69,26 +61,25 @@
     .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 20%; width: 60%; height: 3px; background: var(--green); border-radius: 3px 3px 0 0; }
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; }
-    
+
     .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 20px; border: 1px solid var(--line); }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; }
-    
-    /* FIXED: Avatar background color */
+
     .avatar { width: 44px; height: 44px; border-radius: 50%; background-color: var(--green); background-size: cover; background-position: center; border: 2px solid var(--green); flex-shrink: 0; }
     .avatar-text { display: flex; justify-content: center; align-items: center; background-color: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.1rem; }
-    
+
     .post-header h4 { font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
     .post-header .username { font-size: 0.8rem; color: var(--text-muted); display: block; }
     .badge-icon { width: 16px; height: 16px; fill: var(--blue); vertical-align: text-bottom; }
-    
+
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     .post-image { width: 100%; height: auto; max-height: 600px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 5px; display: block; background-color: var(--bg); }
     .video-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #0F172A; display: flex; justify-content: center; align-items: center; cursor: pointer; margin-top: 5px; }
     .video-container img { width: 100%; height: auto; max-height: 600px; object-fit: contain; opacity: 0.9; }
     .play-btn-overlay { position: absolute; width: 50px; height: 50px; background: rgba(16, 185, 129, 0.95); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
     .play-btn-overlay svg { width: 24px; height: 24px; fill: white; stroke: white; margin-left: 4px; }
-    
+
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
     .action-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; padding: 5px; border-radius: 8px; }
     .action-btn:hover { background: var(--bg); color: var(--text); }
@@ -103,7 +94,7 @@
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
-    
+
     .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
     .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
 
@@ -143,7 +134,7 @@
           <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
         </div>
       </div>
-      
+
       <div class="profile-actions">
         <button class="btn-outline" style="width: auto; padding: 8px 16px;" onclick="window.location.href='/settings.html'">
           <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
@@ -159,7 +150,7 @@
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
           <span id="websiteTitle">Visit Us!</span>
         </a>
-        
+
         <div class="profile-stats">
           <div><span id="statFollowers" onclick="openFollowModal('followers')">0</span> Followers</div>
           <div><span id="statFollowing" onclick="openFollowModal('following')">0</span> Following</div>
@@ -169,8 +160,8 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('posts')">Your Posts</button>
-    <button class="tab-btn" onclick="switchTab('saved')">Saved</button>
+    <button class="tab-btn active" onclick="switchTab('posts', event)">Your Posts</button>
+    <button class="tab-btn" onclick="switchTab('saved', event)">Saved</button>
   </div>
 
   <div class="container" id="feedContainer"></div>
@@ -242,7 +233,7 @@
         const data = await res.json();
         user = data.user;
         localStorage.setItem('eliget_user', JSON.stringify(user));
-        
+
         renderProfileInfo();
         loadPosts();
         setupSocket();
@@ -261,7 +252,7 @@
       document.getElementById('profileName').innerHTML = `${user.fullName} ${getBadgeSVG(user)}`;
       document.getElementById('profileUsername').innerText = `@${user.username}`;
       document.getElementById('profileBio').innerText = user.bio || '';
-      
+
       if (user.website && user.website.url) {
         const webLink = document.getElementById('profileWebsite');
         webLink.href = user.website.url;
@@ -271,11 +262,10 @@
 
       const profileAvatar = document.getElementById('profileAvatar');
       const navPic = document.getElementById('navProfilePic');
-      
-      // FIX: Ensure background is always green
+
       profileAvatar.style.backgroundColor = '#10B981';
       navPic.style.backgroundColor = '#10B981';
-      
+
       if (user.profilePic) {
         profileAvatar.style.backgroundImage = `url(${user.profilePic})`;
         profileAvatar.innerText = '';
@@ -314,7 +304,7 @@
       try {
         const res = await fetch(`/api/user/${user.id}/${type}`);
         const users = await res.json();
-        
+
         if (users.length === 0) {
           list.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No ${type} yet.</p>`;
           return;
@@ -338,17 +328,16 @@
       document.getElementById('followModal').classList.remove('show');
     }
 
-    function switchTab(tab) {
+    function switchTab(tab, event) {
       currentTab = tab;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      renderFeed();
+      if (event && event.target) event.target.classList.add('active');
+      loadPosts();
     }
 
     async function loadPosts() {
       const container = document.getElementById('feedContainer');
       container.innerHTML = '<p style="text-align:center;">Loading...</p>';
-
       try {
         if (currentTab === 'posts') {
           const res = await fetch(`/api/posts/user/${user.id}`);
@@ -377,8 +366,6 @@
       }
 
       container.innerHTML = postsToRender.map(post => {
-        const isOwner = post.author._id === user.id;
-        
         let mediaHTML = '';
         if (post.videoLink) {
           const thumbnail = post.image || 'https://via.placeholder.com/600x400/0F172A/ffffff?text=Video';
@@ -392,9 +379,8 @@
           mediaHTML = `<img src="${post.image}" class="post-image" loading="lazy">`;
         }
 
-        // FIX: Dynamically set avatar for the post card
-        const avatarHtml = user.profilePic 
-          ? `<div class="avatar" style="background-image: url('${user.profilePic}')"></div>` 
+        const avatarHtml = user.profilePic
+          ? `<div class="avatar" style="background-image: url('${user.profilePic}')"></div>`
           : `<div class="avatar avatar-text">${user.fullName.charAt(0).toUpperCase()}</div>`;
 
         return `

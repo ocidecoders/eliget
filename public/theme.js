@@ -1,22 +1,14 @@
-// Eliget Dark Mode Logic
-(function() {
-  // Check local storage for theme preference
-  const savedTheme = localStorage.getItem('eliget_theme');
-  
-  // If saved theme exists, apply it. Otherwise, check system preference.
-  if (savedTheme) {
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  } else {
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-  }
+// Eliget - Light Mode Only (Dark Mode Removed)
+// এই ফাইলটি এখন শুধু দুটি কাজ করে:
+//   1. পুরনো user-দের localStorage থেকে 'eliget_theme' ক্লিয়ার করা
+//   2. <html> element থেকে data-theme attribute রিমুভ করা
+// এখানে কোনো toggle function নেই, কোনো dark logic নেই।
 
-  // Global function to toggle theme (called from settings page)
-  window.toggleDarkMode = function() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('eliget_theme', newTheme);
-  };
+(function () {
+  try {
+    localStorage.removeItem('eliget_theme');
+  } catch (e) {
+    // localStorage unavailable (private mode) — ignore
+  }
+  document.documentElement.removeAttribute('data-theme');
 })();

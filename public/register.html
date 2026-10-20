@@ -7,43 +7,39 @@
   <title>Create an Account on Eliget - Anti-Addiction Social Media</title>
   <!-- FIX: Meta Description missing -->
   <meta name="description" content="Join Eliget today. An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers. Sign up for free.">
-  
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="/favicon.svg">
-  
+
   <!-- Bing Verification -->
   <meta name="msvalidate.01" content="548513EF12C6687B4259E20BBB79D6B8" />
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text); }
-    
     .register-box { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--line); text-align: center; }
-    
+
     /* FIX: Changed to h1 tag */
     h1.logo { font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 5px; letter-spacing: -1px; }
     h1.logo span { color: var(--green); }
-    
     .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 30px; }
-    
+
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-    
+
     .btn-register { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
     .btn-register:hover { background: var(--green-dark); }
     .btn-register:active { transform: scale(0.98); }
-    
+
     .error-msg { color: #EF4444; font-size: 0.85rem; margin-top: 10px; display: none; text-align: left; }
-    
     .bottom-link { margin-top: 25px; font-size: 0.9rem; color: var(--text-muted); }
     .bottom-link a { color: var(--green); font-weight: 600; text-decoration: none; }
     .bottom-link a:hover { text-decoration: underline; }
@@ -55,7 +51,7 @@
     <!-- FIX: Changed to h1 -->
     <h1 class="logo">Eli<span>get</span></h1>
     <div class="subtitle">Join the no-algorithm network.</div>
-    
+
     <div class="form-group">
       <label>Full Name</label>
       <input type="text" id="fullName" placeholder="Your Name">
@@ -68,11 +64,10 @@
       <label>Password</label>
       <input type="password" id="password" placeholder="••••••••" autocomplete="new-password">
     </div>
-    
+
     <div class="error-msg" id="errorMsg"></div>
-    
     <button class="btn-register" id="registerBtn">Create Account</button>
-    
+
     <div class="bottom-link">
       Already have an account? <a href="/login.html">Log In</a>
     </div>
@@ -85,7 +80,6 @@
     }
 
     const errorMsg = document.getElementById('errorMsg');
-
     document.getElementById('registerBtn').addEventListener('click', async () => {
       const fullName = document.getElementById('fullName').value.trim();
       const username = document.getElementById('username').value.trim().toLowerCase();

@@ -4,23 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Create Post — Eliget</title>
-  
+
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .content-area, [data-theme="dark"] .action-bar { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] textarea { color: var(--text); }
-    [data-theme="dark"] .video-input-container { background-color: var(--bg); border-color: var(--line); }
-    [data-theme="dark"] .video-input-container input { background-color: var(--surface); color: var(--text); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-menu { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] .dropdown-item:hover { background-color: var(--bg); }
-    [data-theme="dark"] .btn-img { background: var(--bg); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -29,12 +20,12 @@
     .close-btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
     .close-btn:hover { background: var(--bg); }
     .close-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    
+
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); position: absolute; left: 50%; transform: translateX(-50%); }
     .logo span { color: var(--green); }
-    
+
     .nav-actions { display: flex; align-items: center; gap: 10px; }
-    
+
     .dropdown { position: relative; }
     .dropdown-toggle { background: var(--bg); border: 1px solid var(--line); color: var(--text); padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .dropdown-toggle:hover { background: #F1F5F9; }
@@ -44,20 +35,20 @@
     .dropdown-item { padding: 12px 15px; font-size: 0.9rem; font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .dropdown-item:hover { background: var(--bg); }
     .dropdown-item svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
-    
+
     .btn-post { background: var(--green); color: white; border: none; padding: 8px 20px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; }
     .btn-post:hover { background: var(--green-dark); }
     .btn-post:disabled { opacity: 0.6; cursor: not-allowed; }
-    
+
     .content-area { flex: 1; background: var(--surface); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
     textarea { width: 100%; min-height: 150px; border: none; outline: none; resize: none; font-family: inherit; font-size: 1.1rem; color: var(--text); background: transparent; margin-bottom: 15px; line-height: 1.5; }
     textarea::placeholder { color: #94A3B8; }
-    
+
     .video-input-container { display: none; background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--line); }
     .video-input-container.show { display: block; }
     .video-input-container label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
     .video-input-container input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit; outline: none; background: var(--surface); color: var(--text); }
-    
+
     .action-bar { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); }
     .btn-img { padding: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); position: relative; transition: background 0.2s; }
     .btn-img:hover { background: #F1F5F9; color: var(--text); }
@@ -73,7 +64,7 @@
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     <div class="logo">Eli<span>get</span></div>
-    
+
     <div class="nav-actions">
       <div class="dropdown">
         <button class="dropdown-toggle" id="dropdownToggle">
@@ -97,7 +88,7 @@
 
   <div class="content-area">
     <textarea id="postContent" placeholder="What's on your mind?"></textarea>
-    
+
     <div class="video-input-container" id="videoInputContainer">
       <label>Video Link (YouTube or MP4 URL)</label>
       <input type="url" id="videoLinkInput" placeholder="https://youtube.com/watch?v=...">
@@ -110,11 +101,11 @@
     </label>
     <input type="file" id="postImage" class="file-input" accept="image/*">
     <div class="image-preview" id="imagePreview"></div>
-    
+
     <button class="btn-img" id="toggleVideoBtn" title="Add Video Link">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
     </button>
-    
+
     <div class="tooltip" id="tooltipText">Upload an image to use as thumbnail if you add a video.</div>
   </div>
 

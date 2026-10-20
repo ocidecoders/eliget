@@ -8,11 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --red: #EF4444; }
-    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
-    [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
-    [data-theme="dark"] .top-nav, [data-theme="dark"] .settings-card { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input { background-color: #0F172A; color: var(--text); border-color: var(--line); }
-    
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
@@ -22,12 +18,11 @@
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
-
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    
+
     .settings-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .settings-card h3 { font-family: 'Archivo', sans-serif; font-size: 1.2rem; margin-bottom: 15px; color: var(--text); border-bottom: 1px solid var(--line); padding-bottom: 10px; }
-    
+
     .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
     .setting-item:last-child { border-bottom: none; }
     .setting-item span { font-weight: 500; color: var(--text); font-size: 0.95rem; }
@@ -36,12 +31,12 @@
     .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-primary { background: var(--green); color: white; box-shadow: 0 2px 5px rgba(16,185,129,0.2); }
     .btn-primary:hover { background: var(--green-dark); }
-    
+
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-    
+
     /* Image Upload Section */
     .image-upload-section { display: flex; flex-direction: column; gap: 15px; }
     .upload-item { display: flex; align-items: center; gap: 15px; }
@@ -69,12 +64,12 @@
   </div>
 
   <div class="container">
-    
+
     <!-- Images Upload Card -->
     <div class="settings-card">
       <h3>Profile Pictures</h3>
       <div class="image-upload-section">
-        
+
         <!-- Cover Photo -->
         <div class="upload-item" style="flex-direction: column; align-items: flex-start; width: 100%;">
           <div class="upload-preview" style="width: 100%;" onclick="document.getElementById('coverInput').click()">
@@ -147,15 +142,12 @@
     <!-- Account Security Card -->
     <div class="settings-card">
       <h3>Account & Security</h3>
-      <div class="setting-item" onclick="toggleDarkMode()">
-        <span>Dark Mode</span>
-        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-      </div>
       <div class="setting-item" onclick="deleteAccount()">
         <span style="color: var(--red);">Delete Account Permanently</span>
         <svg viewBox="0 0 24 24" style="stroke: var(--red);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </div>
     </div>
+
   </div>
 
   <div class="toast-notification" id="toast">Saved successfully!</div>
@@ -163,7 +155,7 @@
   <script src="/theme.js"></script>
   <script>
     let user = null;
-    
+
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -177,7 +169,7 @@
         if (!res.ok) throw new Error();
         const data = await res.json();
         user = data.user;
-        
+
         document.getElementById('fullName').value = user.fullName || '';
         document.getElementById('bio').value = user.bio || '';
         if (user.website) {
@@ -191,7 +183,6 @@
         } else {
           document.getElementById('avatarPreview').innerText = user.fullName.charAt(0).toUpperCase();
         }
-
         if (user.coverPic) {
           document.getElementById('coverPreview').style.backgroundImage = `url(${user.coverPic})`;
         }
@@ -227,7 +218,7 @@
         document.getElementById('coverPreview').style.backgroundImage = originalBg;
       } finally {
         document.getElementById('coverPreview').style.opacity = '1';
-        input.value = ''; 
+        input.value = '';
       }
     }
 
@@ -236,7 +227,6 @@
       if (!file) return;
 
       const preview = document.getElementById('avatarPreview');
-      const originalText = preview.innerText;
       preview.style.opacity = '0.5';
 
       const formData = new FormData();
@@ -256,7 +246,7 @@
         showToast('Server error.');
       } finally {
         preview.style.opacity = '1';
-        input.value = ''; 
+        input.value = '';
       }
     }
 
@@ -265,7 +255,7 @@
       const bio = document.getElementById('bio').value.trim();
       const webTitle = document.getElementById('webTitle').value.trim();
       const webUrl = document.getElementById('webUrl').value.trim();
-      
+
       try {
         const res = await fetch('/api/user/update-profile/' + user.id, {
           method: 'POST',
@@ -280,9 +270,9 @@
     async function changePassword() {
       const oldPassword = document.getElementById('oldPass').value;
       const newPassword = document.getElementById('newPass').value;
-      
+
       if (!oldPassword || !newPassword) return showToast('Please fill both password fields.');
-      
+
       try {
         const res = await fetch('/api/user/change-password', {
           method: 'POST',
@@ -302,7 +292,6 @@
 
     async function deleteAccount() {
       if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) return;
-      
       try {
         const res = await fetch('/api/user/delete-account', { method: 'DELETE' });
         if (res.ok) {

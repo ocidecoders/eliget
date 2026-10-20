@@ -4,7 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Eliget - Anti-Addiction Social Media</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#10B981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Eliget">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,10 +40,6 @@
     [data-theme="dark"] input { background: var(--bg); color: var(--text); border-color: var(--line); }
     [data-theme="dark"] input:focus { background: var(--surface); }
   </style>
-
-  <!-- Favicon & SEO -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
 </head>
 <body>
 
@@ -58,6 +65,13 @@
 
   <script src="/theme.js"></script>
   <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW Registered', reg);
+      }).catch(err => console.log('SW Register Error', err));
+    }
+
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();

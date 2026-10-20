@@ -11,7 +11,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier'); // নতুন লাইব্রেরি
+const streamifier = require('streamifier');
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -23,7 +23,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*', credentials: true } });
 
-// Cloudinary Config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -31,59 +30,21 @@ cloudinary.config({
 });
 
 app.set('trust proxy', 1);
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
-
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || (process.env.NODE_ENV === 'production');
 const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || 'lax';
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: COOKIE_SECURE,
-  sameSite: COOKIE_SAMESITE,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/'
-};
-const COOKIE_CLEAR_OPTIONS = {
-  httpOnly: true,
-  secure: COOKIE_SECURE,
-  sameSite: COOKIE_SAMESITE,
-  path: '/'
-};
+const COOKIE_OPTIONS = { httpOnly: true, secure: COOKIE_SECURE, sameSite: COOKIE_SAMESITE, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+const COOKIE_CLEAR_OPTIONS = { httpOnly: true, secure: COOKIE_SECURE, sameSite: COOKIE_SAMESITE, path: '/' };
 
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 600,
-  message: { message: "Too many requests from this IP. Please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  skipSuccessfulRequests: true,
-  message: { message: "Too many login attempts. Please try again in 15 minutes." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  message: { message: "Too many registration attempts. Please try again in 1 hour." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-const passwordChangeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { message: "Too many password change attempts. Please try again in 15 minutes." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 600, message: { message: "Too many requests." } });
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, skipSuccessfulRequests: true, message: { message: "Too many login attempts." } });
+const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { message: "Too many registration attempts." } });
+const passwordChangeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { message: "Too many password change attempts." } });
 
 app.use('/api/', globalLimiter);
 
@@ -120,8 +81,8 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async (data) => {
     try {
-      const { receiverId, text, audioUrl } = data;
-      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: text || '', audioUrl: audioUrl || '' });
+      const { receiverId, text, audioUrl, imageUrl } = data;
+      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: text || '', audioUrl: audioUrl || '', imageUrl: imageUrl || '' });
       await newMessage.save();
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);
@@ -152,6 +113,34 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// SECURE IMAGE PROXY ROUTE
+app.get('/api/chat/image/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message || !message.imageUrl) return res.status(404).send('Image not found');
+
+    // Check if user is sender or receiver
+    const isSender = message.sender.toString() === req.user.id;
+    const isReceiver = message.receiver.toString() === req.user.id;
+    
+    if (!isSender && !isReceiver) {
+      return res.status(403).send('Unauthorized to view this image');
+    }
+
+    // Fetch image from ImgBB
+    const response = await fetch(message.imageUrl);
+    if (!response.ok) throw new Error('Failed to fetch image');
+    
+    res.setHeader('Content-Type', response.headers.get('content-type'));
+    res.setHeader('Cache-Control', 'private, max-age=86400'); // Cache it, but only for the authenticated user
+    
+    const arrayBuffer = await response.arrayBuffer();
+    res.send(Buffer.from(arrayBuffer));
+  } catch (error) {
+    res.status(500).send('Error loading image');
+  }
+});
 
 app.get('/api/check-username/:username', async (req, res) => {
   try {
@@ -264,35 +253,35 @@ app.post('/api/upload-cover/:userId', authenticateToken, upload.single('image'),
   } catch (error) { res.status(500).json({ message: error.message || "Upload failed" }); }
 });
 
-// CORRECTED: Audio Upload Route using streamifier
+// CHAT IMAGE UPLOAD ROUTE
+app.post('/api/upload-chat-image', authenticateToken, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No image provided." });
+    const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
+    const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
+    const data = await response.json();
+    if (data.success) {
+      res.status(200).json({ imageUrl: data.data.url });
+    } else { res.status(500).json({ message: "ImgBB rejected image." }); }
+  } catch (error) { res.status(500).json({ message: "Upload failed" }); }
+});
+
 app.post('/api/upload-audio', authenticateToken, upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No audio provided." });
-    
     const uploadPromise = new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { resource_type: "video", folder: "eliget_audio" }, // Audio files use 'video' resource type
+        { resource_type: "video", folder: "eliget_audio" },
         (error, result) => {
-          if (error) {
-            console.error("Cloudinary Error:", error);
-            reject(error);
-          } else {
-            resolve(result);
-          }
+          if (error) reject(error);
+          else resolve(result);
         }
       );
-      
-      // Convert buffer to stream and pipe
       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     });
-    
     const result = await uploadPromise;
     res.status(200).json({ audioUrl: result.secure_url });
-    
-  } catch (error) { 
-    console.error("Upload Catch Error:", error);
-    res.status(500).json({ message: "Upload failed", error: error.message }); 
-  }
+  } catch (error) { res.status(500).json({ message: "Upload failed", error: error.message }); }
 });
 
 app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
@@ -381,7 +370,10 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
     const chatUsers = new Map();
     messages.forEach(msg => {
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
-      const lastMsg = msg.audioUrl ? "Voice Message" : msg.text;
+      let lastMsg = msg.text;
+      if (msg.audioUrl) lastMsg = "Voice Message";
+      if (msg.imageUrl) lastMsg = "Photo";
+      
       if (!chatUsers.has(otherId)) {
         chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
       } else if (!msg.isRead && msg.receiver.toString() === req.user.id) {
@@ -426,10 +418,7 @@ app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
 app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content, postType, videoLink } = req.body;
-    
-    if (!content && !req.file && !videoLink) {
-      return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
-    }
+    if (!content && !req.file && !videoLink) return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
 
     let imageUrl = "";
     if (req.file) {
@@ -473,7 +462,6 @@ app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
-    
     const postLikes = (post.likes || []).map(id => id.toString());
     const isLiked = postLikes.includes(req.user.id.toString());
     
@@ -506,8 +494,7 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
     const comments = await Comment.find({ postId: req.params.postId })
       .populate('author', 'fullName username profilePic badge')
       .sort({ isPinned: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+      .skip(skip).limit(limit);
       
     const validComments = comments.filter(c => c.author != null);
     res.status(200).json({ comments: validComments, total });
@@ -636,7 +623,6 @@ app.get('/api/posts', async (req, res) => {
     }
 
     let query = { postType: { $ne: 'job' } };
-
     if (feedType === 'following' && currentUser) {
       const currentFollowing = (currentUser.following || []).map(id => id.toString());
       const followingList = [...currentFollowing, currentUser._id.toString()];
@@ -670,7 +656,6 @@ app.get('/api/posts', async (req, res) => {
     }
     res.status(200).json(validPosts);
   } catch (error) { 
-    console.error("API /api/posts Error:", error);
     res.status(500).json({ message: error.message || "Failed to fetch posts" }); 
   }
 });
@@ -695,20 +680,12 @@ app.get('/api/posts/jobs', async (req, res) => {
 app.get('/api/posts/user/:userId', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) return res.status(400).json({ message: "Invalid User ID" });
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ author: req.params.userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    for (let post of posts) {
-      post.commentCount = await Comment.countDocuments({ postId: post._id });
-    }
+    const posts = await Post.find({ author: req.params.userId }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    for (let post of posts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
     res.status(200).json(posts);
   } catch (error) { res.status(500).json({ message: "Failed to fetch user posts" }); }
 });

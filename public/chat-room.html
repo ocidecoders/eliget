@@ -38,10 +38,13 @@
     .message.sent .message-time { color: rgba(255,255,255,0.9); }
     .message.received .message-time { color: var(--text-muted); }
 
-    /* Perfect Double Tick SVG */
     .ticks { display: flex; align-items: center; margin-left: 4px; }
     .ticks svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
-    .ticks.read svg { stroke: #60A5FA; /* Light Blue for read ticks */ }
+    .ticks.read svg { stroke: #60A5FA; }
+
+    /* Custom Image in Chat */
+    .chat-image-container { margin-bottom: 5px; }
+    .chat-image { width: 100%; max-width: 250px; border-radius: 12px; display: block; cursor: pointer; object-fit: cover; }
 
     /* Custom Audio Player */
     .voice-message { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 8px 12px; border-radius: 12px; margin-bottom: 4px; min-width: 200px; }
@@ -66,7 +69,7 @@
 
     .audio-duration { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
     .message.sent .audio-duration { color: white; }
-    .voice-message audio { display: none; } /* Hide default audio player */
+    .voice-message audio { display: none; }
 
     .typing-indicator { display: none; align-self: flex-start; background: var(--surface); padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--line); margin-top: 5px; }
     .typing-indicator.show { display: flex; gap: 4px; align-items: center; }
@@ -90,6 +93,13 @@
 
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Fullscreen Image Modal */
+    .image-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+    .image-modal.show { display: flex; opacity: 1; }
+    .image-modal img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; }
+    .close-modal { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+    .close-modal svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
   </style>
 </head>
 <body>
@@ -118,15 +128,29 @@
   </div>
 
   <div class="input-area">
+    <!-- Image Upload Button -->
+    <input type="file" id="chatImageInput" accept="image/*" style="display: none;">
+    <button class="btn-icon" id="imageBtn" title="Send Photo">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+    </button>
+
     <button class="btn-icon" id="recordBtn" title="Record Voice Note">
-      <!-- Perfect Mic SVG -->
       <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
     </button>
+
     <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+    
     <button class="btn-send" id="sendBtn">
-      <!-- Perfect Send SVG -->
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
     </button>
+  </div>
+
+  <!-- Fullscreen Image Modal -->
+  <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+    <button class="close-modal" onclick="closeImageModal()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <img id="fullscreenImage" src="" alt="Enlarged Image" onclick="event.stopPropagation()">
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -135,7 +159,6 @@
     let targetUserId = null;
     let socket = null;
 
-    // Voice Recording state
     let mediaRecorder = null;
     let audioChunks = [];
     let isRecording = false;
@@ -190,7 +213,6 @@
       } catch (err) {}
     }
 
-    // Perfect Tick Mark Logic
     function getTicksHTML(isRead) {
       return `<div class="ticks ${isRead ? 'read' : ''}">
         <svg viewBox="0 0 24 24">
@@ -200,7 +222,6 @@
       </div>`;
     }
 
-    // Generate Audio HTML
     function getAudioHTML(url) {
       return `
         <div class="voice-message">
@@ -219,6 +240,15 @@
       `;
     }
 
+    function getImageHTML(msgId) {
+      // Use Secure Proxy Route instead of direct ImgBB link
+      return `
+        <div class="chat-image-container">
+          <img src="/api/chat/image/${msgId}" class="chat-image" onclick="openImageModal(this.src)">
+        </div>
+      `;
+    }
+
     async function loadMessages() {
       const container = document.getElementById('chatContainer');
       try {
@@ -228,7 +258,10 @@
         container.innerHTML = messages.map(msg => {
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const content = msg.audioUrl ? getAudioHTML(msg.audioUrl) : msg.text;
+          
+          let content = msg.text;
+          if (msg.audioUrl) content = getAudioHTML(msg.audioUrl);
+          else if (msg.imageUrl) content = getImageHTML(msg._id);
           
           return `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
@@ -255,7 +288,10 @@
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const content = msg.audioUrl ? getAudioHTML(msg.audioUrl) : msg.text;
+          
+          let content = msg.text;
+          if (msg.audioUrl) content = getAudioHTML(msg.audioUrl);
+          else if (msg.imageUrl) content = getImageHTML(msg._id);
 
           document.getElementById('typingIndicator').classList.remove('show');
 
@@ -302,6 +338,57 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // --- IMAGE SENDING LOGIC ---
+    const imageBtn = document.getElementById('imageBtn');
+    const chatImageInput = document.getElementById('chatImageInput');
+
+    imageBtn.addEventListener('click', () => chatImageInput.click());
+
+    chatImageInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Show temporary loading state on button
+      const originalSvg = imageBtn.innerHTML;
+      imageBtn.innerHTML = `<div style="width:16px; height:16px; border:2px solid var(--text-muted); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></div>`;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const res = await fetch('/api/upload-chat-image', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          socket.emit('sendMessage', { receiverId: targetUserId, imageUrl: data.imageUrl });
+        } else {
+          alert('Failed to upload image.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error uploading image.');
+      } finally {
+        imageBtn.innerHTML = originalSvg;
+        chatImageInput.value = ''; // Reset
+      }
+    });
+
+    // Fullscreen Modal
+    function openImageModal(src) {
+      const modal = document.getElementById('imageModal');
+      document.getElementById('fullscreenImage').src = src;
+      modal.classList.add('show');
+    }
+
+    function closeImageModal() {
+      const modal = document.getElementById('imageModal');
+      modal.classList.remove('show');
+      document.getElementById('fullscreenImage').src = '';
+    }
+
     // --- CUSTOM AUDIO PLAYER LOGIC ---
     function setAudioDuration(audioEl) {
       const duration = audioEl.duration;
@@ -318,7 +405,6 @@
       const pauseIcon = btn.querySelector('.icon-pause');
 
       if (audio.paused) {
-        // Pause all other audios
         document.querySelectorAll('audio').forEach(a => {
           if (a !== audio) {
             a.pause();
@@ -400,7 +486,6 @@
               alert('Error uploading audio');
             }
 
-            // Reset button
             recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>`;
             stream.getTracks().forEach(track => track.stop());
           };

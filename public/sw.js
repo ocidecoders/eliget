@@ -1,12 +1,11 @@
 const CACHE_NAME = 'eliget-v1';
 const urlsToCache = [
-  '/',
-  '/home.html',
-  '/login.html',
   '/manifest.json',
   '/favicon.svg',
   '/theme.js',
-  '/splash.js'
+  '/splash.js',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -17,10 +16,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/api/')) {
-    return;
+  // API কল এবং HTML পেজগুলো Service Worker ইন্টারসেপ্ট করবে না
+  if (event.request.url.includes('/api/') || event.request.mode === 'navigate') {
+    return; // সার্ভার থেকে সরাসরি লোড হবে
   }
-  
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

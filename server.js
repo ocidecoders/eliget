@@ -13,7 +13,6 @@ const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
-// NEW SECURITY PACKAGES
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
@@ -36,11 +35,7 @@ cloudinary.config({
 
 app.set('trust proxy', 1);
 
-// ==========================================
-// 🛡️ SECURITY GUARDS (MIDDLEWARE)
-// ==========================================
-
-// 1. Helmet: Set secure HTTP headers & CSP
+// 🛡️ SECURITY GUARDS
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -57,13 +52,21 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// 2. Data Sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// FIX: Make req.query writable for Express 5 sanitizers
+app.use((req, res, next) => {
+  Object.defineProperty(req, 'query', {
+    value: { ...req.query },
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
+  next();
+});
 
-// 3. Data Sanitization against XSS
+app.use(mongoSanitize());
 app.use(xss());
 
-app.use(express.json({ limit: '10kb' })); // Limit body payload size
+app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -126,7 +129,6 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (data) => {
     try {
       const { receiverId, text, audioUrl, imageUrl } = data;
-      // XSS Clean for socket messages manually (since express middleware doesn't apply here)
       const safeText = text ? xss(text) : '';
       const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: safeText, audioUrl: audioUrl || '', imageUrl: imageUrl || '' });
       await newMessage.save();
@@ -160,9 +162,6 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
-
-// ... (বাকি সব API রাউট আগের মতোই থাকবে, নিচে সম্পূর্ণ কোড দেওয়া হলো) ...
-// সংক্ষেপে: আমি এখানে সব রাউট হুবহু রেখে শুধু সিকিউরিটি মিডলওয়্যার আপডেট করেছি।
 
 app.get('/api/chat/image/:messageId', authenticateToken, async (req, res) => {
   try {

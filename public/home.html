@@ -101,6 +101,29 @@
 
     .post-image { width: 100%; height: auto; max-height: 600px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 5px; display: block; background-color: var(--bg); }
 
+    /* Adsterra Ad Container Style */
+    .ad-container {
+      width: 100%;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 15px 0;
+      background: var(--bg);
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ad-container::before {
+      content: 'ADVERTISEMENT';
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
     .action-left { display: flex; gap: 20px; align-items: center; }
 
@@ -229,7 +252,7 @@
     #videoPlayerModal { z-index: 3000; padding: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); }
     .video-player-box { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
     .video-player-iframe { width: 100%; max-width: 800px; aspect-ratio: 16/9; border: none; background: #000; }
-    .video-player-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s; }
+    .video-player-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s; z-index: 3002; }
     .video-player-close:hover { background: rgba(255,255,255,0.3); }
     .video-player-close svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
     .direct-video { max-width: 100%; max-height: 80vh; outline: none; }
@@ -283,6 +306,7 @@
     <span>New notification received!</span>
   </div>
 
+  <!-- Video Player Modal -->
   <div class="modal-overlay" id="videoPlayerModal">
     <div class="video-player-box" id="videoPlayerContainer">
       <button class="video-player-close" onclick="closeVideoPlayer()">
@@ -576,17 +600,28 @@
 
     function openVideoPlayer(videoUrl) {
       const container = document.getElementById('videoPlayerContainer');
+      
+      // Add Ad Container below video
       container.innerHTML = `
         <button class="video-player-close" onclick="closeVideoPlayer()">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
+        <div style="width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center; margin-top: 50px;">
+            <div id="videoEmbedArea" style="width: 100%;"></div>
+            
+            <!-- Adsterra Modal Ad Container -->
+            <div class="ad-container" style="width: 95%; min-height: 100px; margin-top: 15px; background: var(--surface); border: 1px dashed var(--line);">
+              <!-- PASTE ADSTERRA CODE HERE -->
+            </div>
+        </div>
       `;
 
+      const videoEmbedArea = document.getElementById('videoEmbedArea');
       const ytId = getYouTubeID(videoUrl);
       if (ytId) {
-        container.insertAdjacentHTML('beforeend', `<iframe class="video-player-iframe" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`);
+        videoEmbedArea.innerHTML = `<iframe class="video-player-iframe" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
-        container.insertAdjacentHTML('beforeend', `<video class="direct-video" src="${videoUrl}" controls autoplay></video>`);
+        videoEmbedArea.innerHTML = `<video class="direct-video" src="${videoUrl}" controls autoplay></video>`;
       }
       document.getElementById('videoPlayerModal').classList.add('show');
     }
@@ -632,6 +667,13 @@
         mediaHTML = `<img src="${post.image}" class="post-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">`;
       }
 
+      // Adsterra Feed Ad Container (Inside Post Card)
+      const adHTML = `
+        <div class="ad-container" id="feed-ad-${post._id}">
+          <!-- PASTE ADSTERRA CODE HERE -->
+        </div>
+      `;
+
       return `
         <div class="post-card" data-post-id="${post._id}">
           <div class="post-header">
@@ -662,6 +704,7 @@
           </div>
           <div class="post-content">${formatContent(post.content)}</div>
           ${mediaHTML}
+          ${adHTML} <!-- Ad Container is here -->
           <div class="action-bar">
             <div class="action-left">
               <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">

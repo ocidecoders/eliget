@@ -317,10 +317,15 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
     
     if (!alreadyFollowing) {
+      // STRICT BADGE LOGIC: Check if followers reached exactly 100 or more
       const updatedTargetUser = await User.findById(req.params.targetId);
       if (updatedTargetUser.followers.length >= 100 && !updatedTargetUser.badge) {
         updatedTargetUser.badge = true;
         await updatedTargetUser.save();
+      } else if (updatedTargetUser.followers.length < 100 && updatedTargetUser.badge) {
+        // Just in case someone unfollows and goes below 100 (Optional, but good for consistency)
+        // updatedTargetUser.badge = false;
+        // await updatedTargetUser.save();
       }
 
       await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save();
@@ -400,7 +405,6 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
 
-// EDIT MESSAGE ROUTE
 app.put('/api/messages/:messageId', authenticateToken, async (req, res) => {
   try {
     const { text } = req.body;

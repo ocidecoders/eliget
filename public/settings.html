@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Settings — Eliget</title>
+  
+  <!-- New Favicons & PWA Links -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#10B981">
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   
   <script>
     window.deferredPrompt = null;
@@ -170,12 +178,10 @@
     </div>
   </div>
 
-  <!-- Custom Install Instructions Modal -->
   <div class="install-modal" id="installModal">
     <div class="install-modal-box">
       <h2>Install Eliget App</h2>
       <p>Your browser couldn't show the direct install prompt. Please follow these steps to install:</p>
-      
       <div class="install-step">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
         <span>1. Tap the browser menu (three dots ⋮) at the top right.</span>
@@ -184,7 +190,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         <span>2. Select 'Install app' or 'Add to Home screen'.</span>
       </div>
-
       <button class="btn-close-modal" onclick="closeInstallModal()">Got it</button>
     </div>
   </div>

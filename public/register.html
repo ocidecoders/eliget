@@ -6,14 +6,17 @@
   <title>Create an Account on Eliget - Anti-Addiction Social Media</title>
   <meta name="description" content="Join Eliget today. An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers. Sign up for free.">
 
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="/favicon.svg">
+
   <meta name="msvalidate.01" content="548513EF12C6687B4259E20BBB79D6B8" />
 
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +32,6 @@
     .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
     .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
     
-    /* New: Username Status Text */
     .username-status { font-size: 0.75rem; margin-top: 5px; font-weight: 600; display: none; }
 
     .btn-register { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
@@ -81,7 +83,6 @@
     let isUsernameAvailable = false;
     let checkTimeout;
 
-    // Live Username Checker Logic
     function checkUsername(username) {
       clearTimeout(checkTimeout);
       const statusDiv = document.getElementById('usernameStatus');
@@ -113,8 +114,6 @@
         try {
           const res = await fetch(`/api/search?q=${encodeURIComponent(username)}`);
           const data = await res.json();
-          
-          // Check if exact match exists in search results
           const exists = data.users && data.users.some(u => u.username.toLowerCase() === username.toLowerCase());
           
           if (exists) {
@@ -132,7 +131,7 @@
           statusDiv.style.display = 'none';
           isUsernameAvailable = false;
         }
-      }, 500); // Wait 500ms after typing stops
+      }, 500);
     }
 
     document.getElementById('registerBtn').addEventListener('click', async () => {

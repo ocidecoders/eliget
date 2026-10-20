@@ -26,6 +26,8 @@
     [data-theme="dark"] .user-list-item:hover { background-color: var(--bg); }
     [data-theme="dark"] .post-content a { color: var(--green); }
     [data-theme="dark"] .skeleton-avatar, [data-theme="dark"] .skeleton-line, [data-theme="dark"] .skeleton-image, [data-theme="dark"] .skeleton-action { background: var(--line); }
+    [data-theme="dark"] .trending-tag { background: var(--bg); border-color: var(--line); color: var(--text); }
+    [data-theme="dark"] .trending-tag:hover { background: var(--line); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
@@ -49,6 +51,15 @@
     .search-wrapper svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .search-wrapper input { width: 100%; padding: 12px 14px 12px 42px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; }
     .search-wrapper input:focus { border-color: var(--green); background: var(--surface); }
+
+    /* Trending Hashtags UI */
+    .trending-section { display: none; margin-top: 15px; padding-bottom: 5px; }
+    .trending-section.show { display: block; }
+    .trending-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em; }
+    .trending-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .trending-tag { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; font-size: 0.85rem; font-weight: 600; color: var(--text); cursor: pointer; transition: background 0.2s; }
+    .trending-tag:hover { background: #E5E7EB; }
+    .trending-tag span { font-size: 0.7rem; color: var(--text-muted); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
 
@@ -159,6 +170,11 @@
     .comment-action-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
     .pinned-indicator { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--green); font-weight: 600; margin-bottom: 5px; }
     .pinned-indicator svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+    
+    /* Load More Comments Button */
+    .load-more-comments-btn { display: block; width: 100%; padding: 10px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; transition: background 0.2s; }
+    .load-more-comments-btn:hover { background: #E5E7EB; }
+
     .comment-input-area { padding: 15px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; background: var(--surface); padding-bottom: 20px; }
     .comment-input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); }
     .comment-input-area input:focus { border-color: var(--green); background: var(--surface); }
@@ -223,11 +239,9 @@
   <div class="top-nav">
     <div class="logo">Eli<span>get</span></div>
     <div class="nav-icons">
-      <!-- Blog Icon -->
       <div class="icon-btn-wrapper" onclick="window.location.href='/blogs.html'" title="Read our Blog">
         <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
       </div>
-      <!-- Notification Icon -->
       <div class="icon-btn-wrapper" onclick="window.location.href='/notifications.html'">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="nav-badge" id="topNotifBadge" style="display:none;">0</span>
@@ -240,10 +254,15 @@
     <div class="feed-tab" onclick="switchFeedType('following')">Following</div>
   </div>
 
-  <div class="search-container">
+  <div class="search-container" id="searchContainer">
     <div class="search-wrapper">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="searchInput" placeholder="Search users or posts...">
+      <input type="text" id="searchInput" placeholder="Search users or posts..." onfocus="showTrending()">
+    </div>
+    <!-- Trending Hashtags Section -->
+    <div class="trending-section" id="trendingSection">
+      <div class="trending-title">Trending Tags</div>
+      <div class="trending-list" id="trendingList"></div>
     </div>
   </div>
 
@@ -340,6 +359,11 @@
     let isLoadingPosts = false;
     let currentFeedType = 'global';
 
+    // Comment Pagination State
+    let currentCommentPage = 1;
+    let currentCommentTotal = 0;
+    const COMMENTS_PER_PAGE = 10;
+
     async function initAuth() {
       try {
         const res = await fetch('/api/auth/me');
@@ -355,6 +379,7 @@
         fetchBadges();
         setupSocket();
         loadSuggestedUsers();
+        loadTrending();
         loadPosts(true);
         setupInfiniteScroll();
       } catch (err) {
@@ -362,6 +387,44 @@
         window.location.href = '/login.html';
       }
     }
+
+    // --- TRENDING LOGIC ---
+    async function loadTrending() {
+      try {
+        const res = await fetch('/api/trending');
+        const tags = await res.json();
+        const list = document.getElementById('trendingList');
+        if (tags.length === 0) {
+          list.innerHTML = '<span style="font-size:0.85rem; color:var(--text-muted);">No trending tags yet.</span>';
+          return;
+        }
+        list.innerHTML = tags.map(t => `
+          <div class="trending-tag" onclick="searchTrending('${t.tag}')">
+            #${t.tag} <span>${t.count}</span>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    function showTrending() {
+      if (document.getElementById('searchInput').value.trim() === '') {
+        document.getElementById('trendingSection').classList.add('show');
+      }
+    }
+
+    function searchTrending(tag) {
+      const input = document.getElementById('searchInput');
+      input.value = `#${tag}`;
+      document.getElementById('trendingSection').classList.remove('show');
+      input.dispatchEvent(new Event('input'));
+    }
+
+    // Hide trending on blur
+    document.getElementById('searchInput').addEventListener('blur', () => {
+      setTimeout(() => {
+        document.getElementById('trendingSection').classList.remove('show');
+      }, 200); // Small delay so clicks on tags register
+    });
 
     function getSkeletonHTML() {
       let html = '';
@@ -713,10 +776,13 @@
         feedContainer.style.display = 'block';
         document.getElementById('feedTabs').style.display = 'flex';
         document.getElementById('suggestedSection').classList.add('show');
+        document.getElementById('trendingSection').classList.add('show'); // show trending again
         if (hasMore) { window.dispatchEvent(new Event('scroll')); }
         window.history.replaceState({}, '', '/home.html');
         return;
       }
+
+      document.getElementById('trendingSection').classList.remove('show'); // hide trending on search
 
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
@@ -830,10 +896,18 @@
       }
     }
 
+    // --- COMMENTS PAGINATION LOGIC ---
+
     function openCommentsModal(postId, postAuthorId) {
-      currentPostIdForComment = postId; currentPostAuthorId = postAuthorId;
+      currentPostIdForComment = postId; 
+      currentPostAuthorId = postAuthorId;
+      currentCommentPage = 1; // Reset page
+      currentCommentTotal = 0;
+      
       document.getElementById('commentsModal').classList.add('show');
       document.getElementById('commentInput').value = '';
+      document.getElementById('commentsList').innerHTML = '';
+      
       loadComments(postId);
     }
 
@@ -845,13 +919,34 @@
 
     async function loadComments(postId) {
       const list = document.getElementById('commentsList');
-      list.innerHTML = '<p style="text-align:center; color:#6B7280; font-size:0.9rem;">Loading...</p>';
+      
+      // Show loading only if it's the first page
+      if (currentCommentPage === 1) {
+        list.innerHTML = '<p style="text-align:center; color:#6B7280; font-size:0.9rem;">Loading...</p>';
+      }
+
       try {
-        const res = await fetch(`/api/posts/${postId}/comments`);
-        const comments = await res.json();
-        if (comments.length === 0) { list.innerHTML = `<p class="empty-comments">No comments yet. Be the first!</p>`; return; }
+        const res = await fetch(`/api/posts/${postId}/comments?page=${currentCommentPage}&limit=${COMMENTS_PER_PAGE}`);
+        const data = await res.json();
+        
+        // remove the "Loading..." text on first load
+        if (currentCommentPage === 1) list.innerHTML = '';
+        
+        // remove existing load more button
+        const existingBtn = document.getElementById('loadMoreCommentsBtn');
+        if (existingBtn) existingBtn.remove();
+
+        const comments = data.comments;
+        currentCommentTotal = data.total;
+
+        if (currentCommentPage === 1 && comments.length === 0) {
+          list.innerHTML = `<p class="empty-comments">No comments yet. Be the first!</p>`;
+          return;
+        }
+
         const isPostOwner = user.id === currentPostAuthorId;
-        list.innerHTML = comments.map(c => {
+        
+        const commentsHTML = comments.map(c => {
           const isCommentOwner = c.author._id === user.id;
           return `
             <div class="comment-item">
@@ -867,8 +962,31 @@
               </div>
             </div>`
         }).join('');
+
+        if (currentCommentPage === 1) {
+          list.innerHTML = commentsHTML;
+        } else {
+          list.insertAdjacentHTML('beforeend', commentsHTML);
+        }
+
+        // Add Load More button if there are more comments
+        const loadedSoFar = currentCommentPage * COMMENTS_PER_PAGE;
+        if (loadedSoFar < currentCommentTotal) {
+          const loadMoreBtn = document.createElement('button');
+          loadMoreBtn.id = 'loadMoreCommentsBtn';
+          loadMoreBtn.className = 'load-more-comments-btn';
+          loadMoreBtn.innerText = 'Load More Comments';
+          loadMoreBtn.onclick = () => {
+            currentCommentPage++;
+            loadComments(postId);
+          };
+          list.appendChild(loadMoreBtn);
+        }
+
         list.scrollTop = list.scrollHeight;
-      } catch (err) { list.innerHTML = '<p style="text-align:center; color:red; font-size:0.9rem;">Failed to load comments.</p>'; }
+      } catch (err) { 
+        list.innerHTML = '<p style="text-align:center; color:red; font-size:0.9rem;">Failed to load comments.</p>'; 
+      }
     }
 
     document.getElementById('submitCommentBtn').addEventListener('click', async () => {
@@ -879,18 +997,41 @@
       btn.disabled = true;
       try {
         const res = await fetch(`/api/posts/${currentPostIdForComment}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) });
-        if (res.ok) { input.value = ''; const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`); if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1; loadComments(currentPostIdForComment); }
+        if (res.ok) { 
+          input.value = ''; 
+          const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`); 
+          if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1; 
+          
+          // Reload comments from page 1 to show the new comment
+          currentCommentPage = 1;
+          loadComments(currentPostIdForComment); 
+        }
       } catch (err) {}
       btn.disabled = false;
     });
 
     async function deleteComment(commentId, postId) {
       if (!confirm('Delete this comment?')) return;
-      try { const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' }); if (res.ok) { const countSpan = document.getElementById(`comment-count-${postId}`); if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); loadComments(postId); } } catch (err) {}
+      try { 
+        const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' }); 
+        if (res.ok) { 
+          const countSpan = document.getElementById(`comment-count-${postId}`); 
+          if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); 
+          currentCommentPage = 1; // Reset to page 1 after deletion
+          loadComments(postId); 
+        } 
+      } catch (err) {}
     }
 
     async function togglePin(commentId, postId) {
-      try { const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); const data = await res.json(); if (res.ok) loadComments(postId); else alert(data.message); } catch (err) {}
+      try { 
+        const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); 
+        const data = await res.json(); 
+        if (res.ok) {
+          currentCommentPage = 1; // Reset to page 1 to see pinned comment at top
+          loadComments(postId); 
+        } else alert(data.message); 
+      } catch (err) {}
     }
 
     function toggleMenu(e, id) { e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show')); document.getElementById(`menu-${id}`).classList.toggle('show'); }

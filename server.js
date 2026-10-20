@@ -448,11 +448,22 @@ app.post('/api/posts/:postId/view', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to count view" }); }
 });
 
+// GET COMMENTS (With Pagination)
 app.get('/api/posts/:postId/comments', async (req, res) => {
   try {
-    const comments = await Comment.find({ postId: req.params.postId }).populate('author', 'fullName username profilePic badge').sort({ isPinned: -1, createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Comment.countDocuments({ postId: req.params.postId });
+    const comments = await Comment.find({ postId: req.params.postId })
+      .populate('author', 'fullName username profilePic badge')
+      .sort({ isPinned: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+      
     const validComments = comments.filter(c => c.author != null);
-    res.status(200).json(validComments);
+    res.status(200).json({ comments: validComments, total });
   } catch (error) { res.status(500).json({ message: "Failed to fetch comments" }); }
 });
 
@@ -532,6 +543,34 @@ app.get('/api/search', async (req, res) => {
     for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
     res.status(200).json({ users, posts: validPosts });
   } catch (error) { res.status(500).json({ message: "Search failed" }); }
+});
+
+// TRENDING HASHTAGS API
+app.get('/api/trending', async (req, res) => {
+  try {
+    // Fetch recent 100 posts that contain hashtags
+    const posts = await Post.find({ content: /#\w+/ }).sort({ createdAt: -1 }).limit(100).select('content').lean();
+    
+    const hashtagCounts = {};
+    const regex = /#(\w+)/g;
+    
+    posts.forEach(post => {
+      let match;
+      while ((match = regex.exec(post.content)) !== null) {
+        const tag = match[1].toLowerCase();
+        hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+      }
+    });
+    
+    const sorted = Object.keys(hashtagCounts)
+      .map(tag => ({ tag, count: hashtagCounts[tag] }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+      
+    res.status(200).json(sorted);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch trending hashtags" });
+  }
 });
 
 app.get('/api/users/suggested', authenticateToken, async (req, res) => {

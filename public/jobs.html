@@ -48,6 +48,9 @@
     .job-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     .job-content a { color: var(--green); font-weight: 600; text-decoration: none; }
     
+    /* NEW: Image CSS for Job Posts */
+    .job-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin-top: 10px; display: block; background-color: var(--bg); }
+    
     .job-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
     .job-date { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
     
@@ -203,6 +206,13 @@
 
         container.innerHTML = jobs.map(job => {
           const time = new Date(job.createdAt).toLocaleDateString();
+          
+          // NEW: Render Image if it exists
+          let mediaHTML = '';
+          if (job.image) {
+            mediaHTML = `<img src="${job.image}" class="job-image" loading="lazy" onerror="this.onerror=null; this.style.display='none';">`;
+          }
+
           return `
             <div class="job-card">
               <div class="job-header">
@@ -215,6 +225,7 @@
                 </div>
               </div>
               <div class="job-content">${formatContent(job.content)}</div>
+              ${mediaHTML}
               <div class="job-footer">
                 <span class="job-date">Posted: ${time}</span>
                 <button class="btn-message" onclick="navigateWithSplash('/chat-room.html?id=${job.author._id}', 'Loading Chatroom...')">

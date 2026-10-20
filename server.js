@@ -13,9 +13,8 @@ const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
-const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+// Keep Helmet for HTTP Header Security, remove others that break Express 5
+const helmet = require('helmet'); 
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -35,7 +34,7 @@ cloudinary.config({
 
 app.set('trust proxy', 1);
 
-// 🛡️ SECURITY GUARDS
+// 🛡️ SECURITY GUARDS (Simplified for Express 5)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -51,20 +50,6 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-
-// FIX: Make req.query writable for Express 5 sanitizers
-app.use((req, res, next) => {
-  Object.defineProperty(req, 'query', {
-    value: { ...req.query },
-    writable: true,
-    configurable: true,
-    enumerable: true,
-  });
-  next();
-});
-
-app.use(mongoSanitize());
-app.use(xss());
 
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
@@ -129,8 +114,7 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (data) => {
     try {
       const { receiverId, text, audioUrl, imageUrl } = data;
-      const safeText = text ? xss(text) : '';
-      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: safeText, audioUrl: audioUrl || '', imageUrl: imageUrl || '' });
+      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: text || '', audioUrl: audioUrl || '', imageUrl: imageUrl || '' });
       await newMessage.save();
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);

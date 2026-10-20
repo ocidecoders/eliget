@@ -101,6 +101,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/theme.js"></script>
+  <script src="/splash.js"></script> <!-- THIS WAS MISSING -->
   <script>
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
 
@@ -182,6 +183,7 @@
           const initial = chat.user.fullName.charAt(0).toUpperCase();
           const avatarStyle = chat.user.profilePic ? `background-image: url('${chat.user.profilePic}')` : '';
           
+          // Added navigateWithSplash here
           return `
             <div class="chat-item" onclick="navigateWithSplash('/chat-room.html?id=${chat.user._id}', 'Loading ${chat.user.fullName}\\'s Chatroom...')">
               <div class="chat-avatar" style="${avatarStyle}">${chat.user.profilePic ? '' : initial}</div>

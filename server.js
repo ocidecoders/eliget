@@ -114,32 +114,23 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// SECURE IMAGE PROXY ROUTE
 app.get('/api/chat/image/:messageId', authenticateToken, async (req, res) => {
   try {
     const message = await Message.findById(req.params.messageId);
     if (!message || !message.imageUrl) return res.status(404).send('Image not found');
 
-    // Check if user is sender or receiver
     const isSender = message.sender.toString() === req.user.id;
     const isReceiver = message.receiver.toString() === req.user.id;
-    
-    if (!isSender && !isReceiver) {
-      return res.status(403).send('Unauthorized to view this image');
-    }
+    if (!isSender && !isReceiver) return res.status(403).send('Unauthorized');
 
-    // Fetch image from ImgBB
     const response = await fetch(message.imageUrl);
     if (!response.ok) throw new Error('Failed to fetch image');
     
     res.setHeader('Content-Type', response.headers.get('content-type'));
-    res.setHeader('Cache-Control', 'private, max-age=86400'); // Cache it, but only for the authenticated user
-    
+    res.setHeader('Cache-Control', 'private, max-age=86400');
     const arrayBuffer = await response.arrayBuffer();
     res.send(Buffer.from(arrayBuffer));
-  } catch (error) {
-    res.status(500).send('Error loading image');
-  }
+  } catch (error) { res.status(500).send('Error loading image'); }
 });
 
 app.get('/api/check-username/:username', async (req, res) => {
@@ -253,7 +244,6 @@ app.post('/api/upload-cover/:userId', authenticateToken, upload.single('image'),
   } catch (error) { res.status(500).json({ message: error.message || "Upload failed" }); }
 });
 
-// CHAT IMAGE UPLOAD ROUTE
 app.post('/api/upload-chat-image', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No image provided." });
@@ -325,7 +315,15 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
+    
     if (!alreadyFollowing) {
+      // BADGE LOGIC: Check if followers reached 100
+      const updatedTargetUser = await User.findById(req.params.targetId);
+      if (updatedTargetUser.followers.length >= 100 && !updatedTargetUser.badge) {
+        updatedTargetUser.badge = true;
+        await updatedTargetUser.save();
+      }
+
       await new Notification({ receiver: req.params.targetId, sender: req.user.id, type: 'follow' }).save();
       io.to(req.params.targetId).emit('newNotification', { type: 'follow' });
     }
@@ -382,7 +380,7 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
     });
     const result = [];
     for (let [userId, data] of chatUsers.entries()) {
-      const user = await User.findById(userId).select('fullName username profilePic');
+      const user = await User.findById(userId).select('fullName username profilePic badge');
       if(user) result.push({ user, ...data });
     }
     res.status(200).json(result);
@@ -546,7 +544,7 @@ app.post('/api/comments/:commentId/pin', authenticateToken, async (req, res) => 
 
 app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
   try {
-    const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic').sort({ createdAt: -1 }).lean();
+    const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic badge').sort({ createdAt: -1 }).lean();
     const validNotifs = notifications.filter(n => n.sender != null);
     res.status(200).json(validNotifs);
   } catch (error) { res.status(500).json({ message: "Failed to fetch notifications" }); }
@@ -602,7 +600,7 @@ app.get('/api/users/suggested', authenticateToken, async (req, res) => {
     const currentFollowing = (currentUser.following || []).map(id => id.toString());
     const users = await User.find({
       _id: { $nin: [...currentFollowing, currentUser._id] }
-    }).select('fullName username profilePic').limit(5).lean();
+    }).select('fullName username profilePic badge').limit(5).lean();
     res.status(200).json(users);
   } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
 });

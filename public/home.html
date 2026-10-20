@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
     [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .search-container, [data-theme="dark"] .post-card, [data-theme="dark"] .settings-card, [data-theme="dark"] .job-card, [data-theme="dark"] .comment-body, [data-theme="dark"] .modal-box, [data-theme="dark"] .chat-item, [data-theme="dark"] .notification-item, [data-theme="dark"] .comments-box, [data-theme="dark"] .login-box, [data-theme="dark"] .suggested-user-card, [data-theme="dark"] .skeleton-card { background-color: var(--surface); border-color: var(--line); }
@@ -52,7 +52,6 @@
     .search-wrapper input { width: 100%; padding: 12px 14px 12px 42px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-family: inherit; font-size: 0.95rem; color: var(--text); outline: none; }
     .search-wrapper input:focus { border-color: var(--green); background: var(--surface); }
 
-    /* Trending Hashtags UI */
     .trending-section { display: none; margin-top: 15px; padding-bottom: 5px; }
     .trending-section.show { display: block; }
     .trending-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em; }
@@ -70,7 +69,7 @@
     .suggested-scroll::-webkit-scrollbar { display: none; }
     .suggested-user-card { background: var(--surface); border: 1px solid var(--line); padding: 15px; border-radius: 12px; min-width: 140px; text-align: center; flex-shrink: 0; }
     .suggested-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.2rem; background-size: cover; background-position: center; border: 2px solid var(--green); margin: 0 auto 10px auto; }
-    .suggested-name { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggested-name { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; justify-content: center; align-items: center; gap: 4px; }
     .suggested-username { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: block; }
     .btn-follow-sm { background: var(--text); color: var(--surface); border: none; padding: 6px 16px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; cursor: pointer; width: 100%; }
 
@@ -91,6 +90,8 @@
     
     .post-header h4 { font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
     .post-header .username { font-size: 0.85rem; color: var(--text-muted); display: block; }
+
+    .badge-icon { width: 16px; height: 16px; fill: #3B82F6; vertical-align: text-bottom; }
 
     .post-content { font-size: 1rem; color: var(--text); line-height: 1.6; margin-bottom: 15px; white-space: pre-wrap; word-break: break-word; }
     .post-content a { color: var(--green); font-weight: 600; text-decoration: none; }
@@ -171,7 +172,6 @@
     .pinned-indicator { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--green); font-weight: 600; margin-bottom: 5px; }
     .pinned-indicator svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
     
-    /* Load More Comments Button */
     .load-more-comments-btn { display: block; width: 100%; padding: 10px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; transition: background 0.2s; }
     .load-more-comments-btn:hover { background: #E5E7EB; }
 
@@ -259,7 +259,6 @@
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input type="text" id="searchInput" placeholder="Search users or posts..." onfocus="showTrending()">
     </div>
-    <!-- Trending Hashtags Section -->
     <div class="trending-section" id="trendingSection">
       <div class="trending-title">Trending Tags</div>
       <div class="trending-list" id="trendingList"></div>
@@ -359,10 +358,14 @@
     let isLoadingPosts = false;
     let currentFeedType = 'global';
 
-    // Comment Pagination State
     let currentCommentPage = 1;
     let currentCommentTotal = 0;
     const COMMENTS_PER_PAGE = 10;
+
+    function getBadgeSVG(badge) {
+      if (!badge) return '';
+      return `<svg class="badge-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+    }
 
     async function initAuth() {
       try {
@@ -388,7 +391,6 @@
       }
     }
 
-    // --- TRENDING LOGIC ---
     async function loadTrending() {
       try {
         const res = await fetch('/api/trending');
@@ -419,11 +421,10 @@
       input.dispatchEvent(new Event('input'));
     }
 
-    // Hide trending on blur
     document.getElementById('searchInput').addEventListener('blur', () => {
       setTimeout(() => {
         document.getElementById('trendingSection').classList.remove('show');
-      }, 200); // Small delay so clicks on tags register
+      }, 200); 
     });
 
     function getSkeletonHTML() {
@@ -464,7 +465,7 @@
           container.innerHTML = users.map(u => `
             <div class="suggested-user-card">
               <div class="suggested-avatar" style="${u.profilePic ? `background-image: url('${u.profilePic}')` : ''}">${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}</div>
-              <div class="suggested-name">${u.fullName}</div>
+              <div class="suggested-name">${u.fullName} ${getBadgeSVG(u.badge)}</div>
               <span class="suggested-username">@${u.username}</span>
               <button class="btn-follow-sm" onclick="followUser('${u._id}')">Follow</button>
             </div>
@@ -625,7 +626,7 @@
             <div class="header-left" onclick="window.location.href='/profile.html?id=${post.author._id}'">
               ${getAvatarHTML(post.author)}
               <div>
-                <h4>${post.author.fullName}</h4>
+                <h4>${post.author.fullName} ${getBadgeSVG(post.author.badge)}</h4>
                 <span class="username">@${post.author.username}</span>
               </div>
             </div>
@@ -776,13 +777,13 @@
         feedContainer.style.display = 'block';
         document.getElementById('feedTabs').style.display = 'flex';
         document.getElementById('suggestedSection').classList.add('show');
-        document.getElementById('trendingSection').classList.add('show'); // show trending again
+        document.getElementById('trendingSection').classList.add('show');
         if (hasMore) { window.dispatchEvent(new Event('scroll')); }
         window.history.replaceState({}, '', '/home.html');
         return;
       }
 
-      document.getElementById('trendingSection').classList.remove('show'); // hide trending on search
+      document.getElementById('trendingSection').classList.remove('show');
 
       searchTimeout = setTimeout(async () => {
         feedContainer.style.display = 'none';
@@ -811,7 +812,7 @@
                   ${u.profilePic ? '' : u.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div class="search-user-info">
-                  <h4>${u.fullName}</h4>
+                  <h4>${u.fullName} ${getBadgeSVG(u.badge)}</h4>
                   <span>@${u.username}</span>
                 </div>
               </div>
@@ -896,12 +897,10 @@
       }
     }
 
-    // --- COMMENTS PAGINATION LOGIC ---
-
     function openCommentsModal(postId, postAuthorId) {
       currentPostIdForComment = postId; 
       currentPostAuthorId = postAuthorId;
-      currentCommentPage = 1; // Reset page
+      currentCommentPage = 1; 
       currentCommentTotal = 0;
       
       document.getElementById('commentsModal').classList.add('show');
@@ -920,7 +919,6 @@
     async function loadComments(postId) {
       const list = document.getElementById('commentsList');
       
-      // Show loading only if it's the first page
       if (currentCommentPage === 1) {
         list.innerHTML = '<p style="text-align:center; color:#6B7280; font-size:0.9rem;">Loading...</p>';
       }
@@ -929,10 +927,8 @@
         const res = await fetch(`/api/posts/${postId}/comments?page=${currentCommentPage}&limit=${COMMENTS_PER_PAGE}`);
         const data = await res.json();
         
-        // remove the "Loading..." text on first load
         if (currentCommentPage === 1) list.innerHTML = '';
         
-        // remove existing load more button
         const existingBtn = document.getElementById('loadMoreCommentsBtn');
         if (existingBtn) existingBtn.remove();
 
@@ -953,7 +949,7 @@
               ${c.author.profilePic ? `<div class="comment-avatar" style="background-image: url('${c.author.profilePic}')"></div>` : `<div class="comment-avatar avatar-text" style="font-size: 1rem;">${c.author.fullName.charAt(0).toUpperCase()}</div>`}
               <div class="comment-body">
                 ${c.isPinned ? `<div class="pinned-indicator"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>Pinned</div>` : ''}
-                <h5>${c.author.fullName}</h5>
+                <h5>${c.author.fullName} ${getBadgeSVG(c.author.badge)}</h5>
                 <p>${formatContent(c.content)}</p>
                 <div class="comment-actions">
                   ${isPostOwner ? `<button class="comment-action-btn pin" onclick="togglePin('${c._id}', '${postId}')"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg></button>` : ''}
@@ -969,7 +965,6 @@
           list.insertAdjacentHTML('beforeend', commentsHTML);
         }
 
-        // Add Load More button if there are more comments
         const loadedSoFar = currentCommentPage * COMMENTS_PER_PAGE;
         if (loadedSoFar < currentCommentTotal) {
           const loadMoreBtn = document.createElement('button');
@@ -1002,7 +997,6 @@
           const countSpan = document.getElementById(`comment-count-${currentPostIdForComment}`); 
           if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1; 
           
-          // Reload comments from page 1 to show the new comment
           currentCommentPage = 1;
           loadComments(currentPostIdForComment); 
         }
@@ -1017,7 +1011,7 @@
         if (res.ok) { 
           const countSpan = document.getElementById(`comment-count-${postId}`); 
           if (countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText) - 1); 
-          currentCommentPage = 1; // Reset to page 1 after deletion
+          currentCommentPage = 1;
           loadComments(postId); 
         } 
       } catch (err) {}
@@ -1028,7 +1022,7 @@
         const res = await fetch(`/api/comments/${commentId}/pin`, { method: 'POST' }); 
         const data = await res.json(); 
         if (res.ok) {
-          currentCommentPage = 1; // Reset to page 1 to see pinned comment at top
+          currentCommentPage = 1; 
           loadComments(postId); 
         } else alert(data.message); 
       } catch (err) {}

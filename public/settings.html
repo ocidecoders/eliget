@@ -6,6 +6,16 @@
   <title>Settings — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <!-- PWA Install Listener (Placed early to catch the event) -->
+  <script>
+    window.deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+    });
+  </script>
+  
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --red: #EF4444; }
 
@@ -173,48 +183,41 @@
   <script src="/theme.js"></script>
   <script>
     let user = null;
-    let deferredPrompt = null;
 
-    // Ensure SW is registered here as well
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
     }
 
-    // Check if already installed
+    // Check if app is already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (!isStandalone) {
       document.getElementById('installAppCard').style.display = 'block';
     }
 
-    // --- PWA Install Logic ---
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-
+    // Direct calling the PWA install action
     document.getElementById('installBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
+      if (window.deferredPrompt) {
         // Show the native browser install prompt
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        window.deferredPrompt.prompt();
+        const { outcome } = await window.deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           document.getElementById('installAppCard').style.display = 'none';
         }
-        deferredPrompt = null;
+        window.deferredPrompt = null;
       } else {
-        // Fallback instructions for Brave/Firefox/iOS
+        // If Chrome needs more time or hasn't fired the event yet
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         if (isIOS) {
           alert("To install Eliget:\n1. Tap the Share icon at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.");
         } else {
-          alert("To install Eliget:\n1. Tap the browser menu (three dots ⋮) at the top right.\n2. Select 'Install app' or 'Add to Home screen'.");
+          alert("Your browser is ready to install!\n\nPlease open the browser menu (three dots ⋮) and select 'Install app' or 'Add to Home screen'.\n\n(Or wait 2 seconds and try clicking this button again).");
         }
       }
     });
 
     window.addEventListener('appinstalled', () => {
       document.getElementById('installAppCard').style.display = 'none';
-      deferredPrompt = null;
+      window.deferredPrompt = null;
     });
 
     // --- General Logic ---

@@ -225,8 +225,10 @@
         }
 
         await loadTargetUserInfo();
+        
+        // FIX: Setup socket BEFORE loading messages
+        setupSocket(); 
         await loadMessages();
-        setupSocket();
 
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
@@ -320,6 +322,7 @@
 
         scrollToBottom();
         
+        // Now socket is guaranteed to be initialized
         if (socket) socket.emit('markRead', { senderId: targetUserId });
 
       } catch (err) { console.error(err); }

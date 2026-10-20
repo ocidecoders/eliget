@@ -65,6 +65,16 @@
 
   <div class="container">
 
+    <!-- PWA Install Card (Hidden by default, shown via JS if installable) -->
+    <div class="settings-card" id="installAppCard" style="display: none;">
+      <h3>Install App</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Install Eliget on your home screen for a faster, full-screen experience without opening the browser.</p>
+      <button class="btn btn-primary" id="installBtn">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Install Eliget App
+      </button>
+    </div>
+
     <!-- Images Upload Card -->
     <div class="settings-card">
       <h3>Profile Pictures</h3>
@@ -142,6 +152,14 @@
     <!-- Account Security Card -->
     <div class="settings-card">
       <h3>Account & Security</h3>
+      
+      <!-- Logout Button -->
+      <div class="setting-item" onclick="logout()">
+        <span style="color: var(--text);">Logout</span>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </div>
+
+      <!-- Delete Account Button -->
       <div class="setting-item" onclick="deleteAccount()">
         <span style="color: var(--red);">Delete Account Permanently</span>
         <svg viewBox="0 0 24 24" style="stroke: var(--red);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -155,7 +173,45 @@
   <script src="/theme.js"></script>
   <script>
     let user = null;
+    let deferredPrompt = null;
 
+    // --- PWA Install Logic ---
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      deferredPrompt = e;
+      // Update UI notify the user they can install the PWA
+      document.getElementById('installAppCard').style.display = 'block';
+    });
+
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      // Show the install prompt
+      deferredPrompt.prompt();
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      // We've used the prompt, and can't use it again, throw it away
+      deferredPrompt = null;
+      // Hide the install card after prompt
+      document.getElementById('installAppCard').style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      // Log install to analytics
+      console.log('INSTALL: Success');
+      // Hide the install card
+      document.getElementById('installAppCard').style.display = 'none';
+      deferredPrompt = null;
+    });
+
+    // Check if app is already installed (running in standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      document.getElementById('installAppCard').style.display = 'none';
+    }
+
+    // --- General Logic ---
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -288,6 +344,20 @@
           showToast(data.message || 'Failed to update password.');
         }
       } catch (err) { showToast('Server error.'); }
+    }
+
+    // --- Logout Logic ---
+    function logout() {
+      if (!confirm('Are you sure you want to log out?')) return;
+      
+      // Clear local storage
+      localStorage.removeItem('eliget_user');
+      
+      // Optional: Call backend to clear HttpOnly cookies if you implement it later
+      // fetch('/api/logout', { method: 'POST' }).catch(() => {});
+
+      // Redirect to login
+      window.location.href = '/login.html';
     }
 
     async function deleteAccount() {

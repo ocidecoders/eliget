@@ -1,18 +1,52 @@
 {
+  "id": "/",
   "name": "Eliget - Anti-Addiction Social Media",
   "short_name": "Eliget",
   "description": "An anti-addiction, no-algorithm, text-focused social media platform for creators and thinkers.",
-  "start_url": "/home.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F3F4F6",
   "theme_color": "#10B981",
   "orientation": "portrait",
+  "categories": [
+    "social",
+    "news",
+    "social-networking"
+  ],
   "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Eliget Desktop View"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Eliget Mobile View"
     }
   ]
 }

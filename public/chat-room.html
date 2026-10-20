@@ -13,6 +13,9 @@
     [data-theme="dark"] .top-nav, [data-theme="dark"] .input-area { background-color: var(--surface); border-color: var(--line); }
     [data-theme="dark"] .message.received { background-color: var(--surface); color: var(--text); border-color: var(--line); }
     [data-theme="dark"] .input-area input { background-color: var(--bg); color: var(--text); }
+    [data-theme="dark"] .btn-icon { background: var(--bg); border-color: var(--line); color: var(--text); }
+    [data-theme="dark"] .voice-message { background: var(--bg); }
+    [data-theme="dark"] .message.sent .voice-message { background: rgba(255,255,255,0.15); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
@@ -30,12 +33,40 @@
     .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; cursor: pointer; transition: background 0.2s; }
     .message.received { background: var(--surface); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--line); }
     .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.7; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
     
-    /* Read Receipts Ticks */
-    .ticks { display: flex; align-items: center; }
-    .ticks svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .ticks.read svg { stroke: #3B82F6; /* Blue tick */ }
+    .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.8; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+    .message.sent .message-time { color: rgba(255,255,255,0.9); }
+    .message.received .message-time { color: var(--text-muted); }
+
+    /* Perfect Double Tick SVG */
+    .ticks { display: flex; align-items: center; margin-left: 4px; }
+    .ticks svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+    .ticks.read svg { stroke: #60A5FA; /* Light Blue for read ticks */ }
+
+    /* Custom Audio Player */
+    .voice-message { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 8px 12px; border-radius: 12px; margin-bottom: 4px; min-width: 200px; }
+    .message.sent .voice-message { background: rgba(255,255,255,0.2); }
+    
+    .play-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; color: var(--green); }
+    .message.sent .play-btn { background: white; }
+    .play-btn svg { width: 16px; height: 16px; fill: currentColor; stroke: none; margin-left: 2px; }
+    .play-btn.paused svg { margin-left: 0; }
+
+    .audio-wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 20px; }
+    .wave-bar { width: 3px; background: var(--text-muted); border-radius: 2px; opacity: 0.5; }
+    .message.sent .wave-bar { background: rgba(255,255,255,0.7); opacity: 1; }
+    .wave-bar:nth-child(1) { height: 40%; }
+    .wave-bar:nth-child(2) { height: 70%; }
+    .wave-bar:nth-child(3) { height: 100%; }
+    .wave-bar:nth-child(4) { height: 60%; }
+    .wave-bar:nth-child(5) { height: 80%; }
+    .wave-bar:nth-child(6) { height: 50%; }
+    .wave-bar:nth-child(7) { height: 90%; }
+    .wave-bar:nth-child(8) { height: 30%; }
+
+    .audio-duration { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
+    .message.sent .audio-duration { color: white; }
+    .voice-message audio { display: none; } /* Hide default audio player */
 
     .typing-indicator { display: none; align-self: flex-start; background: var(--surface); padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--line); margin-top: 5px; }
     .typing-indicator.show { display: flex; gap: 4px; align-items: center; }
@@ -51,15 +82,14 @@
     .btn-icon { background: var(--bg); color: var(--text-muted); border: 1px solid var(--line); width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
     .btn-icon:hover { background: #E5E7EB; color: var(--text); }
     .btn-icon.recording { background: #EF4444; color: white; border-color: #EF4444; animation: pulse 1s infinite; }
+    .btn-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     
-    .btn-send { background: var(--green); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; }
+    .btn-send { background: var(--green); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: transform 0.2s; }
+    .btn-send:active { transform: scale(0.95); }
     .btn-send svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-left: -2px; margin-top: 2px; }
 
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-    /* Audio Player inside message */
-    audio { max-width: 100%; height: 40px; margin-top: 5px; outline: none; }
-    .message.sent audio { filter: brightness(0) invert(1); opacity: 0.9; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -68,7 +98,6 @@
     <div style="font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 15px;">Eli<span style="color: var(--green);">get</span></div>
     <div style="font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--text-muted); font-weight: 500; margin-bottom: 20px;" id="splashText">Loading Chatroom...</div>
     <div style="width: 32px; height: 32px; border: 3px solid var(--line); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
   </div>
 
   <div class="top-nav">
@@ -90,10 +119,12 @@
 
   <div class="input-area">
     <button class="btn-icon" id="recordBtn" title="Record Voice Note">
+      <!-- Perfect Mic SVG -->
       <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
     </button>
     <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
     <button class="btn-send" id="sendBtn">
+      <!-- Perfect Send SVG -->
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
     </button>
   </div>
@@ -103,7 +134,6 @@
     let user = null;
     let targetUserId = null;
     let socket = null;
-    let allMessages = [];
 
     // Voice Recording state
     let mediaRecorder = null;
@@ -160,12 +190,33 @@
       } catch (err) {}
     }
 
+    // Perfect Tick Mark Logic
     function getTicksHTML(isRead) {
-      // Read Receipts logic
       return `<div class="ticks ${isRead ? 'read' : ''}">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        ${isRead ? `<svg viewBox="0 0 24 24" style="margin-left:-10px;"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ''}
+        <svg viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"></polyline>
+          <polyline points="20 6 9 17 4 12" style="transform: translateX(-6px);"></polyline>
+        </svg>
       </div>`;
+    }
+
+    // Generate Audio HTML
+    function getAudioHTML(url) {
+      return `
+        <div class="voice-message">
+          <button class="play-btn paused" onclick="toggleAudio(this)">
+            <svg class="icon-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          </button>
+          <div class="audio-wave">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+          <span class="audio-duration">0:00</span>
+          <audio src="${url}" preload="metadata" onloadedmetadata="setAudioDuration(this)" onended="audioEnded(this)"></audio>
+        </div>
+      `;
     }
 
     async function loadMessages() {
@@ -173,12 +224,11 @@
       try {
         const res = await fetch(`/api/chats/${targetUserId}`);
         const messages = await res.json();
-        allMessages = messages; // Store globally for socket updates
 
         container.innerHTML = messages.map(msg => {
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const content = msg.audioUrl ? `<audio src="${msg.audioUrl}" controls></audio>` : msg.text;
+          const content = msg.audioUrl ? getAudioHTML(msg.audioUrl) : msg.text;
           
           return `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
@@ -192,8 +242,6 @@
         }).join('');
 
         scrollToBottom();
-        
-        // Emit mark read when messages are loaded
         if (socket) socket.emit('markRead', { senderId: targetUserId });
 
       } catch (err) { console.error(err); }
@@ -207,7 +255,7 @@
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const content = msg.audioUrl ? `<audio src="${msg.audioUrl}" controls></audio>` : msg.text;
+          const content = msg.audioUrl ? getAudioHTML(msg.audioUrl) : msg.text;
 
           document.getElementById('typingIndicator').classList.remove('show');
 
@@ -223,26 +271,15 @@
           container.insertAdjacentHTML('beforeend', msgHTML);
           scrollToBottom();
 
-          // If receiving message while in room, mark it as read immediately
-          if (!isSent) {
-            socket.emit('markRead', { senderId: targetUserId });
-          }
+          if (!isSent) socket.emit('markRead', { senderId: targetUserId });
         }
       });
 
-      // Listen for Read Receipts
       socket.on('messagesRead', (data) => {
         if (data.receiverId === targetUserId) {
-          // Update UI for all sent messages
           const ticks = document.querySelectorAll('.message.sent .ticks');
           ticks.forEach(tick => {
-            if (!tick.classList.contains('read')) {
-              tick.classList.add('read');
-              tick.innerHTML = `
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <svg viewBox="0 0 24 24" style="margin-left:-10px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              `;
-            }
+            if (!tick.classList.contains('read')) tick.classList.add('read');
           });
         }
       });
@@ -263,6 +300,52 @@
     function scrollToBottom() {
       const container = document.getElementById('chatContainer');
       container.scrollTop = container.scrollHeight;
+    }
+
+    // --- CUSTOM AUDIO PLAYER LOGIC ---
+    function setAudioDuration(audioEl) {
+      const duration = audioEl.duration;
+      if (!isNaN(duration)) {
+        const mins = Math.floor(duration / 60);
+        const secs = Math.floor(duration % 60);
+        audioEl.parentElement.querySelector('.audio-duration').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+      }
+    }
+
+    function toggleAudio(btn) {
+      const audio = btn.parentElement.querySelector('audio');
+      const playIcon = btn.querySelector('.icon-play');
+      const pauseIcon = btn.querySelector('.icon-pause');
+
+      if (audio.paused) {
+        // Pause all other audios
+        document.querySelectorAll('audio').forEach(a => {
+          if (a !== audio) {
+            a.pause();
+            const otherBtn = a.parentElement.querySelector('.play-btn');
+            otherBtn.classList.add('paused');
+            otherBtn.querySelector('.icon-play').style.display = 'block';
+            otherBtn.querySelector('.icon-pause').style.display = 'none';
+          }
+        });
+
+        audio.play();
+        btn.classList.remove('paused');
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+      } else {
+        audio.pause();
+        btn.classList.add('paused');
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+      }
+    }
+
+    function audioEnded(audioEl) {
+      const btn = audioEl.parentElement.querySelector('.play-btn');
+      btn.classList.add('paused');
+      btn.querySelector('.icon-play').style.display = 'block';
+      btn.querySelector('.icon-pause').style.display = 'none';
     }
 
     // --- TEXT MESSAGE LOGIC ---
@@ -287,7 +370,6 @@
     
     recordBtn.addEventListener('click', async () => {
       if (!isRecording) {
-        // Start Recording
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           mediaRecorder = new MediaRecorder(stream);
@@ -306,10 +388,7 @@
             recordBtn.innerHTML = `<div style="width:16px; height:16px; border:2px solid var(--text-muted); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></div>`;
 
             try {
-              const res = await fetch('/api/upload-audio', {
-                method: 'POST',
-                body: formData
-              });
+              const res = await fetch('/api/upload-audio', { method: 'POST', body: formData });
               const data = await res.json();
               if (res.ok) {
                 socket.emit('sendMessage', { receiverId: targetUserId, audioUrl: data.audioUrl });
@@ -334,7 +413,6 @@
           alert('Microphone access denied or not available.');
         }
       } else {
-        // Stop Recording
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
           mediaRecorder.stop();
           isRecording = false;

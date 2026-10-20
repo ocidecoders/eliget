@@ -57,8 +57,24 @@ app.get('/', (req, res) => {
   });
 });
 
+// MongoDB Connection & Auto Badge Cleanup
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected to Eliget'))
+  .then(async () => {
+    console.log('MongoDB Connected to Eliget');
+    try {
+      const users = await User.find({});
+      let fixedCount = 0;
+      for (let u of users) {
+        if (u.followers.length < 100 && u.badge === true) {
+          u.badge = false;
+          await u.save();
+          fixedCount++;
+          console.log(`Auto-removed badge from @${u.username}`);
+        }
+      }
+      if (fixedCount > 0) console.log(`✅ Auto-cleaned ${fixedCount} incorrect badges on startup.`);
+    } catch (e) { console.log('Error during auto-badge cleanup:', e); }
+  })
   .catch(err => console.log('MongoDB Error:', err));
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -317,7 +333,6 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
     
     if (!alreadyFollowing) {
-      // STRICT BADGE LOGIC (Grant at 100)
       const updatedTargetUser = await User.findById(req.params.targetId);
       if (updatedTargetUser.followers.length >= 100 && !updatedTargetUser.badge) {
         updatedTargetUser.badge = true;
@@ -336,7 +351,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
     await User.findByIdAndUpdate(req.user.id, { $pull: { following: req.params.targetId } });
     await User.findByIdAndUpdate(req.params.targetId, { $pull: { followers: req.user.id } });
     
-    // STRICT BADGE LOGIC (Revoke if drops below 100)
     const updatedTargetUser = await User.findById(req.params.targetId);
     if (updatedTargetUser.followers.length < 100 && updatedTargetUser.badge) {
         updatedTargetUser.badge = false;

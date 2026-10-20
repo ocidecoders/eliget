@@ -10,6 +10,7 @@ const cookieParser = require('cookie-parser');
 const http = require('http');
 const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
+const cloudinary = require('cloudinary').v2;
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -20,6 +21,13 @@ const Message = require('./models/Message');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*', credentials: true } });
+
+// Cloudinary Config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 app.set('trust proxy', 1);
 
@@ -111,13 +119,22 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async (data) => {
     try {
-      const { receiverId, text } = data;
-      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text });
+      const { receiverId, text, audioUrl } = data;
+      const newMessage = new Message({ sender: socket.userId, receiver: receiverId, text: text || '', audioUrl: audioUrl || '' });
       await newMessage.save();
       io.to(receiverId).emit('receiveMessage', newMessage);
       io.to(socket.userId).emit('receiveMessage', newMessage);
       io.to(receiverId).emit('newChatMessage');
       io.to(socket.userId).emit('newChatMessage');
+    } catch (err) { console.error(err); }
+  });
+
+  // Read Receipts Logic
+  socket.on('markRead', async (data) => {
+    try {
+      const { senderId } = data;
+      await Message.updateMany({ sender: senderId, receiver: socket.userId, isRead: false }, { isRead: true });
+      io.to(senderId).emit('messagesRead', { receiverId: socket.userId });
     } catch (err) { console.error(err); }
   });
 
@@ -247,6 +264,25 @@ app.post('/api/upload-cover/:userId', authenticateToken, upload.single('image'),
   } catch (error) { res.status(500).json({ message: error.message || "Upload failed" }); }
 });
 
+// NEW: Audio Upload Route
+app.post('/api/upload-audio', authenticateToken, upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No audio provided." });
+    
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: "video", folder: "eliget_audio" }, // Cloudinary uses 'video' type for audio
+      (error, result) => {
+        if (error) return res.status(500).json({ message: "Cloudinary upload failed." });
+        res.status(200).json({ audioUrl: result.secure_url });
+      }
+    );
+    
+    const Readable = require('stream').Readable;
+    const stream = Readable.from(req.file.buffer);
+    stream.pipe(uploadStream);
+  } catch (error) { res.status(500).json({ message: "Upload failed" }); }
+});
+
 app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
   try {
     const targetUser = await User.findById(req.params.userId).select('-password');
@@ -333,8 +369,9 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
     const chatUsers = new Map();
     messages.forEach(msg => {
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
+      const lastMsg = msg.audioUrl ? "Voice Message" : msg.text;
       if (!chatUsers.has(otherId)) {
-        chatUsers.set(otherId, { lastMessage: msg.text, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
+        chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
       } else if (!msg.isRead && msg.receiver.toString() === req.user.id) {
         chatUsers.get(otherId).unread = true;
       }
@@ -358,7 +395,7 @@ app.get('/api/chat/unread', authenticateToken, async (req, res) => {
 app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
-    await Message.updateMany({ sender: req.params.targetUserId, receiver: req.user.id, isRead: false }, { isRead: true });
+    // Don't auto mark as read here, client socket handles it now
     res.status(200).json(messages);
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
 });
@@ -448,7 +485,6 @@ app.post('/api/posts/:postId/view', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to count view" }); }
 });
 
-// GET COMMENTS (With Pagination)
 app.get('/api/posts/:postId/comments', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -545,15 +581,11 @@ app.get('/api/search', async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Search failed" }); }
 });
 
-// TRENDING HASHTAGS API
 app.get('/api/trending', async (req, res) => {
   try {
-    // Fetch recent 100 posts that contain hashtags
     const posts = await Post.find({ content: /#\w+/ }).sort({ createdAt: -1 }).limit(100).select('content').lean();
-    
     const hashtagCounts = {};
     const regex = /#(\w+)/g;
-    
     posts.forEach(post => {
       let match;
       while ((match = regex.exec(post.content)) !== null) {
@@ -561,16 +593,9 @@ app.get('/api/trending', async (req, res) => {
         hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
       }
     });
-    
-    const sorted = Object.keys(hashtagCounts)
-      .map(tag => ({ tag, count: hashtagCounts[tag] }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-      
+    const sorted = Object.keys(hashtagCounts).map(tag => ({ tag, count: hashtagCounts[tag] })).sort((a, b) => b.count - a.count).slice(0, 5);
     res.status(200).json(sorted);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch trending hashtags" });
-  }
+  } catch (error) { res.status(500).json({ message: "Failed to fetch trending hashtags" }); }
 });
 
 app.get('/api/users/suggested', authenticateToken, async (req, res) => {
@@ -581,9 +606,7 @@ app.get('/api/users/suggested', authenticateToken, async (req, res) => {
       _id: { $nin: [...currentFollowing, currentUser._id] }
     }).select('fullName username profilePic').limit(5).lean();
     res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch suggested users" });
-  }
+  } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
 });
 
 app.get('/api/posts', async (req, res) => {

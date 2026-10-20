@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chat — Eliget</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  
-  
-  
-  
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --blue: #3B82F6; }
     [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
@@ -34,7 +30,12 @@
     .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; cursor: pointer; transition: background 0.2s; }
     .message.received { background: var(--surface); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--line); }
     .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.7; }
+    .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.7; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+    
+    /* Read Receipts Ticks */
+    .ticks { display: flex; align-items: center; }
+    .ticks svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .ticks.read svg { stroke: #3B82F6; /* Blue tick */ }
 
     .typing-indicator { display: none; align-self: flex-start; background: var(--surface); padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--line); margin-top: 5px; }
     .typing-indicator.show { display: flex; gap: 4px; align-items: center; }
@@ -43,43 +44,26 @@
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
     @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
-    .input-area { padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 15px); }
+    .input-area { padding: 15px 20px; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; padding-bottom: env(safe-area-inset-bottom, 15px); }
     .input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg); color: var(--text); }
     .input-area input:focus { border-color: var(--green); background: var(--surface); }
-    [data-theme="dark"] .input-area input:focus { background: var(--bg); }
+    
+    .btn-icon { background: var(--bg); color: var(--text-muted); border: 1px solid var(--line); width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+    .btn-icon:hover { background: #E5E7EB; color: var(--text); }
+    .btn-icon.recording { background: #EF4444; color: white; border-color: #EF4444; animation: pulse 1s infinite; }
+    
     .btn-send { background: var(--green); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; }
     .btn-send svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-left: -2px; margin-top: 2px; }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+    /* Audio Player inside message */
+    audio { max-width: 100%; height: 40px; margin-top: 5px; outline: none; }
+    .message.sent audio { filter: brightness(0) invert(1); opacity: 0.9; }
   </style>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Eliget - An anti-addiction, no-algorithm, text-focused social media platform. No infinite scrolling, no short videos. Just pure connections.">
-  <meta name="keywords" content="Eliget, social media, anti-addiction, no algorithm, text social media, social network, ocidecoders">
-  <meta name="author" content="Ocide Coders">
-  
-  <!-- Open Graph (Facebook) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://eliget-social.onrender.com/">
-  <meta property="og:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="og:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="og:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://eliget-social.onrender.com/">
-  <meta property="twitter:title" content="Eliget - Anti-Addiction Social Media">
-  <meta property="twitter:description" content="An anti-addiction, no-algorithm, text-focused social media platform.">
-  <meta property="twitter:image" content="https://eliget-social.onrender.com/favicon.svg">
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
-
 </head>
 <body>
 
-  <!-- Loading Splash Screen -->
   <div id="splashScreen" style="position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s ease;">
     <div style="font-family: 'Archivo', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--text); margin-bottom: 15px;">Eli<span style="color: var(--green);">get</span></div>
     <div style="font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--text-muted); font-weight: 500; margin-bottom: 20px;" id="splashText">Loading Chatroom...</div>
@@ -105,6 +89,9 @@
   </div>
 
   <div class="input-area">
+    <button class="btn-icon" id="recordBtn" title="Record Voice Note">
+      <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+    </button>
     <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
     <button class="btn-send" id="sendBtn">
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -116,6 +103,12 @@
     let user = null;
     let targetUserId = null;
     let socket = null;
+    let allMessages = [];
+
+    // Voice Recording state
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
 
     const urlParams = new URLSearchParams(window.location.search);
     targetUserId = urlParams.get('id');
@@ -138,12 +131,10 @@
           return;
         }
 
-        // Fetch data first
         await loadTargetUserInfo();
         await loadMessages();
         setupSocket();
 
-        // All data loaded. Now hide Splash Screen and show page.
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
         setTimeout(() => splash.style.display = 'none', 300);
@@ -169,45 +160,90 @@
       } catch (err) {}
     }
 
+    function getTicksHTML(isRead) {
+      // Read Receipts logic
+      return `<div class="ticks ${isRead ? 'read' : ''}">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        ${isRead ? `<svg viewBox="0 0 24 24" style="margin-left:-10px;"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ''}
+      </div>`;
+    }
+
     async function loadMessages() {
       const container = document.getElementById('chatContainer');
       try {
         const res = await fetch(`/api/chats/${targetUserId}`);
         const messages = await res.json();
+        allMessages = messages; // Store globally for socket updates
 
         container.innerHTML = messages.map(msg => {
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const content = msg.audioUrl ? `<audio src="${msg.audioUrl}" controls></audio>` : msg.text;
+          
           return `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
-              ${msg.text}
-              <div class="message-time">${time}</div>
+              ${content}
+              <div class="message-time">
+                ${time}
+                ${isSent ? getTicksHTML(msg.isRead) : ''}
+              </div>
             </div>
           `;
         }).join('');
 
         scrollToBottom();
+        
+        // Emit mark read when messages are loaded
+        if (socket) socket.emit('markRead', { senderId: targetUserId });
+
       } catch (err) { console.error(err); }
     }
 
     function setupSocket() {
       socket = io();
+      
       socket.on('receiveMessage', (msg) => {
         if ((msg.sender === user.id && msg.receiver === targetUserId) || (msg.sender === targetUserId && msg.receiver === user.id)) {
           const container = document.getElementById('chatContainer');
           const isSent = msg.sender === user.id;
           const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const content = msg.audioUrl ? `<audio src="${msg.audioUrl}" controls></audio>` : msg.text;
 
           document.getElementById('typingIndicator').classList.remove('show');
 
           const msgHTML = `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
-              ${msg.text}
-              <div class="message-time">${time}</div>
+              ${content}
+              <div class="message-time">
+                ${time}
+                ${isSent ? getTicksHTML(msg.isRead) : ''}
+              </div>
             </div>
           `;
           container.insertAdjacentHTML('beforeend', msgHTML);
           scrollToBottom();
+
+          // If receiving message while in room, mark it as read immediately
+          if (!isSent) {
+            socket.emit('markRead', { senderId: targetUserId });
+          }
+        }
+      });
+
+      // Listen for Read Receipts
+      socket.on('messagesRead', (data) => {
+        if (data.receiverId === targetUserId) {
+          // Update UI for all sent messages
+          const ticks = document.querySelectorAll('.message.sent .ticks');
+          ticks.forEach(tick => {
+            if (!tick.classList.contains('read')) {
+              tick.classList.add('read');
+              tick.innerHTML = `
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg viewBox="0 0 24 24" style="margin-left:-10px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              `;
+            }
+          });
         }
       });
 
@@ -229,6 +265,7 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // --- TEXT MESSAGE LOGIC ---
     const messageInput = document.getElementById('messageInput');
     messageInput.addEventListener('input', () => {
       if (!socket) return;
@@ -244,6 +281,66 @@
       socket.emit('sendMessage', { receiverId: targetUserId, text });
       messageInput.value = '';
     }
+
+    // --- VOICE RECORDING LOGIC ---
+    const recordBtn = document.getElementById('recordBtn');
+    
+    recordBtn.addEventListener('click', async () => {
+      if (!isRecording) {
+        // Start Recording
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'voice.webm');
+
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = `<div style="width:16px; height:16px; border:2px solid var(--text-muted); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></div>`;
+
+            try {
+              const res = await fetch('/api/upload-audio', {
+                method: 'POST',
+                body: formData
+              });
+              const data = await res.json();
+              if (res.ok) {
+                socket.emit('sendMessage', { receiverId: targetUserId, audioUrl: data.audioUrl });
+              } else {
+                alert('Failed to upload voice note');
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Error uploading audio');
+            }
+
+            // Reset button
+            recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>`;
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          recordBtn.classList.add('recording');
+          recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>`; // Stop icon
+        } catch (err) {
+          alert('Microphone access denied or not available.');
+        }
+      } else {
+        // Stop Recording
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+          isRecording = false;
+        }
+      }
+    });
 
     async function deleteMessage(msgId) {
       if (!confirm('Delete this message?')) return;

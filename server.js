@@ -30,19 +30,18 @@ cloudinary.config({
 });
 
 app.set('trust proxy', 1);
-
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'eliget_super_secret_key_change_in_production';
-const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || (process.env.NODE_ENV === 'production');
+const COOKIE_SECURE = process.env.NODE_ENV === 'production';
 const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || 'lax';
 const COOKIE_OPTIONS = { httpOnly: true, secure: COOKIE_SECURE, sameSite: COOKIE_SAMESITE, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
 const COOKIE_CLEAR_OPTIONS = { httpOnly: true, secure: COOKIE_SECURE, sameSite: COOKIE_SAMESITE, path: '/' };
 
-const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 600, message: { message: "Too many requests." } });
+const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, message: { message: "Too many requests." } });
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, skipSuccessfulRequests: true, message: { message: "Too many login attempts." } });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { message: "Too many registration attempts." } });
 const passwordChangeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { message: "Too many password change attempts." } });
@@ -126,29 +125,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-app.get('/api/chat/image/:messageId', authenticateToken, async (req, res) => {
-  try {
-    const message = await Message.findById(req.params.messageId);
-    if (!message || !message.imageUrl) return res.status(404).send('Image not found');
-    const isSender = message.sender.toString() === req.user.id;
-    const isReceiver = message.receiver.toString() === req.user.id;
-    if (!isSender && !isReceiver) return res.status(403).send('Unauthorized');
-    const response = await fetch(message.imageUrl);
-    if (!response.ok) throw new Error('Failed to fetch image');
-    res.setHeader('Content-Type', response.headers.get('content-type'));
-    res.setHeader('Cache-Control', 'private, max-age=86400');
-    const arrayBuffer = await response.arrayBuffer();
-    res.send(Buffer.from(arrayBuffer));
-  } catch (error) { res.status(500).send('Error loading image'); }
-});
-
-app.get('/api/check-username/:username', async (req, res) => {
-  try {
-    const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
-    res.status(200).json({ available: !existingUser });
-  } catch (error) { res.status(500).json({ message: "Server error" }); }
-});
-
+// ================= AUTH & PROFILE API =================
 app.post('/api/register', registerLimiter, async (req, res) => {
   try {
     const { fullName, password } = req.body;
@@ -227,6 +204,7 @@ app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to delete account" }); }
 });
 
+// ================= UPLOAD API =================
 app.post('/api/upload-avatar/:userId', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No image provided." });
@@ -259,9 +237,8 @@ app.post('/api/upload-chat-image', authenticateToken, upload.single('image'), as
     const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
     const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
     const data = await response.json();
-    if (data.success) {
-      res.status(200).json({ imageUrl: data.data.url });
-    } else { res.status(500).json({ message: "ImgBB rejected image." }); }
+    if (data.success) { res.status(200).json({ imageUrl: data.data.url }); } 
+    else { res.status(500).json({ message: "ImgBB rejected image." }); }
   } catch (error) { res.status(500).json({ message: "Upload failed" }); }
 });
 
@@ -271,16 +248,323 @@ app.post('/api/upload-audio', authenticateToken, upload.single('audio'), async (
     const uploadPromise = new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { resource_type: "video", folder: "eliget_audio" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
+        (error, result) => { if (error) reject(error); else resolve(result); }
       );
       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     });
     const result = await uploadPromise;
     res.status(200).json({ audioUrl: result.secure_url });
-  } catch (error) { res.status(500).json({ message: "Upload failed", error: error.message }); }
+  } catch (error) { res.status(500).json({ message: "Upload failed" }); }
+});
+
+// ================= FEED, POSTS & COMMENTS API =================
+app.get('/api/posts', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const feedType = req.query.type || 'global';
+
+    let currentUser = null;
+    if (req.cookies.eliget_token) {
+      try {
+        const decoded = jwt.verify(req.cookies.eliget_token, JWT_SECRET);
+        currentUser = await User.findById(decoded.id);
+      } catch (e) {}
+    }
+
+    let query = { postType: { $ne: 'job' } };
+    if (feedType === 'following' && currentUser) {
+      const currentFollowing = (currentUser.following || []).map(id => id.toString());
+      const followingList = [...currentFollowing, currentUser._id.toString()];
+      query.author = { $in: followingList };
+    }
+
+    const posts = await Post.find(query).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    const validPosts = posts.filter(post => post.author != null);
+
+    for (let post of validPosts) {
+      post.commentCount = await Comment.countDocuments({ postId: post._id });
+      post.relationship = 'none';
+      post.isSaved = false;
+      if (currentUser) {
+        const savedPosts = (currentUser.savedPosts || []).map(id => id.toString());
+        const currentFollowing = (currentUser.following || []).map(id => id.toString());
+        if (savedPosts.includes(post._id.toString())) post.isSaved = true;
+        
+        if (post.author._id.toString() !== currentUser._id.toString()) {
+          const followers = (post.author.followers || []).map(id => id.toString());
+          const isFollowing = currentFollowing.includes(post.author._id.toString());
+          const isFollower = followers.includes(currentUser._id.toString());
+          if (isFollowing && isFollower) post.relationship = 'mutual';
+          else if (isFollowing) post.relationship = 'following';
+          else if (isFollower) post.relationship = 'follower';
+        }
+      }
+    }
+    res.status(200).json(validPosts);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch posts" }); }
+});
+
+app.get('/api/posts/jobs', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    let query = { postType: 'job' };
+    if (search) { query.content = { $regex: search, $options: 'i' }; }
+
+    const posts = await Post.find(query).populate('author', 'fullName username profilePic badge').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    const validPosts = posts.filter(post => post.author != null);
+    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
+    res.status(200).json(validPosts);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch jobs" }); }
+});
+
+app.get('/api/posts/user/:userId', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ author: req.params.userId }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    for (let post of posts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
+    res.status(200).json(posts);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch user posts" }); }
+});
+
+app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
+  try {
+    const { content, postType, videoLink } = req.body;
+    if (!content && !req.file && !videoLink) return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
+
+    let imageUrl = "";
+    if (req.file) {
+      const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
+      const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
+      const data = await response.json();
+      if (data.success) imageUrl = data.data.url;
+    }
+    const newPost = new Post({ author: req.user.id, content: content || '', image: imageUrl, videoLink: videoLink || '', postType: postType || 'feed' });
+    await newPost.save();
+    res.status(201).json({ message: "Post created successfully!" });
+  } catch (error) { res.status(500).json({ message: "Failed to create post" }); }
+});
+
+app.put('/api/posts/:postId', authenticateToken, async (req, res) => {
+  try {
+    const { content } = req.body || {};
+    if (!content) return res.status(400).json({ message: "Content required" });
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    post.content = content;
+    await post.save();
+    res.status(200).json({ message: "Post updated successfully!" });
+  } catch (error) { res.status(500).json({ message: "Failed to update post" }); }
+});
+
+app.delete('/api/posts/:postId', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    await Post.findByIdAndDelete(req.params.postId);
+    await Comment.deleteMany({ postId: req.params.postId });
+    await Notification.deleteMany({ postId: req.params.postId });
+    res.status(200).json({ message: "Post deleted successfully!" });
+  } catch (error) { res.status(500).json({ message: "Failed to delete post" }); }
+});
+
+app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    const postLikes = (post.likes || []).map(id => id.toString());
+    const isLiked = postLikes.includes(req.user.id.toString());
+
+    if (isLiked) { post.likes.pull(req.user.id); } else {
+      post.likes.push(req.user.id);
+      if (post.author.toString() !== req.user.id) {
+        await new Notification({ receiver: post.author, sender: req.user.id, type: 'like', postId: post._id }).save();
+        io.to(post.author.toString()).emit('newNotification', { type: 'like' });
+      }
+    }
+    await post.save();
+    res.status(200).json({ likes: post.likes });
+  } catch (error) { res.status(500).json({ message: "Failed to like post" }); }
+});
+
+app.post('/api/posts/:postId/view', async (req, res) => {
+  try {
+    const post = await Post.findByIdAndUpdate(req.params.postId, { $inc: { views: 1 } }, { new: true });
+    res.status(200).json({ views: post.views });
+  } catch (error) { res.status(500).json({ message: "Failed to count view" }); }
+});
+
+app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const savedPosts = (user.savedPosts || []).map(id => id.toString());
+    const isSaved = savedPosts.includes(req.params.postId.toString());
+    if (isSaved) { user.savedPosts.pull(req.params.postId); } else { user.savedPosts.push(req.params.postId); }
+    await user.save();
+    res.status(200).json({ message: isSaved ? "Post unsaved" : "Post saved", saved: !isSaved });
+  } catch (error) { res.status(500).json({ message: "Failed to save post" }); }
+});
+
+app.get('/api/posts/saved', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate({
+      path: 'savedPosts',
+      populate: { path: 'author', select: 'fullName username profilePic badge followers' }
+    });
+    const validPosts = (user.savedPosts || []).filter(p => p != null);
+    res.status(200).json(validPosts);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch saved posts" }); }
+});
+
+app.get('/api/posts/:postId/comments', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Comment.countDocuments({ postId: req.params.postId });
+    const comments = await Comment.find({ postId: req.params.postId })
+      .populate('author', 'fullName username profilePic badge followers')
+      .sort({ isPinned: -1, createdAt: -1 })
+      .skip(skip).limit(limit);
+
+    const validComments = comments.filter(c => c.author != null);
+    res.status(200).json({ comments: validComments, total });
+  } catch (error) { res.status(200).json({ comments: [], total: 0 }); }
+});
+
+app.post('/api/posts/:postId/comments', authenticateToken, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ message: "Comment cannot be empty" });
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    const newComment = new Comment({ postId: req.params.postId, author: req.user.id, content });
+    await newComment.save();
+    if (post.author.toString() !== req.user.id) {
+      await new Notification({ receiver: post.author, sender: req.user.id, type: 'comment', postId: post._id }).save();
+      io.to(post.author.toString()).emit('newNotification', { type: 'comment' });
+    }
+    const populatedComment = await Comment.findById(newComment._id).populate('author', 'fullName username profilePic badge followers');
+    res.status(201).json(populatedComment);
+  } catch (error) { res.status(500).json({ message: "Failed to add comment" }); }
+});
+
+app.delete('/api/comments/:commentId', authenticateToken, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    if (comment.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    await Comment.findByIdAndDelete(req.params.commentId);
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (error) { res.status(500).json({ message: "Failed to delete comment" }); }
+});
+
+app.post('/api/comments/:commentId/pin', authenticateToken, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    const post = await Post.findById(comment.postId);
+    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Only the post author can pin comments" });
+    if (!comment.isPinned) {
+      const pinnedCount = await Comment.countDocuments({ postId: comment.postId, isPinned: true });
+      if (pinnedCount >= 3) return res.status(400).json({ message: "You can only pin up to 3 comments" });
+      comment.isPinned = true;
+    } else { comment.isPinned = false; }
+    await comment.save();
+    res.status(200).json({ message: "Pin status updated", isPinned: comment.isPinned });
+  } catch (error) { res.status(500).json({ message: "Failed to pin comment" }); }
+});
+
+// ================= CHAT & NOTIFICATIONS API =================
+app.get('/api/chat/image/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message || !message.imageUrl) return res.status(404).send('Image not found');
+    const isSender = message.sender.toString() === req.user.id;
+    const isReceiver = message.receiver.toString() === req.user.id;
+    if (!isSender && !isReceiver) return res.status(403).send('Unauthorized');
+    const response = await fetch(message.imageUrl);
+    if (!response.ok) throw new Error('Failed to fetch image');
+    res.setHeader('Content-Type', response.headers.get('content-type'));
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    const arrayBuffer = await response.arrayBuffer();
+    res.send(Buffer.from(arrayBuffer));
+  } catch (error) { res.status(500).send('Error loading image'); }
+});
+
+app.get('/api/chats', authenticateToken, async (req, res) => {
+  try {
+    const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
+    const chatUsers = new Map();
+    messages.forEach(msg => {
+      const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
+      let lastMsg = msg.text;
+      if (msg.audioUrl) lastMsg = "Voice Message";
+      if (msg.imageUrl) lastMsg = "Photo";
+      if (!chatUsers.has(otherId)) { chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) }); } 
+      else if (!msg.isRead && msg.receiver.toString() === req.user.id) { chatUsers.get(otherId).unread = true; }
+    });
+    const result = [];
+    for (let [userId, data] of chatUsers.entries()) {
+      const user = await User.findById(userId).select('fullName username profilePic badge followers');
+      if(user) result.push({ user, ...data });
+    }
+    res.status(200).json(result);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch chats" }); }
+});
+
+app.get('/api/chat/unread', authenticateToken, async (req, res) => {
+  try {
+    const count = await Message.countDocuments({ receiver: req.user.id, isRead: false });
+    res.status(200).json({ unreadCount: count });
+  } catch (error) { res.status(500).json({ message: "Failed to fetch unread count" }); }
+});
+
+app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
+  try {
+    const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
+    res.status(200).json(messages);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
+});
+
+app.put('/api/messages/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Text is required." });
+    const message = await Message.findById(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    if (message.audioUrl || message.imageUrl) return res.status(400).json({ message: "Cannot edit media messages." });
+    message.text = text;
+    message.isEdited = true;
+    await message.save();
+    io.to(message.receiver.toString()).emit('messageEdited', message);
+    io.to(message.sender.toString()).emit('messageEdited', message);
+    res.status(200).json({ message: "Message edited", updatedMessage: message });
+  } catch (error) { res.status(500).json({ message: "Failed to edit message" }); }
+});
+
+app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    await Message.findByIdAndDelete(req.params.messageId);
+    io.to(message.receiver.toString()).emit('messageDeleted', { messageId: req.params.messageId });
+    io.to(message.sender.toString()).emit('messageDeleted', { messageId: req.params.messageId });
+    res.status(200).json({ message: "Message deleted" });
+  } catch (error) { res.status(500).json({ message: "Failed to delete message" }); }
 });
 
 app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
@@ -343,222 +627,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
     }
     res.status(200).json({ message: "Unfollowed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
-});
-
-app.post('/api/posts/:postId/save', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const savedPosts = (user.savedPosts || []).map(id => id.toString());
-    const isSaved = savedPosts.includes(req.params.postId.toString());
-    if (isSaved) { user.savedPosts.pull(req.params.postId); } else { user.savedPosts.push(req.params.postId); }
-    await user.save();
-    res.status(200).json({ message: isSaved ? "Post unsaved" : "Post saved", saved: !isSaved });
-  } catch (error) { res.status(500).json({ message: "Failed to save post" }); }
-});
-
-app.get('/api/posts/saved', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate({
-      path: 'savedPosts',
-      populate: { path: 'author', select: 'fullName username profilePic badge followers' }
-    });
-    const validPosts = (user.savedPosts || []).filter(p => p != null);
-    res.status(200).json(validPosts);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch saved posts" }); }
-});
-
-app.get('/api/chats', authenticateToken, async (req, res) => {
-  try {
-    const messages = await Message.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] }).sort({ createdAt: -1 });
-    const chatUsers = new Map();
-    messages.forEach(msg => {
-      const otherId = msg.sender.toString() === req.user.id ? msg.receiver.toString() : msg.sender.toString();
-      let lastMsg = msg.text;
-      if (msg.audioUrl) lastMsg = "Voice Message";
-      if (msg.imageUrl) lastMsg = "Photo";
-      if (!chatUsers.has(otherId)) {
-        chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) });
-      } else if (!msg.isRead && msg.receiver.toString() === req.user.id) {
-        chatUsers.get(otherId).unread = true;
-      }
-    });
-    const result = [];
-    for (let [userId, data] of chatUsers.entries()) {
-      const user = await User.findById(userId).select('fullName username profilePic badge followers');
-      if(user) result.push({ user, ...data });
-    }
-    res.status(200).json(result);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch chats" }); }
-});
-
-app.get('/api/chat/unread', authenticateToken, async (req, res) => {
-  try {
-    const count = await Message.countDocuments({ receiver: req.user.id, isRead: false });
-    res.status(200).json({ unreadCount: count });
-  } catch (error) { res.status(500).json({ message: "Failed to fetch unread count" }); }
-});
-
-app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
-  try {
-    const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
-    res.status(200).json(messages);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
-});
-
-app.put('/api/messages/:messageId', authenticateToken, async (req, res) => {
-  try {
-    const { text } = req.body;
-    if (!text) return res.status(400).json({ message: "Text is required." });
-    const message = await Message.findById(req.params.messageId);
-    if (!message) return res.status(404).json({ message: "Message not found" });
-    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    if (message.audioUrl || message.imageUrl) return res.status(400).json({ message: "Cannot edit media messages." });
-    message.text = text;
-    message.isEdited = true;
-    await message.save();
-    io.to(message.receiver.toString()).emit('messageEdited', message);
-    io.to(message.sender.toString()).emit('messageEdited', message);
-    res.status(200).json({ message: "Message edited", updatedMessage: message });
-  } catch (error) { res.status(500).json({ message: "Failed to edit message" }); }
-});
-
-app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
-  try {
-    const message = await Message.findById(req.params.messageId);
-    if (!message) return res.status(404).json({ message: "Message not found" });
-    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    await Message.findByIdAndDelete(req.params.messageId);
-    io.to(message.receiver.toString()).emit('messageDeleted', { messageId: req.params.messageId });
-    io.to(message.sender.toString()).emit('messageDeleted', { messageId: req.params.messageId });
-    res.status(200).json({ message: "Message deleted" });
-  } catch (error) { res.status(500).json({ message: "Failed to delete message" }); }
-});
-
-app.post('/api/posts', authenticateToken, upload.single('image'), async (req, res) => {
-  try {
-    const { content, postType, videoLink } = req.body;
-    if (!content && !req.file && !videoLink) return res.status(400).json({ message: "Post must contain text, an image, or a video link." });
-    let imageUrl = "";
-    if (req.file) {
-      const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
-      const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
-      const data = await response.json();
-      if (data.success) imageUrl = data.data.url;
-    }
-    const newPost = new Post({ author: req.user.id, content: content || '', image: imageUrl, videoLink: videoLink || '', postType: postType || 'feed' });
-    await newPost.save();
-    res.status(201).json({ message: "Post created successfully!" });
-  } catch (error) { res.status(500).json({ message: "Failed to create post" }); }
-});
-
-app.put('/api/posts/:postId', authenticateToken, async (req, res) => {
-  try {
-    const { content } = req.body || {};
-    if (!content) return res.status(400).json({ message: "Content required" });
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    post.content = content;
-    await post.save();
-    res.status(200).json({ message: "Post updated successfully!" });
-  } catch (error) { res.status(500).json({ message: "Failed to update post" }); }
-});
-
-app.delete('/api/posts/:postId', authenticateToken, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    await Post.findByIdAndDelete(req.params.postId);
-    await Comment.deleteMany({ postId: req.params.postId });
-    await Notification.deleteMany({ postId: req.params.postId });
-    res.status(200).json({ message: "Post deleted successfully!" });
-  } catch (error) { res.status(500).json({ message: "Failed to delete post" }); }
-});
-
-app.post('/api/posts/:postId/like', authenticateToken, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    const postLikes = (post.likes || []).map(id => id.toString());
-    const isLiked = postLikes.includes(req.user.id.toString());
-    if (isLiked) { post.likes.pull(req.user.id); } else {
-      post.likes.push(req.user.id);
-      if (post.author.toString() !== req.user.id) {
-        await new Notification({ receiver: post.author, sender: req.user.id, type: 'like', postId: post._id }).save();
-        io.to(post.author.toString()).emit('newNotification', { type: 'like' });
-      }
-    }
-    await post.save();
-    res.status(200).json({ likes: post.likes });
-  } catch (error) { res.status(500).json({ message: "Failed to like post" }); }
-});
-
-app.post('/api/posts/:postId/view', async (req, res) => {
-  try {
-    const post = await Post.findByIdAndUpdate(req.params.postId, { $inc: { views: 1 } }, { new: true });
-    res.status(200).json({ views: post.views });
-  } catch (error) { res.status(500).json({ message: "Failed to count view" }); }
-});
-
-app.get('/api/posts/:postId/comments', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const total = await Comment.countDocuments({ postId: req.params.postId });
-    const comments = await Comment.find({ postId: req.params.postId })
-      .populate('author', 'fullName username profilePic badge followers')
-      .sort({ isPinned: -1, createdAt: -1 })
-      .skip(skip).limit(limit);
-    const validComments = comments.filter(c => c.author != null);
-    res.status(200).json({ comments: validComments, total });
-  } catch (error) { 
-    res.status(200).json({ comments: [], total: 0 }); 
-  }
-});
-
-app.post('/api/posts/:postId/comments', authenticateToken, async (req, res) => {
-  try {
-    const { content } = req.body;
-    if (!content) return res.status(400).json({ message: "Comment cannot be empty" });
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    const newComment = new Comment({ postId: req.params.postId, author: req.user.id, content });
-    await newComment.save();
-    if (post.author.toString() !== req.user.id) {
-      await new Notification({ receiver: post.author, sender: req.user.id, type: 'comment', postId: post._id }).save();
-      io.to(post.author.toString()).emit('newNotification', { type: 'comment' });
-    }
-    const populatedComment = await Comment.findById(newComment._id).populate('author', 'fullName username profilePic badge followers');
-    res.status(201).json(populatedComment);
-  } catch (error) { res.status(500).json({ message: "Failed to add comment" }); }
-});
-
-app.delete('/api/comments/:commentId', authenticateToken, async (req, res) => {
-  try {
-    const comment = await Comment.findById(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
-    if (comment.author.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
-    await Comment.findByIdAndDelete(req.params.commentId);
-    res.status(200).json({ message: "Comment deleted" });
-  } catch (error) { res.status(500).json({ message: "Failed to delete comment" }); }
-});
-
-app.post('/api/comments/:commentId/pin', authenticateToken, async (req, res) => {
-  try {
-    const comment = await Comment.findById(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
-    const post = await Post.findById(comment.postId);
-    if (post.author.toString() !== req.user.id) return res.status(403).json({ message: "Only the post author can pin comments" });
-    if (!comment.isPinned) {
-      const pinnedCount = await Comment.countDocuments({ postId: comment.postId, isPinned: true });
-      if (pinnedCount >= 3) return res.status(400).json({ message: "You can only pin up to 3 comments" });
-      comment.isPinned = true;
-    } else { comment.isPinned = false; }
-    await comment.save();
-    res.status(200).json({ message: "Pin status updated", isPinned: comment.isPinned });
-  } catch (error) { res.status(500).json({ message: "Failed to pin comment" }); }
 });
 
 app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
@@ -624,84 +692,11 @@ app.get('/api/users/suggested', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
 });
 
-app.get('/api/posts', async (req, res) => {
+app.get('/api/check-username/:username', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const feedType = req.query.type || 'global';
-
-    let currentUser = null;
-    if (req.cookies.eliget_token) {
-      try {
-        const decoded = jwt.verify(req.cookies.eliget_token, JWT_SECRET);
-        currentUser = await User.findById(decoded.id);
-      } catch (e) {}
-    }
-
-    let query = { postType: { $ne: 'job' } };
-    if (feedType === 'following' && currentUser) {
-      const currentFollowing = (currentUser.following || []).map(id => id.toString());
-      const followingList = [...currentFollowing, currentUser._id.toString()];
-      query.author = { $in: followingList };
-    }
-
-    const posts = await Post.find(query).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-    const validPosts = posts.filter(post => post.author != null);
-
-    for (let post of validPosts) {
-      post.commentCount = await Comment.countDocuments({ postId: post._id });
-      post.relationship = 'none';
-      post.isSaved = false;
-      
-      if (currentUser) {
-        const savedPosts = (currentUser.savedPosts || []).map(id => id.toString());
-        const currentFollowing = (currentUser.following || []).map(id => id.toString());
-        if (savedPosts.includes(post._id.toString())) post.isSaved = true;
-        
-        if (post.author._id.toString() !== currentUser._id.toString()) {
-          const followers = (post.author.followers || []).map(id => id.toString());
-          const isFollowing = currentFollowing.includes(post.author._id.toString());
-          const isFollower = followers.includes(currentUser._id.toString());
-          
-          if (isFollowing && isFollower) post.relationship = 'mutual';
-          else if (isFollowing) post.relationship = 'following';
-          else if (isFollower) post.relationship = 'follower';
-        }
-      }
-    }
-    res.status(200).json(validPosts);
-  } catch (error) { res.status(500).json({ message: error.message || "Failed to fetch posts" }); }
-});
-
-app.get('/api/posts/jobs', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const search = req.query.search || '';
-
-    let query = { postType: 'job' };
-    if (search) { query.content = { $regex: search, $options: 'i' }; }
-
-    const posts = await Post.find(query).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-    const validPosts = posts.filter(post => post.author != null);
-    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
-    res.status(200).json(validPosts);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch jobs" }); }
-});
-
-app.get('/api/posts/user/:userId', async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) return res.status(400).json({ message: "Invalid User ID" });
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const posts = await Post.find({ author: req.params.userId }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-    for (let post of posts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
-    res.status(200).json(posts);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch user posts" }); }
+    const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
+    res.status(200).json({ available: !existingUser });
+  } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.use('/api', (req, res) => { res.status(404).json({ message: "API Route Not Found" }); });

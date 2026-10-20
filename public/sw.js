@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eliget-v1';
+const CACHE_NAME = 'eliget-v2';
 const urlsToCache = [
   '/manifest.json',
   '/favicon.svg',
@@ -16,9 +16,9 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // API কল এবং HTML পেজগুলো Service Worker ইন্টারসেপ্ট করবে না
-  if (event.request.url.includes('/api/') || event.request.mode === 'navigate') {
-    return; // সার্ভার থেকে সরাসরি লোড হবে
+  // HTML নেভিগেশন এবং API কল Service Worker বাইপাস করবে
+  if (event.request.mode === 'navigate' || event.request.url.includes('/api/')) {
+    return;
   }
 
   event.respondWith(

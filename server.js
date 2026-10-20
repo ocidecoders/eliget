@@ -567,6 +567,70 @@ app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ message: "Failed to delete message" }); }
 });
 
+app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
+  try {
+    const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).lean();
+    const validNotifs = notifications.filter(n => n.sender != null);
+    res.status(200).json(validNotifs);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch notifications" }); }
+});
+
+app.get('/api/notifications/:userId/unread', authenticateToken, async (req, res) => {
+  try {
+    const count = await Notification.countDocuments({ receiver: req.user.id, isRead: false });
+    res.status(200).json({ unreadCount: count });
+  } catch (error) { res.status(500).json({ message: "Failed to fetch unread count" }); }
+});
+
+app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) => {
+  try {
+    await Notification.updateMany({ receiver: req.user.id, isRead: false }, { isRead: true });
+    res.status(200).json({ message: "Notifications marked as read" });
+  } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
+});
+
+// ================= SEARCH & FOLLOW API =================
+app.get('/api/search', async (req, res) => {
+  try {
+    const query = req.query.q;
+    if (!query || query.trim() === '') return res.status(200).json({ users: [], posts: [] });
+    const regex = new RegExp(query, 'i');
+    const users = await User.find({ $or: [{ fullName: regex }, { username: regex }] }).select('fullName username profilePic badge followers').limit(10).lean();
+    const posts = await Post.find({ content: regex }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).limit(20).lean();
+    const validPosts = posts.filter(p => p.author != null);
+    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
+    res.status(200).json({ users, posts: validPosts });
+  } catch (error) { res.status(500).json({ message: "Search failed" }); }
+});
+
+app.get('/api/trending', async (req, res) => {
+  try {
+    const posts = await Post.find({ content: /#\w+/ }).sort({ createdAt: -1 }).limit(100).select('content').lean();
+    const hashtagCounts = {};
+    const regex = /#(\w+)/g;
+    posts.forEach(post => {
+      let match;
+      while ((match = regex.exec(post.content)) !== null) {
+        const tag = match[1].toLowerCase();
+        hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+      }
+    });
+    const sorted = Object.keys(hashtagCounts).map(tag => ({ tag, count: hashtagCounts[tag] })).sort((a, b) => b.count - a.count).slice(0, 5);
+    res.status(200).json(sorted);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch trending hashtags" }); }
+});
+
+app.get('/api/users/suggested', authenticateToken, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    const currentFollowing = (currentUser.following || []).map(id => id.toString());
+    const users = await User.find({
+      _id: { $nin: [...currentFollowing, currentUser._id] }
+    }).select('fullName username profilePic badge followers').limit(5).lean();
+    res.status(200).json(users);
+  } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
+});
+
 app.get('/api/user/profile/:userId', authenticateToken, async (req, res) => {
   try {
     const targetUser = await User.findById(req.params.userId).select('-password');
@@ -627,76 +691,6 @@ app.post('/api/user/unfollow/:targetId', authenticateToken, async (req, res) => 
     }
     res.status(200).json({ message: "Unfollowed successfully" });
   } catch (error) { res.status(500).json({ message: "Failed to unfollow" }); }
-});
-
-app.get('/api/notifications/:userId', authenticateToken, async (req, res) => {
-  try {
-    const notifications = await Notification.find({ receiver: req.user.id }).populate('sender', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).lean();
-    const validNotifs = notifications.filter(n => n.sender != null);
-    res.status(200).json(validNotifs);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch notifications" }); }
-});
-
-app.get('/api/notifications/:userId/unread', authenticateToken, async (req, res) => {
-  try {
-    const count = await Notification.countDocuments({ receiver: req.user.id, isRead: false });
-    res.status(200).json({ unreadCount: count });
-  } catch (error) { res.status(500).json({ message: "Failed to fetch unread count" }); }
-});
-
-app.post('/api/notifications/:userId/read', authenticateToken, async (req, res) => {
-  try {
-    await Notification.updateMany({ receiver: req.user.id, isRead: false }, { isRead: true });
-    res.status(200).json({ message: "Notifications marked as read" });
-  } catch (error) { res.status(500).json({ message: "Failed to mark as read" }); }
-});
-
-app.get('/api/search', async (req, res) => {
-  try {
-    const query = req.query.q;
-    if (!query || query.trim() === '') return res.status(200).json({ users: [], posts: [] });
-    const regex = new RegExp(query, 'i');
-    const users = await User.find({ $or: [{ fullName: regex }, { username: regex }] }).select('fullName username profilePic badge followers').limit(10).lean();
-    const posts = await Post.find({ content: regex }).populate('author', 'fullName username profilePic badge followers').sort({ createdAt: -1 }).limit(20).lean();
-    const validPosts = posts.filter(p => p.author != null);
-    for (let post of validPosts) { post.commentCount = await Comment.countDocuments({ postId: post._id }); }
-    res.status(200).json({ users, posts: validPosts });
-  } catch (error) { res.status(500).json({ message: "Search failed" }); }
-});
-
-app.get('/api/trending', async (req, res) => {
-  try {
-    const posts = await Post.find({ content: /#\w+/ }).sort({ createdAt: -1 }).limit(100).select('content').lean();
-    const hashtagCounts = {};
-    const regex = /#(\w+)/g;
-    posts.forEach(post => {
-      let match;
-      while ((match = regex.exec(post.content)) !== null) {
-        const tag = match[1].toLowerCase();
-        hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
-      }
-    });
-    const sorted = Object.keys(hashtagCounts).map(tag => ({ tag, count: hashtagCounts[tag] })).sort((a, b) => b.count - a.count).slice(0, 5);
-    res.status(200).json(sorted);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch trending hashtags" }); }
-});
-
-app.get('/api/users/suggested', authenticateToken, async (req, res) => {
-  try {
-    const currentUser = await User.findById(req.user.id);
-    const currentFollowing = (currentUser.following || []).map(id => id.toString());
-    const users = await User.find({
-      _id: { $nin: [...currentFollowing, currentUser._id] }
-    }).select('fullName username profilePic badge followers').limit(5).lean();
-    res.status(200).json(users);
-  } catch (error) { res.status(500).json({ message: "Failed to fetch suggested users" }); }
-});
-
-app.get('/api/check-username/:username', async (req, res) => {
-  try {
-    const existingUser = await User.findOne({ username: req.params.username.toLowerCase() });
-    res.status(200).json({ available: !existingUser });
-  } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.use('/api', (req, res) => { res.status(404).json({ message: "API Route Not Found" }); });

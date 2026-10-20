@@ -225,10 +225,8 @@
         }
 
         await loadTargetUserInfo();
-        
-        // FIX: Setup socket BEFORE loading messages
-        setupSocket(); 
-        await loadMessages();
+        setupSocket(); // Socket initialized first
+        await loadMessages(); // Then messages are loaded
 
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
@@ -322,7 +320,7 @@
 
         scrollToBottom();
         
-        // Now socket is guaranteed to be initialized
+        // FIX: Emit markRead right after messages are loaded
         if (socket) socket.emit('markRead', { senderId: targetUserId });
 
       } catch (err) { console.error(err); }
@@ -330,6 +328,11 @@
 
     function setupSocket() {
       socket = io();
+      
+      // FIX: Emit markRead as soon as socket connects
+      socket.on('connect', () => {
+        socket.emit('markRead', { senderId: targetUserId });
+      });
       
       socket.on('receiveMessage', (msg) => {
         if ((msg.sender === user.id && msg.receiver === targetUserId) || (msg.sender === targetUserId && msg.receiver === user.id)) {

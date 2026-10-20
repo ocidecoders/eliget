@@ -52,9 +52,9 @@
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
     
-    /* FIXED BADGE CSS */
-    .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
-    .chat-badge { position: absolute; top: -6px; right: -8px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+    /* PERFECT BADGE POSITION */
+    .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
+    .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
   </style>
 </head>
 <body>
@@ -101,7 +101,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/theme.js"></script>
-  <script src="/splash.js"></script> <!-- THIS WAS MISSING -->
+  <script src="/splash.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
 
@@ -179,13 +179,13 @@
           return;
         }
 
-        container.innerHTML = chats.map(chat => {
+        container.innerHTML = chats.map((chat, index) => {
           const initial = chat.user.fullName.charAt(0).toUpperCase();
           const avatarStyle = chat.user.profilePic ? `background-image: url('${chat.user.profilePic}')` : '';
           
-          // Added navigateWithSplash here
+          // Removed onclick from here to attach via JS
           return `
-            <div class="chat-item" onclick="navigateWithSplash('/chat-room.html?id=${chat.user._id}', 'Loading ${chat.user.fullName}\\'s Chatroom...')">
+            <div class="chat-item" data-index="${index}">
               <div class="chat-avatar" style="${avatarStyle}">${chat.user.profilePic ? '' : initial}</div>
               <div class="chat-info">
                 <div class="chat-header">
@@ -200,6 +200,16 @@
             </div>
           `;
         }).join('');
+
+        // Attach event listeners safely
+        document.querySelectorAll('.chat-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const index = parseInt(item.dataset.index);
+            const chat = chats[index];
+            navigateWithSplash(`/chat-room.html?id=${chat.user._id}`, `Loading ${chat.user.fullName}'s Chatroom...`);
+          });
+        });
+
       } catch (err) {
         container.innerHTML = '<p style="text-align:center; color:red;">Failed to load chats.</p>';
       }

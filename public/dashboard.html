@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- FIX: Title -->
   <title>Dashboard - Eliget Social Network</title>
-  <!-- FIX: Meta Description -->
   <meta name="description" content="View your Eliget profile, your posts, and saved items. Manage your dashboard on the anti-addiction social media platform.">
   
   <link rel="manifest" href="/manifest.json">
@@ -40,14 +38,15 @@
     
     .profile-info-container { padding: 0 20px 20px 20px; position: relative; }
     .avatar-wrapper { position: absolute; top: -50px; left: 20px; }
-    .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-family: 'Archivo', sans-serif; font-weight: 700; border: 4px solid var(--surface); background-size: cover; background-position: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    
+    /* FIXED: Ensure background is green */
+    .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background-color: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-family: 'Archivo', sans-serif; font-weight: 700; border: 4px solid var(--surface); background-size: cover; background-position: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     
     .edit-badge { position: absolute; bottom: 5px; right: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .edit-badge svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2; }
 
     .profile-actions { display: flex; justify-content: flex-end; padding-top: 15px; margin-bottom: 10px; }
     
-    /* FIX: Changed to h1 */
     .profile-details h1 { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     
     .profile-username { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px; display: block; }
@@ -74,8 +73,11 @@
     .post-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 20px; border: 1px solid var(--line); }
     .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .header-left { display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 44px; height: 44px; border-radius: 50%; background: #E2E8F0; background-size: cover; background-position: center; border: 2px solid var(--green); }
-    .avatar-text { display: flex; justify-content: center; align-items: center; background: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    
+    /* FIXED: Avatar background color */
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background-color: var(--green); background-size: cover; background-position: center; border: 2px solid var(--green); flex-shrink: 0; }
+    .avatar-text { display: flex; justify-content: center; align-items: center; background-color: var(--green); color: white; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    
     .post-header h4 { font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
     .post-header .username { font-size: 0.8rem; color: var(--text-muted); display: block; }
     .badge-icon { width: 16px; height: 16px; fill: var(--blue); vertical-align: text-bottom; }
@@ -270,13 +272,18 @@
       const profileAvatar = document.getElementById('profileAvatar');
       const navPic = document.getElementById('navProfilePic');
       
+      // FIX: Ensure background is always green
+      profileAvatar.style.backgroundColor = '#10B981';
+      navPic.style.backgroundColor = '#10B981';
+      
       if (user.profilePic) {
         profileAvatar.style.backgroundImage = `url(${user.profilePic})`;
         profileAvatar.innerText = '';
         navPic.style.backgroundImage = `url(${user.profilePic})`;
       } else {
+        profileAvatar.style.backgroundImage = 'none';
         profileAvatar.innerText = user.fullName.charAt(0).toUpperCase();
-        navPic.style.background = '#10B981';
+        navPic.style.backgroundImage = 'none';
         navPic.innerText = user.fullName.charAt(0).toUpperCase();
       }
 
@@ -385,11 +392,16 @@
           mediaHTML = `<img src="${post.image}" class="post-image" loading="lazy">`;
         }
 
+        // FIX: Dynamically set avatar for the post card
+        const avatarHtml = user.profilePic 
+          ? `<div class="avatar" style="background-image: url('${user.profilePic}')"></div>` 
+          : `<div class="avatar avatar-text">${user.fullName.charAt(0).toUpperCase()}</div>`;
+
         return `
           <div class="post-card">
             <div class="post-header">
               <div class="header-left">
-                <div class="avatar avatar-text">${user.fullName.charAt(0).toUpperCase()}</div>
+                ${avatarHtml}
                 <div>
                   <h4>${user.fullName} ${getBadgeSVG(user)}</h4>
                   <span class="username">@${user.username}</span>

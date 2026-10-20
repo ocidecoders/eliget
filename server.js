@@ -12,9 +12,7 @@ const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
-
-// Keep Helmet for HTTP Header Security, remove others that break Express 5
-const helmet = require('helmet'); 
+const helmet = require('helmet');
 
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -34,7 +32,7 @@ cloudinary.config({
 
 app.set('trust proxy', 1);
 
-// 🛡️ SECURITY GUARDS (Simplified for Express 5)
+// 🛡️ Security Headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -88,7 +86,6 @@ mongoose.connect(process.env.MONGO_URI)
         u.badge = true;
         await u.save();
       }
-      console.log(`✅ Auto-cleaned and verified badges for ${validUsers.length} valid users.`);
     } catch (e) { console.log('Error during auto-badge cleanup:', e); }
   })
   .catch(err => console.log('MongoDB Error:', err));
@@ -127,7 +124,9 @@ io.on('connection', (socket) => {
     try {
       const { senderId } = data;
       await Message.updateMany({ sender: senderId, receiver: socket.userId, isRead: false }, { isRead: true });
+      // Notify sender that messages are read
       io.to(senderId).emit('messagesRead', { receiverId: socket.userId });
+      // Notify reader to update badge
       io.to(socket.userId).emit('unreadBadgeUpdate');
     } catch (err) { console.error(err); }
   });
@@ -534,7 +533,10 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
       .skip(skip).limit(limit);
     const validComments = comments.filter(c => c.author != null);
     res.status(200).json({ comments: validComments, total });
-  } catch (error) { res.status(500).json({ message: "Failed to fetch comments" }); }
+  } catch (error) { 
+    // If error, return empty array so frontend doesn't break
+    res.status(200).json({ comments: [], total: 0 }); 
+  }
 });
 
 app.post('/api/posts/:postId/comments', authenticateToken, async (req, res) => {

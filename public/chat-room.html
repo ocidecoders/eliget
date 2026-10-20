@@ -314,6 +314,8 @@
         }).join('');
 
         scrollToBottom();
+        
+        // THIS IS THE FIX FOR SEEN STATUS
         if (socket) socket.emit('markRead', { senderId: targetUserId });
 
       } catch (err) { console.error(err); }
@@ -348,23 +350,8 @@
           container.insertAdjacentHTML('beforeend', msgHTML);
           scrollToBottom();
 
+          // If I received a message while looking at the screen, mark it as read immediately
           if (!isSent) socket.emit('markRead', { senderId: targetUserId });
-        }
-      });
-
-      socket.on('messageEdited', (msg) => {
-        const msgElement = document.getElementById(`msg-${msg._id}`);
-        if (msgElement) {
-          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const isSent = msg.sender === user.id;
-          msgElement.innerHTML = `
-            ${msg.text}
-            <div class="message-time">
-              <span class="edited-text">(edited)</span> ${time}
-              ${isSent ? getTicksHTML(msg.isRead) : ''}
-            </div>
-          `;
-          msgElement.setAttribute('onclick', `openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', false)`);
         }
       });
 
@@ -372,7 +359,7 @@
         if (data.receiverId === targetUserId) {
           const ticks = document.querySelectorAll('.message.sent .ticks');
           ticks.forEach(tick => {
-            if (!tick.classList.contains('read')) tick.classList.add('read');
+            tick.classList.add('read');
           });
         }
       });

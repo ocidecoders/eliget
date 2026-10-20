@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Eliget Blog - Insights, Tech & Social Media</title>
+  <meta name="description" content="Read the latest articles from Eliget about social media, anti-addiction, freelancing, and building a better digital life.">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
+    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); padding-bottom: 70px; }
+    
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
+    .logo span { color: var(--green); }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header-title { font-family: 'Archivo', sans-serif; font-size: 1.8rem; margin-bottom: 10px; }
+    .header-subtitle { color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem; }
+    
+    .blog-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 15px; text-decoration: none; display: block; transition: transform 0.2s, box-shadow 0.2s; }
+    .blog-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .blog-card h2 { font-family: 'Archivo', sans-serif; font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+    .blog-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+    .read-more { display: inline-block; margin-top: 12px; color: var(--green); font-weight: 600; font-size: 0.9rem; }
+
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
+    .nav-item.active { color: var(--green); }
+    .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-item.plus-btn { flex: 0.5; }
+    .nav-item.plus-btn .plus-circle { position: absolute; top: -30px; width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+    .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
+    .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
+  </style>
+</head>
+<body>
+
+  <div class="top-nav">
+    <button class="back-btn" onclick="window.location.href='/home.html'">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <div class="logo">Eli<span>get Blog</span></div>
+  </div>
+
+  <div class="container">
+    <h1 class="header-title">Latest Insights</h1>
+    <p class="header-subtitle">Articles about social media, freelancing, and building a distraction-free internet.</p>
+
+    <a href="/blog-what-is-eliget.html" class="blog-card">
+      <h2>What is Eliget? The Anti-Addiction Social Media</h2>
+      <p>Discover why we built a platform with no infinite scrolling, no algorithms, and no short videos. Just pure connections.</p>
+      <span class="read-more">Read Article &rarr;</span>
+    </a>
+
+    <a href="/blog-get-free-website.html" class="blog-card">
+      <h2>How to Get a Free Website for Your Business</h2>
+      <p>Learn the exact steps to create a professional website for your portfolio or business without spending a single dollar.</p>
+      <span class="read-more">Read Article &rarr;</span>
+    </a>
+
+    <a href="/blog-top-social-media.html" class="blog-card">
+      <h2>Top 5 Social Media Platforms in 2026</h2>
+      <p>We compare the biggest social networks and why smaller, text-focused platforms are becoming the new trend.</p>
+      <span class="read-more">Read Article &rarr;</span>
+    </a>
+    
+    <a href="/blog-trusted-job-platform.html" class="blog-card">
+      <h2>Trusted Job Finding Platforms for Freelancers</h2>
+      <p>Tired of scams? Here is a list of the most trusted platforms to find your next client or full-time job.</p>
+      <span class="read-more">Read Article &rarr;</span>
+    </a>
+
+    <a href="/blog-how-to-get-clients.html" class="blog-card">
+      <h2>How to Get Clients as a Beginner Freelancer</h2>
+      <p>Struggling to find your first client? Read this guide on cold outreach, portfolio building, and networking.</p>
+      <span class="read-more">Read Article &rarr;</span>
+    </a>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="/jobs.html" class="nav-item">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+      Jobs
+    </a>
+    <a href="/home.html" class="nav-item active">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      Home
+    </a>
+    <a href="/create-post.html" class="nav-item plus-btn">
+      <div class="plus-circle">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </div>
+    </a>
+    <a href="/chat.html" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      Chats
+    </a>
+    <a href="/dashboard.html" class="nav-item profile-nav" id="navProfileBtn">
+      <div class="profile-pic" id="navProfilePic"></div>
+    </a>
+  </div>
+
+  <script src="/theme.js"></script>
+  <script>
+    // Optional: Hide bottom nav if you want a pure article site
+    const user = localStorage.getItem('eliget_user');
+    if (user) {
+      const u = JSON.parse(user);
+      const pic = document.getElementById('navProfilePic');
+      if (u.profilePic) pic.style.backgroundImage = `url(${u.profilePic})`;
+      else { pic.style.background = '#10B981'; pic.innerText = u.fullName.charAt(0).toUpperCase(); }
+    }
+  </script>
+</body>
+</html>

@@ -10,6 +10,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="/favicon.svg">
   
+  <!-- Bing Verification -->
+  <meta name="msvalidate.01" content="548513EF12C6687B4259E20BBB79D6B8" />
+  
+  <!-- Google Verification -->
+  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
+
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
@@ -226,9 +232,8 @@
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 12px; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
     
-    /* FIXED BADGE CSS */
-    .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
-    .chat-badge { position: absolute; top: -6px; right: -8px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
+    .nav-icon-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; }
+    .chat-badge { position: absolute; top: -6px; right: -10px; background: #EF4444; color: white; font-size: 0.55rem; font-weight: 700; padding: 2px 5px; border-radius: 999px; min-width: 16px; text-align: center; border: 2px solid var(--surface); }
 
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -241,8 +246,6 @@
     .video-player-close svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
     .direct-video { max-width: 100%; max-height: 80vh; outline: none; }
   </style>
-
-  <meta name="google-site-verification" content="J2MjWpshMWb_BfJvhMbxRysy1B_rmmm55DSOj57Hlis" />
 </head>
 <body>
 
@@ -953,7 +956,7 @@
         const existingBtn = document.getElementById('loadMoreCommentsBtn');
         if (existingBtn) existingBtn.remove();
 
-        const comments = data.comments || []; // fallback if undefined
+        const comments = data.comments || []; 
         currentCommentTotal = data.total || 0;
 
         if (currentCommentPage === 1 && comments.length === 0) {

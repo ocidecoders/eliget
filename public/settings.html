@@ -7,49 +7,43 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; --red: #EF4444; }
-    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --red: #EF4444; }
+    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
     [data-theme="dark"] .top-nav, [data-theme="dark"] .settings-card { background-color: var(--surface); border-color: var(--line); }
-    [data-theme="dark"] input { background-color: var(--bg); color: var(--text); border-color: var(--line); }
+    [data-theme="dark"] input { background-color: #0F172A; color: var(--text); border-color: var(--line); }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
-    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
+    .back-btn:hover { background: var(--bg); }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     
-    .settings-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+    .settings-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .settings-card h3 { font-family: 'Archivo', sans-serif; font-size: 1.2rem; margin-bottom: 15px; color: var(--text); border-bottom: 1px solid var(--line); padding-bottom: 10px; }
     
-    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
     .setting-item:last-child { border-bottom: none; }
     .setting-item span { font-weight: 500; color: var(--text); font-size: 0.95rem; }
     .setting-item svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
 
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-    .btn-primary { background: var(--green); color: white; }
-    .btn-primary:hover { background: #059669; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--green); color: white; box-shadow: 0 2px 5px rgba(16,185,129,0.2); }
+    .btn-primary:hover { background: var(--green-dark); }
     
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .form-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
-    .form-group input:focus { border-color: var(--green); background: var(--surface); }
+    .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); transition: all 0.2s; }
+    .form-group input:focus { border-color: var(--green); background: var(--surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
     
-    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 3000; }
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 3000; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-    /* App Download Banner */
-    .app-download-banner { background: linear-gradient(135deg, #10B981, #059669); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; color: white; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-    .app-download-banner svg { width: 40px; height: 40px; fill: white; flex-shrink: 0; }
-    .app-info h4 { font-family: 'Archivo', sans-serif; font-size: 1.1rem; margin-bottom: 4px; }
-    .app-info p { font-size: 0.8rem; opacity: 0.9; margin-bottom: 10px; }
-    .btn-download-app { background: white; color: var(--green); padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; text-decoration: none; display: inline-block; }
   </style>
 </head>
 <body>
@@ -63,16 +57,6 @@
 
   <div class="container">
     
-    <!-- Android App Download Banner (Fixed Icon) -->
-    <div class="app-download-banner">
-      <svg viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.463 11.463 0 0 0-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
-      <div class="app-info">
-        <h4>Eliget for Android</h4>
-        <p>Install the official app for a better experience.</p>
-        <a href="/download/eliget.apk" class="btn-download-app" download>Download APK</a>
-      </div>
-    </div>
-
     <div class="settings-card">
       <h3>Profile Information</h3>
       <div class="form-group">

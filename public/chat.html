@@ -7,44 +7,47 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root { --bg: #F3F4F6; --surface: #FFFFFF; --text: #111827; --text-muted: #6B7280; --line: #E5E7EB; --green: #10B981; }
-    [data-theme="dark"] { --bg: #111827; --surface: #1F2937; --text: #F9FAFB; --text-muted: #9CA3AF; --line: #374151; }
+    :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
+    [data-theme="dark"] { --bg: #0B1120; --surface: #1E293B; --text: #F8FAFC; --text-muted: #94A3B8; --line: #334155; }
     [data-theme="dark"] body { background-color: var(--bg); color: var(--text); }
     [data-theme="dark"] .top-nav, [data-theme="dark"] .bottom-nav, [data-theme="dark"] .chat-item { background-color: var(--surface); border-color: var(--line); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
-    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
-    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; }
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
+    .back-btn:hover { background: var(--bg); }
     .back-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--text); }
     .logo span { color: var(--green); }
 
     .container { max-width: 600px; margin: 0 auto; padding: 15px 20px; }
 
-    .chat-item { background: var(--surface); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid var(--line); transition: background 0.2s; }
-    .chat-item:hover { background: #E5E7EB; }
-    [data-theme="dark"] .chat-item:hover { background: var(--line); }
+    .chat-item { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid var(--line); transition: transform 0.2s, background 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .chat-item:hover { background: #F1F5F9; transform: translateY(-2px); }
+    [data-theme="dark"] .chat-item:hover { background: #0F172A; }
     
-    .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #E5E7EB; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.2rem; background-color: var(--green); flex-shrink: 0; }
+    .chat-avatar { width: 54px; height: 54px; border-radius: 50%; background: #E2E8F0; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700; font-size: 1.3rem; background-color: var(--green); flex-shrink: 0; }
     .chat-info { flex: 1; overflow: hidden; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .chat-name { font-weight: 600; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+    .chat-name { font-weight: 600; font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
     .chat-time { font-size: 0.75rem; color: var(--text-muted); }
     .chat-msg { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .unread-badge { background: var(--green); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; margin-left: 10px; }
-
-    .badge-icon { width: 16px; height: 16px; fill: #3B82F6; vertical-align: text-bottom; }
+    
+    .unread-badge { background: var(--green); color: white; font-size: 0.75rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-left: 10px; }
+    .badge-icon { width: 16px; height: 16px; fill: var(--blue); vertical-align: text-bottom; }
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 60px; height: 60px; stroke: #CBD5E1; margin-bottom: 15px; }
     .empty-state p { font-size: 1rem; }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #9CA3AF; font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; height: 65px; z-index: 1000; max-width: 600px; margin: 0 auto; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.58rem; font-weight: 600; gap: 4px; flex: 1; position: relative; transition: color 0.2s; }
     .nav-item.active { color: var(--green); }
     .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-item.plus-btn { flex: 0.5; }
     .nav-item.plus-btn .plus-circle { position: absolute; top: -30px; width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transition: transform 0.2s; }
+    .nav-item.plus-btn:hover .plus-circle { transform: scale(1.05); }
     .nav-item.plus-btn svg { width: 28px; height: 28px; stroke: white; stroke-width: 3; }
     .nav-item.profile-nav .profile-pic { width: 26px; height: 26px; border-radius: 50%; background: #ccc; background-size: cover; background-position: center; border: 2px solid transparent; }
     .nav-item.profile-nav.active .profile-pic { border-color: var(--green); }
@@ -61,7 +64,10 @@
   </div>
 
   <div class="container" id="chatListContainer">
-    <div class="empty-state"><p>Loading chats...</p></div>
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <p>Loading chats...</p>
+    </div>
   </div>
 
   <div class="bottom-nav">
@@ -128,11 +134,11 @@
       socket = io();
       socket.on('newChatMessage', () => {
         fetchChatBadge();
-        loadChats(); // Reload list to show new message
+        loadChats();
       });
       socket.on('unreadBadgeUpdate', () => {
         fetchChatBadge();
-        loadChats(); // Reload list to clear unread indicator
+        loadChats();
       });
     }
 
@@ -160,7 +166,10 @@
         const chats = await res.json();
 
         if (chats.length === 0) {
-          container.innerHTML = `<div class="empty-state"><p>No messages yet.</p></div>`;
+          container.innerHTML = `<div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <p>No messages yet.</p>
+          </div>`;
           return;
         }
 

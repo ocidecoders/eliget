@@ -317,7 +317,6 @@ app.post('/api/user/follow/:targetId', authenticateToken, async (req, res) => {
     await User.findByIdAndUpdate(req.params.targetId, { $addToSet: { followers: req.user.id } });
     
     if (!alreadyFollowing) {
-      // BADGE LOGIC: Check if followers reached 100
       const updatedTargetUser = await User.findById(req.params.targetId);
       if (updatedTargetUser.followers.length >= 100 && !updatedTargetUser.badge) {
         updatedTargetUser.badge = true;
@@ -399,6 +398,28 @@ app.get('/api/chats/:targetUserId', authenticateToken, async (req, res) => {
     const messages = await Message.find({ $or: [{ sender: req.user.id, receiver: req.params.targetUserId }, { sender: req.params.targetUserId, receiver: req.user.id }] }).sort({ createdAt: 1 });
     res.status(200).json(messages);
   } catch (error) { res.status(500).json({ message: "Failed to fetch messages" }); }
+});
+
+// EDIT MESSAGE ROUTE
+app.put('/api/messages/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Text is required." });
+    
+    const message = await Message.findById(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (message.sender.toString() !== req.user.id) return res.status(403).json({ message: "Unauthorized" });
+    if (message.audioUrl || message.imageUrl) return res.status(400).json({ message: "Cannot edit media messages." });
+
+    message.text = text;
+    message.isEdited = true;
+    await message.save();
+
+    io.to(message.receiver.toString()).emit('messageEdited', message);
+    io.to(message.sender.toString()).emit('messageEdited', message);
+
+    res.status(200).json({ message: "Message edited", updatedMessage: message });
+  } catch (error) { res.status(500).json({ message: "Failed to edit message" }); }
 });
 
 app.delete('/api/messages/:messageId', authenticateToken, async (req, res) => {

@@ -5,8 +5,9 @@ const MessageSchema = new mongoose.Schema({
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   text: { type: String, default: "" },
   audioUrl: { type: String, default: "" },
-  imageUrl: { type: String, default: "" }, // নতুন: ছবির লিংক
-  isRead: { type: Boolean, default: false }
+  imageUrl: { type: String, default: "" },
+  isRead: { type: Boolean, default: false },
+  isEdited: { type: Boolean, default: false } // নতুন: মেসেজ এডিট হয়েছে কিনা
 }, { timestamps: true });
 
 module.exports = mongoose.model('Message', MessageSchema);

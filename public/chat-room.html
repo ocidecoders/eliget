@@ -16,6 +16,8 @@
     [data-theme="dark"] .btn-icon { background: var(--bg); border-color: var(--line); color: var(--text); }
     [data-theme="dark"] .voice-message { background: var(--bg); }
     [data-theme="dark"] .message.sent .voice-message { background: rgba(255,255,255,0.15); }
+    [data-theme="dark"] .action-sheet { background: var(--surface); }
+    [data-theme="dark"] .action-item { border-color: var(--line); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
@@ -30,23 +32,23 @@
 
     .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; }
 
-    .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; cursor: pointer; transition: background 0.2s; }
+    .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; transition: background 0.2s; }
     .message.received { background: var(--surface); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--line); }
-    .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .message.sent { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; cursor: pointer; }
     
     .message-time { font-size: 0.65rem; margin-top: 4px; text-align: right; opacity: 0.8; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
     .message.sent .message-time { color: rgba(255,255,255,0.9); }
     .message.received .message-time { color: var(--text-muted); }
 
+    .edited-text { font-size: 0.65rem; opacity: 0.8; margin-right: 4px; }
+    
     .ticks { display: flex; align-items: center; margin-left: 4px; }
     .ticks svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
     .ticks.read svg { stroke: #60A5FA; }
 
-    /* Custom Image in Chat */
     .chat-image-container { margin-bottom: 5px; }
     .chat-image { width: 100%; max-width: 250px; border-radius: 12px; display: block; cursor: pointer; object-fit: cover; }
 
-    /* Custom Audio Player */
     .voice-message { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 8px 12px; border-radius: 12px; margin-bottom: 4px; min-width: 200px; }
     .message.sent .voice-message { background: rgba(255,255,255,0.2); }
     
@@ -94,12 +96,22 @@
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* Fullscreen Image Modal */
+    /* Image Modal */
     .image-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
     .image-modal.show { display: flex; opacity: 1; }
     .image-modal img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; }
     .close-modal { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
     .close-modal svg { width: 24px; height: 24px; stroke: white; stroke-width: 2; }
+
+    /* Action Sheet for Message Options */
+    .action-sheet-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; }
+    .action-sheet-overlay.show { display: flex; }
+    .action-sheet { background: var(--surface); width: 100%; max-width: 600px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 20px; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .action-item { display: flex; align-items: center; gap: 12px; padding: 15px; border-bottom: 1px solid var(--line); cursor: pointer; font-weight: 600; color: var(--text); }
+    .action-item:last-child { border-bottom: none; }
+    .action-item.danger { color: #EF4444; }
+    .action-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
   </style>
 </head>
 <body>
@@ -128,7 +140,6 @@
   </div>
 
   <div class="input-area">
-    <!-- Image Upload Button -->
     <input type="file" id="chatImageInput" accept="image/*" style="display: none;">
     <button class="btn-icon" id="imageBtn" title="Send Photo">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -153,6 +164,20 @@
     <img id="fullscreenImage" src="" alt="Enlarged Image" onclick="event.stopPropagation()">
   </div>
 
+  <!-- Message Options Action Sheet -->
+  <div class="action-sheet-overlay" id="actionSheetOverlay" onclick="closeActionSheet()">
+    <div class="action-sheet" onclick="event.stopPropagation()">
+      <div class="action-item" id="editMsgBtn" onclick="editMessage()">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+        Edit Message
+      </div>
+      <div class="action-item danger" onclick="deleteMessageFromSheet()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Delete Message
+      </div>
+    </div>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     let user = null;
@@ -162,6 +187,11 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let isRecording = false;
+    
+    // State for action sheet
+    let selectedMsgId = null;
+    let selectedMsgText = "";
+    let selectedMsgIsMedia = false;
 
     const urlParams = new URLSearchParams(window.location.search);
     targetUserId = urlParams.get('id');
@@ -241,10 +271,9 @@
     }
 
     function getImageHTML(msgId) {
-      // Use Secure Proxy Route instead of direct ImgBB link
       return `
         <div class="chat-image-container">
-          <img src="/api/chat/image/${msgId}" class="chat-image" onclick="openImageModal(this.src)">
+          <img src="/api/chat/image/${msgId}" class="chat-image" onclick="event.stopPropagation(); openImageModal(this.src)">
         </div>
       `;
     }
@@ -263,11 +292,16 @@
           if (msg.audioUrl) content = getAudioHTML(msg.audioUrl);
           else if (msg.imageUrl) content = getImageHTML(msg._id);
           
+          let editedText = msg.isEdited ? `<span class="edited-text">(edited)</span>` : '';
+          
+          // Only sent messages can be clicked for edit/delete
+          let clickAction = isSent ? `onclick="openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', ${!!msg.audioUrl || !!msg.imageUrl})"` : '';
+
           return `
-            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ${clickAction}>
               ${content}
               <div class="message-time">
-                ${time}
+                ${editedText} ${time}
                 ${isSent ? getTicksHTML(msg.isRead) : ''}
               </div>
             </div>
@@ -294,9 +328,11 @@
           else if (msg.imageUrl) content = getImageHTML(msg._id);
 
           document.getElementById('typingIndicator').classList.remove('show');
+          
+          let clickAction = isSent ? `onclick="openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', ${!!msg.audioUrl || !!msg.imageUrl})"` : '';
 
           const msgHTML = `
-            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ondblclick="deleteMessage('${msg._id}')">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}" ${clickAction}>
               ${content}
               <div class="message-time">
                 ${time}
@@ -308,6 +344,25 @@
           scrollToBottom();
 
           if (!isSent) socket.emit('markRead', { senderId: targetUserId });
+        }
+      });
+
+      // Handle Message Edit Real-time
+      socket.on('messageEdited', (msg) => {
+        const msgElement = document.getElementById(`msg-${msg._id}`);
+        if (msgElement) {
+          // Update inner HTML directly
+          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const isSent = msg.sender === user.id;
+          msgElement.innerHTML = `
+            ${msg.text}
+            <div class="message-time">
+              <span class="edited-text">(edited)</span> ${time}
+              ${isSent ? getTicksHTML(msg.isRead) : ''}
+            </div>
+          `;
+          // Update click handler text
+          msgElement.setAttribute('onclick', `openActionSheet('${msg._id}', '${(msg.text || '').replace(/'/g, "\\'")}', false)`);
         }
       });
 
@@ -338,6 +393,44 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // --- ACTION SHEET LOGIC ---
+    function openActionSheet(msgId, text, isMedia) {
+      selectedMsgId = msgId;
+      selectedMsgText = text;
+      selectedMsgIsMedia = isMedia;
+
+      const editBtn = document.getElementById('editMsgBtn');
+      if (isMedia) {
+        editBtn.style.display = 'none'; // Can't edit audio/image
+      } else {
+        editBtn.style.display = 'flex';
+      }
+
+      document.getElementById('actionSheetOverlay').classList.add('show');
+    }
+
+    function closeActionSheet() {
+      document.getElementById('actionSheetOverlay').classList.remove('show');
+    }
+
+    function editMessage() {
+      closeActionSheet();
+      const newText = prompt("Edit your message:", selectedMsgText);
+      if (newText !== null && newText.trim() !== "" && newText !== selectedMsgText) {
+        fetch(`/api/messages/${selectedMsgId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: newText.trim() })
+        });
+      }
+    }
+
+    function deleteMessageFromSheet() {
+      closeActionSheet();
+      if (!confirm('Delete this message?')) return;
+      fetch(`/api/messages/${selectedMsgId}`, { method: 'DELETE' });
+    }
+
     // --- IMAGE SENDING LOGIC ---
     const imageBtn = document.getElementById('imageBtn');
     const chatImageInput = document.getElementById('chatImageInput');
@@ -348,7 +441,6 @@
       const file = e.target.files[0];
       if (!file) return;
 
-      // Show temporary loading state on button
       const originalSvg = imageBtn.innerHTML;
       imageBtn.innerHTML = `<div style="width:16px; height:16px; border:2px solid var(--text-muted); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></div>`;
 
@@ -356,12 +448,8 @@
       formData.append('image', file);
 
       try {
-        const res = await fetch('/api/upload-chat-image', {
-          method: 'POST',
-          body: formData
-        });
+        const res = await fetch('/api/upload-chat-image', { method: 'POST', body: formData });
         const data = await res.json();
-        
         if (res.ok) {
           socket.emit('sendMessage', { receiverId: targetUserId, imageUrl: data.imageUrl });
         } else {
@@ -372,11 +460,10 @@
         alert('Error uploading image.');
       } finally {
         imageBtn.innerHTML = originalSvg;
-        chatImageInput.value = ''; // Reset
+        chatImageInput.value = ''; 
       }
     });
 
-    // Fullscreen Modal
     function openImageModal(src) {
       const modal = document.getElementById('imageModal');
       document.getElementById('fullscreenImage').src = src;
@@ -493,7 +580,7 @@
           mediaRecorder.start();
           isRecording = true;
           recordBtn.classList.add('recording');
-          recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>`; // Stop icon
+          recordBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>`; 
         } catch (err) {
           alert('Microphone access denied or not available.');
         }
@@ -504,13 +591,6 @@
         }
       }
     });
-
-    async function deleteMessage(msgId) {
-      if (!confirm('Delete this message?')) return;
-      try {
-        await fetch(`/api/messages/${msgId}`, { method: 'DELETE' });
-      } catch (err) { alert('Failed to delete message'); }
-    }
 
     initAuth();
   </script>

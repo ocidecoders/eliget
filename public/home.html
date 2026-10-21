@@ -21,7 +21,7 @@
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 130px; opacity: 0; transition: opacity 0.3s ease-in-out; } /* Extra padding for sticky ad */
 
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
     .logo { font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--text); }
@@ -112,7 +112,7 @@
 
     .banner-ad-container {
       width: 100%;
-      min-height: 90px; /* Accommodate desktop 728x90 */
+      min-height: 90px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -128,6 +128,42 @@
     @media (min-width: 768px) {
       .desktop-ad { display: flex; justify-content: center; align-items: center; }
       .mobile-ad { display: none !important; }
+    }
+
+    /* Sticky Bottom Ad */
+    .sticky-ad-wrapper {
+      position: fixed;
+      bottom: 65px; /* Above bottom nav */
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+    .sticky-ad-close {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(15, 23, 42, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      z-index: 10;
     }
 
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
@@ -255,24 +291,9 @@
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 3000; display: flex; align-items: center; gap: 8px; }
     .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* --- FIXED VIDEO PLAYER MODAL STYLES --- */
-    #videoPlayerModal { 
-      z-index: 3000; 
-      padding: 0; 
-      background: rgba(15, 23, 42, 0.95); 
-      backdrop-filter: blur(8px); 
-      overflow-y: auto; /* Allow scrolling */
-    }
-    .video-player-box { 
-      width: 100%; 
-      min-height: 100%; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: flex-start; 
-      align-items: center; 
-      position: relative; 
-      padding: 60px 20px 40px 20px; /* Add padding so content doesn't hit edges */
-    }
+    /* Video Player Modal (No Ads) */
+    #videoPlayerModal { z-index: 3000; padding: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); overflow-y: auto; }
+    .video-player-box { width: 100%; min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; padding: 60px 20px 40px 20px; }
     .video-player-iframe { width: 100%; max-width: 800px; aspect-ratio: 16/9; border: none; background: #000; }
     .video-player-close { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s; z-index: 3002; }
     .video-player-close:hover { background: rgba(255,255,255,0.3); }
@@ -326,6 +347,12 @@
   <div class="toast-notification" id="toastNotif">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
     <span>New notification received!</span>
+  </div>
+
+  <!-- Sticky Bottom Ad -->
+  <div class="sticky-ad-wrapper" id="stickyAd">
+    <button class="sticky-ad-close" onclick="closeStickyAd()">×</button>
+    <iframe src="/ad-320x50.html" width="320" height="50" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
   </div>
 
   <div class="modal-overlay" id="videoPlayerModal">
@@ -400,6 +427,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
+
+    // Sticky Ad Logic
+    function closeStickyAd() {
+      document.getElementById('stickyAd').style.display = 'none';
+      document.body.style.paddingBottom = '70px'; // Restore original bottom padding
+    }
 
     let user = null;
     let currentPage = 1;
@@ -622,25 +655,13 @@
     function openVideoPlayer(videoUrl) {
       const container = document.getElementById('videoPlayerContainer');
       
+      // Video Player Modal (No Ads)
       container.innerHTML = `
         <button class="video-player-close" onclick="closeVideoPlayer()">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         <div style="width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center;">
             <div id="videoEmbedArea" style="width: 100%;"></div>
-            
-            <!-- Video Modal Ads -->
-            <div class="ad-container">
-              <!-- Mobile Ad -->
-              <div class="mobile-ad" style="width: 100%; height: 250px;">
-                <iframe src="/ad-300x250.html" width="300" height="250" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
-              </div>
-              
-              <!-- Desktop Ad -->
-              <div class="desktop-ad" style="width: 100%; height: 90px; margin-top: 15px;">
-                <iframe src="/ad-728x90.html" width="728" height="90" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
-              </div>
-            </div>
         </div>
       `;
 
@@ -758,7 +779,7 @@
       const htmlString = validPosts.map((post, index) => {
         let postHTML = generatePostHTML(post);
         
-        // Inject Banner Ad after every 3rd post (Responsive: Mobile 320x50, Desktop 728x90)
+        // Inject Banner Ad after every 3rd post
         if ((allLoadedPosts.length + index + 1) % 3 === 0) {
           postHTML += `
             <div class="banner-ad-container">

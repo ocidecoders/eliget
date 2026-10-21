@@ -17,7 +17,7 @@
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --blue: #3B82F6; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
+    body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 130px; opacity: 0; transition: opacity 0.3s ease-in-out; } /* Extra padding for sticky ad */
 
     .top-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 50%; transition: background 0.2s; }
@@ -27,8 +27,6 @@
     .logo span { color: var(--green); }
 
     .profile-header { position: relative; max-width: 600px; margin: 0 auto; background: var(--surface); border-bottom: 1px solid var(--line); }
-    
-    /* Cover Photo & Ad Container */
     .cover-pic { width: 100%; height: 180px; background: #E2E8F0; background-size: cover; background-position: center; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
     .cover-pic::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); pointer-events: none; }
     .cover-pic iframe { width: 100%; height: 100%; border: none; z-index: 1; }
@@ -108,6 +106,61 @@
     .user-list-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: white; display: flex; justify-content: center; align-items: center; font-weight: 700; background-size: cover; background-position: center; }
     .user-list-info h4 { font-size: 0.9rem; color: var(--text); display: flex; align-items: center; gap: 4px; }
     .user-list-info span { font-size: 0.8rem; color: var(--text-muted); }
+
+    .banner-ad-container {
+      width: 100%;
+      min-height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .desktop-ad { display: none; }
+    .mobile-ad { display: flex; justify-content: center; align-items: center; }
+    
+    @media (min-width: 768px) {
+      .desktop-ad { display: flex; justify-content: center; align-items: center; }
+      .mobile-ad { display: none !important; }
+    }
+
+    /* Sticky Bottom Ad */
+    .sticky-ad-wrapper {
+      position: fixed;
+      bottom: 65px; /* Above bottom nav */
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+    .sticky-ad-close {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(15, 23, 42, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -147,6 +200,12 @@
 
   <div class="container" id="feedContainer">
     <p style="text-align:center; padding:20px;">Loading posts...</p>
+  </div>
+
+  <!-- Sticky Bottom Ad -->
+  <div class="sticky-ad-wrapper" id="stickyAd">
+    <button class="sticky-ad-close" onclick="closeStickyAd()">×</button>
+    <iframe src="/ad-320x50.html" width="320" height="50" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
   </div>
 
   <div class="bottom-nav">
@@ -192,6 +251,12 @@
   <script src="/splash.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => { document.body.style.opacity = '1'; });
+
+    // Sticky Ad Logic
+    function closeStickyAd() {
+      document.getElementById('stickyAd').style.display = 'none';
+      document.body.style.paddingBottom = '70px'; // Restore original bottom padding
+    }
 
     let currentUser = null;
     let targetUserId = null;
@@ -296,7 +361,6 @@
         coverPic.style.backgroundImage = 'none';
         coverPic.innerHTML = `<iframe src="/ad-cover.html"></iframe>`;
         
-        // Track Impression (Only once per session)
         const sessionKey = `ad_viewed_${u._id}`;
         if (!sessionStorage.getItem(sessionKey)) {
           fetch(`/api/user/track-ad-impression/${u._id}`, { method: 'POST' }).catch(() => {});
@@ -307,7 +371,7 @@
         if (u.coverPic) {
           coverPic.style.backgroundImage = `url(${u.coverPic})`;
         } else {
-          coverPic.style.backgroundImage = 'none'; // Default gradient or color
+          coverPic.style.backgroundImage = 'none';
         }
       }
 
@@ -362,7 +426,7 @@
           return;
         }
 
-        container.innerHTML = userPosts.map(post => {
+        container.innerHTML = userPosts.map((post, index) => {
           let mediaHTML = '';
           if (post.videoLink) {
             const thumbnail = post.image || 'https://via.placeholder.com/600x400/0F172A/ffffff?text=Video';
@@ -380,7 +444,7 @@
             ? `<div class="avatar" style="background-image: url('${targetUserData.profilePic}')"></div>`
             : `<div class="avatar avatar-text">${targetUserData.fullName.charAt(0).toUpperCase()}</div>`;
 
-          return `
+          let postHTML = `
             <div class="post-card">
               <div class="post-header">
                 ${avatarHtml}
@@ -406,6 +470,22 @@
               </div>
             </div>
           `;
+
+          // Insert Ad after every 2nd post
+          if ((index + 1) % 2 === 0) {
+            postHTML += `
+              <div class="banner-ad-container">
+                <div class="mobile-ad">
+                  <iframe src="/ad-320x50.html" width="320" height="50" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
+                </div>
+                <div class="desktop-ad">
+                  <iframe src="/ad-728x90.html" width="728" height="90" frameborder="0" scrolling="no" style="border:none; overflow:hidden;"></iframe>
+                </div>
+              </div>
+            `;
+          }
+
+          return postHTML;
         }).join('');
       } catch (err) {
         container.innerHTML = '<p style="text-align:center; color:red;">Failed to load posts.</p>';

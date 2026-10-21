@@ -149,7 +149,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials!" });
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie('eliget_token', token, COOKIE_OPTIONS);
-    res.status(200).json({ message: "Login successful!", user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website } });
+    res.status(200).json({ message: "Login successful!", user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website, allowAds: user.allowAds, adImpressions: user.adImpressions } });
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -162,7 +162,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json({ user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website } });
+    res.status(200).json({ user: { id: user._id, fullName: user.fullName, username: user.username, profilePic: user.profilePic, coverPic: user.coverPic, badge: user.badge, bio: user.bio, website: user.website, allowAds: user.allowAds, adImpressions: user.adImpressions } });
   } catch (error) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -172,8 +172,25 @@ app.post('/api/user/update-profile/:userId', authenticateToken, async (req, res)
     const safeBio = bio ? bio.substring(0, 100) : "";
     const website = { title: websiteTitle || "", url: websiteUrl || "" };
     const updatedUser = await User.findByIdAndUpdate(req.user.id, { fullName, bio: safeBio, website }, { new: true });
-    res.status(200).json({ message: "Profile updated successfully!", user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge, bio: updatedUser.bio, website: updatedUser.website } });
+    res.status(200).json({ message: "Profile updated successfully!", user: { id: updatedUser._id, fullName: updatedUser.fullName, username: updatedUser.username, profilePic: updatedUser.profilePic, coverPic: updatedUser.coverPic, badge: updatedUser.badge, bio: updatedUser.bio, website: updatedUser.website, allowAds: updatedUser.allowAds, adImpressions: updatedUser.adImpressions } });
   } catch (error) { res.status(500).json({ message: "Failed to update profile" }); }
+});
+
+// New Monetization Routes
+app.post('/api/user/toggle-ads', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.allowAds = !user.allowAds;
+    await user.save();
+    res.status(200).json({ success: true, allowAds: user.allowAds });
+  } catch (error) { res.status(500).json({ message: "Failed to toggle ads" }); }
+});
+
+app.post('/api/user/track-ad-impression/:id', async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.params.id, { $inc: { adImpressions: 1 } });
+    res.status(200).json({ success: true });
+  } catch (error) { res.status(500).json({ message: "Failed to track impression" }); }
 });
 
 app.post('/api/user/change-password', passwordChangeLimiter, authenticateToken, async (req, res) => {
@@ -237,7 +254,7 @@ app.post('/api/upload-chat-image', authenticateToken, upload.single('image'), as
     const url = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
     const response = await fetch(url, { method: 'POST', body: new URLSearchParams({ image: req.file.buffer.toString('base64') }) });
     const data = await response.json();
-    if (data.success) { res.status(200).json({ imageUrl: data.data.url }); } 
+    if (data.success) { res.status(200).json({ imageUrl: data.data.url }); }
     else { res.status(500).json({ message: "ImgBB rejected image." }); }
   } catch (error) { res.status(500).json({ message: "Upload failed" }); }
 });
@@ -291,7 +308,7 @@ app.get('/api/posts', async (req, res) => {
         const savedPosts = (currentUser.savedPosts || []).map(id => id.toString());
         const currentFollowing = (currentUser.following || []).map(id => id.toString());
         if (savedPosts.includes(post._id.toString())) post.isSaved = true;
-        
+
         if (post.author._id.toString() !== currentUser._id.toString()) {
           const followers = (post.author.followers || []).map(id => id.toString());
           const isFollowing = currentFollowing.includes(post.author._id.toString());
@@ -512,7 +529,7 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
       let lastMsg = msg.text;
       if (msg.audioUrl) lastMsg = "Voice Message";
       if (msg.imageUrl) lastMsg = "Photo";
-      if (!chatUsers.has(otherId)) { chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) }); } 
+      if (!chatUsers.has(otherId)) { chatUsers.set(otherId, { lastMessage: lastMsg, time: msg.createdAt, unread: (!msg.isRead && msg.receiver.toString() === req.user.id) }); }
       else if (!msg.isRead && msg.receiver.toString() === req.user.id) { chatUsers.get(otherId).unread = true; }
     });
     const result = [];

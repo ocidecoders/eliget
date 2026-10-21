@@ -4,28 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Settings — Eliget</title>
-  
-  <!-- New Favicons & PWA Links -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10B981">
-
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   
   <script>
     window.deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      window.deferredPrompt = e;
-    });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
   </script>
   
   <style>
     :root { --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-muted: #64748B; --line: #E2E8F0; --green: #10B981; --green-dark: #059669; --red: #EF4444; }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding-bottom: 70px; opacity: 0; transition: opacity 0.3s ease-in-out; }
 
@@ -44,6 +37,14 @@
     .setting-item:last-child { border-bottom: none; }
     .setting-item span { font-weight: 500; color: var(--text); font-size: 0.95rem; }
     .setting-item svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+
+    /* Toggle Switch */
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--green); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
     .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-primary { background: var(--green); color: white; box-shadow: 0 2px 5px rgba(16,185,129,0.2); }
@@ -152,6 +153,21 @@
       <button class="btn btn-primary" onclick="updateProfile()">Save Profile</button>
     </div>
 
+    <!-- Monetization Settings -->
+    <div class="settings-card">
+      <h3>Monetization</h3>
+      <div class="setting-item">
+        <div>
+          <span>Allow Ads on Profile</span>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Show ads on your cover photo area to earn revenue.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="allowAdsToggle" onchange="toggleAds(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
     <div class="settings-card">
       <h3>Change Password</h3>
       <div class="form-group">
@@ -202,41 +218,26 @@
     const btn = document.getElementById('installBtn');
     const installCard = document.getElementById('installAppCard');
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err));
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Register Error', err)); }
 
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (!isStandalone) {
-      installCard.style.display = 'block';
-    }
+    if (!isStandalone) { installCard.style.display = 'block'; }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      window.deferredPrompt = e;
-    });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
 
     btn.addEventListener('click', async () => {
       if (window.deferredPrompt) {
         window.deferredPrompt.prompt();
         const { outcome } = await window.deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          installCard.style.display = 'none';
-        }
+        if (outcome === 'accepted') { installCard.style.display = 'none'; }
         window.deferredPrompt = null;
       } else {
         document.getElementById('installModal').classList.add('show');
       }
     });
 
-    function closeInstallModal() {
-      document.getElementById('installModal').classList.remove('show');
-    }
-
-    window.addEventListener('appinstalled', () => {
-      installCard.style.display = 'none';
-      window.deferredPrompt = null;
-    });
+    function closeInstallModal() { document.getElementById('installModal').classList.remove('show'); }
+    window.addEventListener('appinstalled', () => { installCard.style.display = 'none'; window.deferredPrompt = null; });
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -254,6 +255,12 @@
 
         document.getElementById('fullName').value = user.fullName || '';
         document.getElementById('bio').value = user.bio || '';
+        
+        // Set Ads Toggle State
+        if (user.allowAds) {
+          document.getElementById('allowAdsToggle').checked = true;
+        }
+
         if (user.website) {
           document.getElementById('webTitle').value = user.website.title || '';
           document.getElementById('webUrl').value = user.website.url || '';
@@ -272,6 +279,23 @@
         document.body.style.opacity = '1';
       } catch (err) {
         window.location.href = '/login.html';
+      }
+    }
+
+    // Toggle Ads Function
+    async function toggleAds(isChecked) {
+      try {
+        const res = await fetch('/api/user/toggle-ads', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(isChecked ? 'Ads enabled on profile!' : 'Ads disabled.');
+        } else {
+          showToast('Failed to update settings.');
+          document.getElementById('allowAdsToggle').checked = !isChecked; // Revert
+        }
+      } catch (err) {
+        showToast('Server error.');
+        document.getElementById('allowAdsToggle').checked = !isChecked; // Revert
       }
     }
 

@@ -11,7 +11,9 @@ const UserSchema = new mongoose.Schema({
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
-  badge: { type: Boolean, default: false }
+  badge: { type: Boolean, default: false },
+  allowAds: { type: Boolean, default: false },
+  adImpressions: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
